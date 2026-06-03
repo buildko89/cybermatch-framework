@@ -70,6 +70,21 @@ CREDENTIAL_STAGED_MTD_SCENARIO_NAMES = [
     "credential_staged_mtd_stage2_only",
     "credential_staged_mtd_with_risk_bonus",
 ]
+PHASE2_PERCEIVED_UTILITY_SCENARIO_NAMES = [
+    "phase2_actual_utility_reference",
+    "phase2_perceived_decoy",
+    "phase2_perceived_credential",
+    "phase2_perceived_decoy_credential",
+    "phase2_perceived_high_uncertainty",
+]
+PHASE2_FRUSTRATION_SCENARIO_NAMES = [
+    "phase2_frustration_reference",
+    "phase2_frustration_decoy",
+    "phase2_frustration_credential",
+    "phase2_frustration_decoy_credential",
+    "phase2_frustration_high_detection",
+    "phase2_frustration_path_change",
+]
 POLICY_SELECTION_SCENARIO_NAMES = [
     "policy_target_frequency_path_decoy",
     "policy_bayesian_default_path_decoy",
@@ -211,6 +226,8 @@ MULTI_SEED_SCENARIO_NAMES = [
     *HONEYPOT_CREDENTIAL_SCENARIO_NAMES,
     *[name for name in CREDENTIAL_AWARE_MTD_SCENARIO_NAMES if name not in POLICY_SELECTION_SCENARIO_NAMES],
     *[name for name in CREDENTIAL_STAGED_MTD_SCENARIO_NAMES if name not in POLICY_SELECTION_SCENARIO_NAMES],
+    *PHASE2_PERCEIVED_UTILITY_SCENARIO_NAMES,
+    *PHASE2_FRUSTRATION_SCENARIO_NAMES,
 ]
 
 SCENARIOS: Dict[str, Dict[str, object]] = {
@@ -1193,6 +1210,33 @@ CREDENTIAL_STAGED_MTD_BASE = {
     "credential_stage2_block_duration": 2,
 }
 
+PHASE2_PERCEIVED_UTILITY_BASE = {
+    **POLICY_TARGET_FREQUENCY_BASE,
+    "perceived_utility_enabled": True,
+    "retreat_based_on": "perceived",
+    "attacker_retreat_threshold": -10.0,
+    "attacker_patience": 20,
+    "perceived_success_confidence": 0.6,
+    "perceived_decoy_penalty": 15.0,
+    "perceived_detection_penalty": 2.0,
+    "perceived_uncertainty_decay": 0.70,
+}
+
+PHASE2_FRUSTRATION_BASE = {
+    **PHASE2_PERCEIVED_UTILITY_BASE,
+    "retreat_based_on": "frustration",
+    "attacker_retreat_threshold": -999.0,
+    "attacker_patience": 50,
+    "frustration_enabled": True,
+    "frustration_decoy_hit": 3.0,
+    "frustration_credential_trap": 2.0,
+    "frustration_detection": 1.0,
+    "frustration_path_change": 0.5,
+    "frustration_no_progress": 0.5,
+    "frustration_decay": 0.95,
+    "frustration_retreat_threshold": 8.0,
+}
+
 SCENARIOS.update(
     {
         "policy_target_frequency_path_decoy": {**POLICY_TARGET_FREQUENCY_BASE},
@@ -1463,6 +1507,95 @@ SCENARIOS.update(
             **CREDENTIAL_STAGED_MTD_BASE,
             "credential_trigger_risk_bonus": 10.0,
         },
+        "phase2_actual_utility_reference": {
+            **POLICY_TARGET_FREQUENCY_BASE,
+            "perceived_utility_enabled": False,
+            "retreat_based_on": "actual",
+            "attacker_retreat_threshold": -10.0,
+            "attacker_patience": 20,
+        },
+        "phase2_perceived_decoy": {
+            **PHASE2_PERCEIVED_UTILITY_BASE,
+        },
+        "phase2_perceived_credential": {
+            **PHASE2_PERCEIVED_UTILITY_BASE,
+            "node_type": ["real", "real", "real", "decoy", "real"],
+            "asset_value": [10, 5, 1, 0, 2],
+            "attacker_belief": [2, 4, 1, 14, 2],
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [3],
+            "credential_attraction_bonus": 5.0,
+        },
+        "phase2_perceived_decoy_credential": {
+            **PHASE2_PERCEIVED_UTILITY_BASE,
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [1, 3],
+            "credential_attraction_bonus": 5.0,
+            "credential_detection_bonus": 5.0,
+        },
+        "phase2_perceived_high_uncertainty": {
+            **PHASE2_PERCEIVED_UTILITY_BASE,
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [1, 3],
+            "credential_attraction_bonus": 6.0,
+            "perceived_success_confidence": 0.3,
+            "perceived_decoy_penalty": 25.0,
+            "perceived_detection_penalty": 3.0,
+            "perceived_uncertainty_decay": 0.45,
+            "attacker_retreat_threshold": -5.0,
+        },
+        "phase2_frustration_reference": {
+            **PHASE2_FRUSTRATION_BASE,
+            "node_type": ["real", "real", "real", "real", "real"],
+            "honeypot_credential_enabled": False,
+            "frustration_retreat_threshold": 30.0,
+        },
+        "phase2_frustration_decoy": {
+            **PHASE2_FRUSTRATION_BASE,
+            "frustration_retreat_threshold": 6.0,
+        },
+        "phase2_frustration_credential": {
+            **PHASE2_FRUSTRATION_BASE,
+            "node_type": ["real", "real", "real", "decoy", "real"],
+            "asset_value": [10, 5, 1, 0, 2],
+            "attacker_belief": [2, 4, 1, 14, 2],
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [3],
+            "credential_attraction_bonus": 5.0,
+            "frustration_credential_trap": 4.0,
+            "frustration_retreat_threshold": 7.0,
+        },
+        "phase2_frustration_decoy_credential": {
+            **PHASE2_FRUSTRATION_BASE,
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [1, 3],
+            "credential_attraction_bonus": 5.0,
+            "credential_detection_bonus": 5.0,
+            "frustration_decoy_hit": 3.5,
+            "frustration_credential_trap": 3.0,
+            "frustration_retreat_threshold": 7.0,
+        },
+        "phase2_frustration_high_detection": {
+            **PHASE2_FRUSTRATION_BASE,
+            "stochastic_detection": True,
+            "base_detection_prob": 0.8,
+            "defense_detection_scale": 0.2,
+            "decoy_detection_prob": 1.0,
+            "frustration_detection": 3.0,
+            "frustration_retreat_threshold": 6.0,
+        },
+        "phase2_frustration_path_change": {
+            **PHASE2_FRUSTRATION_BASE,
+            "attacker_lateral_enabled": True,
+            "mtd_enabled": True,
+            "mtd_interval": 1,
+            "mtd_block_critical_edges": True,
+            "mtd_edge_block_count": 1,
+            "mtd_edge_block_duration": 1,
+            "frustration_path_change": 2.0,
+            "frustration_no_progress": 1.0,
+            "frustration_retreat_threshold": 5.0,
+        },
     }
 )
 
@@ -1473,6 +1606,20 @@ SUMMARY_COLUMNS = [
     "attacker_retreated",
     "attacker_retreat_step",
     "attacker_utility_final",
+    "actual_utility_final",
+    "perceived_utility_final",
+    "actual_gain",
+    "actual_cost",
+    "perceived_gain",
+    "perceived_cost",
+    "mean_confidence",
+    "frustration_final",
+    "frustration_mean",
+    "frustration_max",
+    "frustration_retreats",
+    "frustration_enabled",
+    "retreat_based_on",
+    "perceived_utility_enabled",
     "attacker_total_cost",
     "attacker_compromised_value",
     "attacker_success_count",
@@ -1644,6 +1791,20 @@ MULTI_SEED_RUN_COLUMNS = [
     "critical_compromise",
     "critical_compromise_step",
     "attacker_utility_final",
+    "actual_utility_final",
+    "perceived_utility_final",
+    "actual_gain",
+    "actual_cost",
+    "perceived_gain",
+    "perceived_cost",
+    "mean_confidence",
+    "frustration_final",
+    "frustration_mean",
+    "frustration_max",
+    "frustration_retreats",
+    "frustration_enabled",
+    "retreat_based_on",
+    "perceived_utility_enabled",
     "attacker_total_cost",
     "attacker_compromised_value",
     "attacker_success_count",
@@ -1807,6 +1968,21 @@ MULTI_SEED_STATS_COLUMNS = [
     "retreat_step_std",
     "attacker_utility_final_mean",
     "attacker_utility_final_std",
+    "actual_utility_mean",
+    "actual_utility_std",
+    "perceived_utility_mean",
+    "perceived_utility_std",
+    "confidence_mean",
+    "confidence_std",
+    "frustration_mean",
+    "frustration_std",
+    "frustration_max",
+    "frustration_max_std",
+    "frustration_retreats_mean",
+    "frustration_retreats_std",
+    "retreat_based_on",
+    "perceived_utility_enabled",
+    "frustration_enabled",
     "mtd_event_count_mean",
     "mtd_total_cost_mean",
     "mtd_compromised_delta_vs_reference",
@@ -2707,6 +2883,9 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "mtd_conditional_policy_mode": rows[0].get("mtd_conditional_policy_mode") if rows else None,
         "mtd_conditional_high_risk_threshold": rows[0].get("mtd_conditional_high_risk_threshold") if rows else None,
         "mtd_conditional_low_risk_threshold": rows[0].get("mtd_conditional_low_risk_threshold") if rows else None,
+        "retreat_based_on": rows[0].get("retreat_based_on") if rows else None,
+        "perceived_utility_enabled": rows[0].get("perceived_utility_enabled") if rows else None,
+        "frustration_enabled": rows[0].get("frustration_enabled") if rows else None,
         "retreat_rate": float(np.mean(retreated)) if rows else 0.0,
         "retreat_step_mean": _mean_or_none(retreat_steps),
         "retreat_step_std": _std_or_none(retreat_steps),
@@ -2714,6 +2893,17 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
 
     for key in [
         "attacker_utility_final",
+        "actual_utility_final",
+        "perceived_utility_final",
+        "actual_gain",
+        "actual_cost",
+        "perceived_gain",
+        "perceived_cost",
+        "mean_confidence",
+        "frustration_final",
+        "frustration_mean",
+        "frustration_max",
+        "frustration_retreats",
         "attacker_total_cost",
         "attacker_compromised_value",
         "attacker_success_count",
@@ -2755,6 +2945,16 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         values = [_to_float(row.get(key)) for row in rows]
         result[f"{key}_mean"] = _mean_or_none(values)
         result[f"{key}_std"] = _std_or_none(values)
+    result["actual_utility_mean"] = result.get("actual_utility_final_mean")
+    result["actual_utility_std"] = result.get("actual_utility_final_std")
+    result["perceived_utility_mean"] = result.get("perceived_utility_final_mean")
+    result["perceived_utility_std"] = result.get("perceived_utility_final_std")
+    result["confidence_mean"] = result.get("mean_confidence_mean")
+    result["confidence_std"] = result.get("mean_confidence_std")
+    result["frustration_mean"] = result.get("frustration_mean_mean")
+    result["frustration_std"] = result.get("frustration_mean_std")
+    result["frustration_max"] = result.get("frustration_max_mean")
+    result["frustration_max_std"] = result.get("frustration_max_std")
     result["mtd_risk_gate_score_mean"] = _mean_or_none(
         [_to_float(row.get("mtd_risk_gate_score_mean")) for row in rows]
     )
@@ -3160,6 +3360,30 @@ def plot_multiseed_summary(stats_rows: List[Dict[str, object]], output_dir: str)
         stats_rows,
         save_path=os.path.join(output_dir, "summary_credential_staged_mtd_actions.png"),
     )
+    _plot_phase2_perceived_vs_actual_utility(
+        stats_rows,
+        save_path=os.path.join(output_dir, "summary_perceived_vs_actual_utility.png"),
+    )
+    _plot_phase2_confidence_decay(
+        stats_rows,
+        save_path=os.path.join(output_dir, "summary_confidence_decay.png"),
+    )
+    _plot_phase2_perceived_retreat_rate(
+        stats_rows,
+        save_path=os.path.join(output_dir, "summary_perceived_retreat_rate.png"),
+    )
+    _plot_phase2_frustration_retreat_rate(
+        stats_rows,
+        save_path=os.path.join(output_dir, "summary_frustration_retreat_rate.png"),
+    )
+    _plot_phase2_frustration_distribution(
+        stats_rows,
+        save_path=os.path.join(output_dir, "summary_frustration_distribution.png"),
+    )
+    _plot_phase2_frustration_vs_perceived_utility(
+        stats_rows,
+        save_path=os.path.join(output_dir, "summary_frustration_vs_perceived_utility.png"),
+    )
 
 
 def _plot_mean_std_bar(
@@ -3182,6 +3406,142 @@ def _plot_mean_std_bar(
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
+
+
+def _phase2_perceived_rows(rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    wanted = set(PHASE2_PERCEIVED_UTILITY_SCENARIO_NAMES)
+    return [row for row in rows if row.get("scenario") in wanted]
+
+
+def _phase2_perceived_labels(rows: List[Dict[str, object]]) -> List[str]:
+    return [str(row["scenario"]).replace("phase2_", "") for row in rows]
+
+
+def _phase2_frustration_rows(rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    wanted = set(PHASE2_FRUSTRATION_SCENARIO_NAMES)
+    return [row for row in rows if row.get("scenario") in wanted]
+
+
+def _phase2_frustration_labels(rows: List[Dict[str, object]]) -> List[str]:
+    return [str(row["scenario"]).replace("phase2_frustration_", "") for row in rows]
+
+
+def _plot_phase2_perceived_vs_actual_utility(rows: List[Dict[str, object]], save_path: str) -> None:
+    filtered = _phase2_perceived_rows(rows)
+    if not filtered:
+        return
+    labels = _phase2_perceived_labels(filtered)
+    actual = np.array([float(row.get("actual_utility_mean") or 0.0) for row in filtered])
+    perceived = np.array([float(row.get("perceived_utility_mean") or 0.0) for row in filtered])
+    x = np.arange(len(labels))
+    width = 0.4
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.bar(x - width / 2, actual, width=width, color="#4c78a8", label="Actual utility")
+    ax.bar(x + width / 2, perceived, width=width, color="#f58518", label="Perceived utility")
+    ax.axhline(0.0, color="#333333", linewidth=1)
+    ax.set_ylabel("Utility Mean")
+    ax.set_title("Phase2.1 Actual vs Perceived Utility")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase2_confidence_decay(rows: List[Dict[str, object]], save_path: str) -> None:
+    filtered = _phase2_perceived_rows(rows)
+    if not filtered:
+        return
+    labels = _phase2_perceived_labels(filtered)
+    confidence = np.array([float(row.get("confidence_mean") or 0.0) for row in filtered])
+    plt.figure(figsize=(12, 6))
+    plt.bar(labels, confidence, color="#59a14f")
+    plt.ylim(0.0, 1.0)
+    plt.title("Phase2.1 Mean Confidence")
+    plt.ylabel("Mean Confidence")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def _plot_phase2_perceived_retreat_rate(rows: List[Dict[str, object]], save_path: str) -> None:
+    filtered = _phase2_perceived_rows(rows)
+    if not filtered:
+        return
+    labels = _phase2_perceived_labels(filtered)
+    rates = np.array([float(row.get("retreat_rate") or 0.0) for row in filtered])
+    plt.figure(figsize=(12, 6))
+    plt.bar(labels, rates, color="#e45756")
+    plt.ylim(0.0, 1.0)
+    plt.title("Phase2.1 Perceived-Utility Retreat Rate")
+    plt.ylabel("Retreat Rate")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def _plot_phase2_frustration_retreat_rate(rows: List[Dict[str, object]], save_path: str) -> None:
+    filtered = _phase2_frustration_rows(rows)
+    if not filtered:
+        return
+    labels = _phase2_frustration_labels(filtered)
+    rates = np.array([float(row.get("retreat_rate") or 0.0) for row in filtered])
+    plt.figure(figsize=(12, 6))
+    plt.bar(labels, rates, color="#e45756")
+    plt.ylim(0.0, 1.0)
+    plt.title("Phase2.2 Frustration-Based Retreat Rate")
+    plt.ylabel("Retreat Rate")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def _plot_phase2_frustration_distribution(rows: List[Dict[str, object]], save_path: str) -> None:
+    filtered = _phase2_frustration_rows(rows)
+    if not filtered:
+        return
+    labels = _phase2_frustration_labels(filtered)
+    means = np.array([float(row.get("frustration_mean") or 0.0) for row in filtered])
+    max_values = np.array([float(row.get("frustration_max") or 0.0) for row in filtered])
+    x = np.arange(len(labels))
+    width = 0.4
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.bar(x - width / 2, means, width=width, color="#4c78a8", label="Mean frustration")
+    ax.bar(x + width / 2, max_values, width=width, color="#f58518", label="Max frustration")
+    ax.set_ylabel("Frustration")
+    ax.set_title("Phase2.2 Frustration Distribution")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase2_frustration_vs_perceived_utility(rows: List[Dict[str, object]], save_path: str) -> None:
+    filtered = _phase2_frustration_rows(rows)
+    if not filtered:
+        return
+    labels = _phase2_frustration_labels(filtered)
+    perceived = np.array([float(row.get("perceived_utility_mean") or 0.0) for row in filtered])
+    frustration = np.array([float(row.get("frustration_mean") or 0.0) for row in filtered])
+    retreat_rate = np.array([float(row.get("retreat_rate") or 0.0) for row in filtered])
+    fig, ax = plt.subplots(figsize=(10, 6))
+    scatter = ax.scatter(perceived, frustration, s=80 + 220 * retreat_rate, c=retreat_rate, cmap="viridis", vmin=0.0, vmax=1.0)
+    for label, x_value, y_value in zip(labels, perceived, frustration):
+        ax.annotate(label, (x_value, y_value), textcoords="offset points", xytext=(5, 5), fontsize=8)
+    ax.axvline(0.0, color="#333333", linewidth=1)
+    ax.set_xlabel("Perceived Utility Mean")
+    ax.set_ylabel("Frustration Mean")
+    ax.set_title("Phase2.2 Frustration vs Perceived Utility")
+    fig.colorbar(scatter, ax=ax, label="Retreat Rate")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
 
 
 def _plot_visible_log_multiseed_summary(rows: List[Dict[str, object]], save_path: str) -> None:

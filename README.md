@@ -33,6 +33,19 @@ credential_aware_mtd
 Neutralization Score:
 0.742
 
+## Phase2 Direction
+
+Phase2 extends CyberMatch from defense-effect evaluation to attacker decision neutralization.
+
+Current Phase2 topics:
+
+- Perceived utility
+- Human frustration model
+- AI decision cost model
+- Cognitive neutralization score
+
+See [docs/PHASE2_ATTACKER_MODEL_ROADMAP.md](docs/PHASE2_ATTACKER_MODEL_ROADMAP.md).
+
 ## Key Findings
 
 - Naive decoy alone is weak
@@ -79,6 +92,12 @@ docs/NEUTRALIZATION_REPORT.md
 - Multi-seed neutralization scoring
 - Defender-visible observation model
 - Online adaptive defense
+
+## Development Workflow
+
+From Phase2 onward, this repository is the canonical development location.
+
+See [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md).
 
 ## Commercial Use
 

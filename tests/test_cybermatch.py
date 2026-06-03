@@ -55,6 +55,10 @@ def test_simulation_history_shapes():
     assert np.asarray(history["attacker_selection_score"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["attacker_selected_target"]).shape == (config.T,)
     assert np.asarray(history["attacker_attacked_decoy"]).shape == (config.T,)
+    assert np.asarray(history["actual_utility"]).shape == (config.T,)
+    assert np.asarray(history["perceived_utility"]).shape == (config.T,)
+    assert np.asarray(history["confidence"]).shape == (config.T,)
+    assert np.asarray(history["frustration"]).shape == (config.T,)
     assert np.asarray(history["decoy_waste_step"]).shape == (config.T,)
     assert np.asarray(history["attack_success_prob"]).shape == (config.T,)
     assert np.asarray(history["attack_detection_prob"]).shape == (config.T,)
@@ -114,6 +118,18 @@ def test_metrics_written(tmp_path):
         "clip_high_count",
         "attacker_enabled",
         "attacker_utility_final",
+        "actual_utility_final",
+        "perceived_utility_final",
+        "actual_gain",
+        "actual_cost",
+        "perceived_gain",
+        "perceived_cost",
+        "mean_confidence",
+        "frustration_final",
+        "frustration_mean",
+        "frustration_max",
+        "frustration_retreats",
+        "retreat_based_on",
         "attacker_total_cost",
         "attacker_avg_gain_per_success",
         "attacker_cost_per_success",
@@ -162,6 +178,10 @@ def test_metrics_written(tmp_path):
     assert history["asset_value"].shape == (config.n_nodes,)
     assert history["attacker_belief"].shape == (config.n_nodes,)
     assert history["attacker_attacked_decoy"].shape == (config.T,)
+    assert history["actual_utility"].shape == (config.T,)
+    assert history["perceived_utility"].shape == (config.T,)
+    assert history["confidence"].shape == (config.T,)
+    assert history["frustration"].shape == (config.T,)
     assert history["decoy_waste_step"].shape == (config.T,)
     assert history["attack_success_prob"].shape == (config.T,)
     assert history["attack_detection_prob"].shape == (config.T,)
@@ -194,6 +214,126 @@ def test_neutralization_scores_in_metrics():
         assert 0.0 <= metrics[key] <= 1.0
 
 
+def test_phase2_attacker_model_roadmap_exists():
+    path = "docs/PHASE2_ATTACKER_MODEL_ROADMAP.md"
+    with open(path, encoding="utf-8") as f:
+        content = f.read()
+
+    assert "# CyberMatch Phase2 Attacker Model Roadmap" in content
+    assert "Human Frustration Model" in content
+    assert "AI Decision Cost Model" in content
+
+
+def test_human_frustration_alias_metrics_present():
+    config = small_config(attacker_enabled=True, frustration_enabled=True)
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["human_frustration_final"] == pytest.approx(metrics["frustration_final"])
+    assert metrics["human_frustration_mean"] == pytest.approx(metrics["frustration_mean"])
+    assert metrics["human_frustration_max"] == pytest.approx(metrics["frustration_max"])
+    assert "ai_planning_cost_proxy" in metrics
+    assert "ai_uncertainty_cost_proxy" in metrics
+    assert "ai_search_cost_proxy" in metrics
+
+
+def test_perceived_utility_separates_from_actual():
+    config = small_config(
+        T=4,
+        attacker_enabled=True,
+        perceived_utility_enabled=True,
+        retreat_based_on="actual",
+        perceived_success_confidence=0.25,
+        perceived_decoy_penalty=0.0,
+        perceived_detection_penalty=1.0,
+        perceived_uncertainty_decay=1.0,
+        attacker_retreat_threshold=-999.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["actual_utility_final"] == pytest.approx(metrics["attacker_utility_final"])
+    assert metrics["actual_utility_final"] != pytest.approx(metrics["perceived_utility_final"])
+    assert metrics["actual_gain"] >= metrics["perceived_gain"]
+
+
+def test_decoy_and_credential_reduce_confidence():
+    decoy_config = small_config(
+        T=5,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="utility",
+        attacker_belief_learning_enabled=False,
+        perceived_utility_enabled=True,
+        retreat_based_on="actual",
+        perceived_uncertainty_decay=0.5,
+        attacker_retreat_threshold=-999.0,
+        node_type=["decoy", "real", "real", "real", "real"],
+        asset_value=[0.0, 5.0, 1.0, 8.0, 2.0],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        honeypot_credential_enabled=True,
+        credential_node_ids=[0],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    decoy_sim = CyberDefenseSimulator(decoy_config)
+    decoy_history = decoy_sim.run()
+
+    assert np.any(np.asarray(decoy_history["attacker_attacked_decoy"], dtype=bool))
+    assert np.min(np.asarray(decoy_history["confidence"], dtype=float)) < 1.0
+
+    credential_config = small_config(
+        T=3,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="utility",
+        perceived_utility_enabled=True,
+        retreat_based_on="actual",
+        perceived_uncertainty_decay=0.5,
+        attacker_retreat_threshold=-999.0,
+        asset_value=[10.0, 5.0, 1.0, 8.0, 2.0],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        honeypot_credential_enabled=True,
+        credential_node_ids=[0],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    credential_sim = CyberDefenseSimulator(credential_config)
+    credential_history = credential_sim.run()
+
+    assert np.any(np.asarray(credential_history["credential_decoy_trigger"], dtype=bool))
+    assert np.min(np.asarray(credential_history["confidence"], dtype=float)) < 1.0
+
+
+def test_retreat_can_be_driven_by_perceived_utility():
+    config = small_config(
+        T=8,
+        attacker_enabled=True,
+        perceived_utility_enabled=True,
+        retreat_based_on="perceived",
+        perceived_success_confidence=0.0,
+        perceived_decoy_penalty=0.0,
+        perceived_detection_penalty=1.0,
+        perceived_uncertainty_decay=1.0,
+        attacker_retreat_threshold=-1.0,
+        attacker_patience=20,
+        attacker_belief=[10.0, 5.0, 1.0, 8.0, 2.0],
+        asset_value=[10.0, 5.0, 1.0, 8.0, 2.0],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["actual_utility_final"] > 0.0
+    assert metrics["perceived_utility_final"] < config.attacker_retreat_threshold
+    assert metrics["attacker_retreated"] is True
+    assert metrics["retreat_based_on"] == "perceived"
+
+
 def test_targeted_neutralization_evaluation_outputs(tmp_path, monkeypatch):
     import run_scenarios as scenario_module
 
@@ -214,6 +354,175 @@ def test_targeted_neutralization_evaluation_outputs(tmp_path, monkeypatch):
     assert (tmp_path / "neutralization_breakdown.png").exists()
     assert (tmp_path / "NEUTRALIZATION_REPORT.md").exists()
     assert all(0.0 <= row["neutralization_score"] <= 1.0 for row in rows)
+
+
+def test_phase2_perceived_utility_scenarios_present():
+    expected = {
+        "phase2_actual_utility_reference",
+        "phase2_perceived_decoy",
+        "phase2_perceived_credential",
+        "phase2_perceived_decoy_credential",
+        "phase2_perceived_high_uncertainty",
+    }
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(MULTI_SEED_SCENARIO_NAMES)
+
+
+def test_phase2_perceived_utility_multiseed_outputs(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "phase2_actual_utility_reference": {
+                **SCENARIOS["phase2_actual_utility_reference"],
+                "T": 4,
+                "H": 2,
+            },
+            "phase2_perceived_high_uncertainty": {
+                **SCENARIOS["phase2_perceived_high_uncertainty"],
+                "T": 4,
+                "H": 2,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert "actual_utility_mean" in rows[0]
+    assert "perceived_utility_mean" in rows[0]
+    assert "confidence_mean" in rows[0]
+    assert (tmp_path / "scenarios_multiseed" / "summary_perceived_vs_actual_utility.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_confidence_decay.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_perceived_retreat_rate.png").exists()
+
+
+def test_frustration_history_and_event_increments():
+    decoy_config = small_config(
+        T=5,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="utility",
+        attacker_belief_learning_enabled=False,
+        frustration_enabled=True,
+        retreat_based_on="actual",
+        frustration_decay=1.0,
+        frustration_decoy_hit=3.0,
+        frustration_credential_trap=2.0,
+        frustration_detection=1.0,
+        attacker_retreat_threshold=-999.0,
+        node_type=["decoy", "real", "real", "real", "real"],
+        asset_value=[0.0, 5.0, 1.0, 8.0, 2.0],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    decoy_sim = CyberDefenseSimulator(decoy_config)
+    decoy_history = decoy_sim.run()
+    decoy_frustration = np.asarray(decoy_history["frustration"], dtype=float)
+
+    assert decoy_frustration.shape == (decoy_config.T,)
+    assert np.any(np.asarray(decoy_history["attacker_attacked_decoy"], dtype=bool))
+    assert float(np.max(decoy_frustration)) >= decoy_config.frustration_decoy_hit
+
+    credential_config = small_config(
+        T=3,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="utility",
+        frustration_enabled=True,
+        retreat_based_on="actual",
+        frustration_decay=1.0,
+        frustration_credential_trap=2.0,
+        attacker_retreat_threshold=-999.0,
+        asset_value=[10.0, 5.0, 1.0, 8.0, 2.0],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        honeypot_credential_enabled=True,
+        credential_node_ids=[0],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    credential_sim = CyberDefenseSimulator(credential_config)
+    credential_history = credential_sim.run()
+    credential_frustration = np.asarray(credential_history["frustration"], dtype=float)
+
+    assert np.any(np.asarray(credential_history["credential_decoy_trigger"], dtype=bool))
+    assert float(np.max(credential_frustration)) >= credential_config.frustration_credential_trap
+
+
+def test_frustration_retreat_can_override_positive_utility():
+    config = small_config(
+        T=8,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="utility",
+        perceived_utility_enabled=True,
+        perceived_success_confidence=1.0,
+        perceived_decoy_penalty=0.0,
+        perceived_detection_penalty=0.0,
+        perceived_uncertainty_decay=1.0,
+        frustration_enabled=True,
+        retreat_based_on="frustration",
+        frustration_decay=1.0,
+        frustration_detection=3.0,
+        frustration_retreat_threshold=2.0,
+        attacker_retreat_threshold=-999.0,
+        attacker_patience=50,
+        base_detection_prob=1.0,
+        defense_detection_scale=0.0,
+        stochastic_detection=True,
+        stochastic_success=False,
+        asset_value=[20.0, 5.0, 1.0, 8.0, 2.0],
+        attacker_belief=[20.0, 5.0, 1.0, 8.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["actual_utility_final"] > 0.0
+    assert metrics["perceived_utility_final"] > 0.0
+    assert metrics["frustration_final"] > config.frustration_retreat_threshold
+    assert metrics["frustration_retreats"] == 1
+    assert metrics["attacker_retreated"] is True
+    assert metrics["retreat_based_on"] == "frustration"
+
+
+def test_phase2_frustration_scenarios_present():
+    expected = {
+        "phase2_frustration_reference",
+        "phase2_frustration_decoy",
+        "phase2_frustration_credential",
+        "phase2_frustration_decoy_credential",
+        "phase2_frustration_high_detection",
+        "phase2_frustration_path_change",
+    }
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(MULTI_SEED_SCENARIO_NAMES)
+
+
+def test_phase2_frustration_multiseed_outputs(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "phase2_frustration_reference": {
+                **SCENARIOS["phase2_frustration_reference"],
+                "T": 4,
+                "H": 2,
+            },
+            "phase2_frustration_high_detection": {
+                **SCENARIOS["phase2_frustration_high_detection"],
+                "T": 4,
+                "H": 2,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert "frustration_mean" in rows[0]
+    assert "frustration_max" in rows[0]
+    assert "perceived_utility_mean" in rows[0]
+    assert (tmp_path / "scenarios_multiseed" / "summary_frustration_retreat_rate.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_frustration_distribution.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_frustration_vs_perceived_utility.png").exists()
 
 
 def test_plot_does_not_block_when_show_plot_false(tmp_path, monkeypatch):

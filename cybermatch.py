@@ -90,6 +90,20 @@ class SimulationConfig:
     attacker_patience: int = 10
     attacker_perceived_no_progress_threshold: float = 0.0
     stop_on_attacker_retreat: bool = False
+    perceived_utility_enabled: bool = False
+    perceived_success_confidence: float = 1.0
+    perceived_decoy_penalty: float = 1.0
+    perceived_detection_penalty: float = 1.0
+    perceived_uncertainty_decay: float = 0.95
+    retreat_based_on: str = "actual"
+    frustration_enabled: bool = False
+    frustration_decoy_hit: float = 3.0
+    frustration_credential_trap: float = 2.0
+    frustration_detection: float = 1.0
+    frustration_path_change: float = 0.5
+    frustration_no_progress: float = 0.5
+    frustration_decay: float = 0.95
+    frustration_retreat_threshold: float = 10.0
     attacker_greedy_mode: str = "utility"
     attacker_defense_cost_rate: float = 1.0
     attacker_detection_sensitivity: float = 1.0
@@ -224,6 +238,30 @@ class SimulationConfig:
             errors.append("attacker_patience must be > 0")
         if self.attacker_perceived_no_progress_threshold < 0:
             errors.append("attacker_perceived_no_progress_threshold must be >= 0")
+        if not 0 <= self.perceived_success_confidence <= 1:
+            errors.append("perceived_success_confidence must be between 0 and 1")
+        if self.perceived_decoy_penalty < 0:
+            errors.append("perceived_decoy_penalty must be >= 0")
+        if self.perceived_detection_penalty < 0:
+            errors.append("perceived_detection_penalty must be >= 0")
+        if not 0 <= self.perceived_uncertainty_decay <= 1:
+            errors.append("perceived_uncertainty_decay must be between 0 and 1")
+        if self.retreat_based_on not in ("actual", "perceived", "frustration"):
+            errors.append("retreat_based_on must be one of: actual, perceived, frustration")
+        if self.frustration_decoy_hit < 0:
+            errors.append("frustration_decoy_hit must be >= 0")
+        if self.frustration_credential_trap < 0:
+            errors.append("frustration_credential_trap must be >= 0")
+        if self.frustration_detection < 0:
+            errors.append("frustration_detection must be >= 0")
+        if self.frustration_path_change < 0:
+            errors.append("frustration_path_change must be >= 0")
+        if self.frustration_no_progress < 0:
+            errors.append("frustration_no_progress must be >= 0")
+        if not 0 <= self.frustration_decay <= 1:
+            errors.append("frustration_decay must be between 0 and 1")
+        if self.frustration_retreat_threshold < 0:
+            errors.append("frustration_retreat_threshold must be >= 0")
         if self.attacker_greedy_mode not in ("legacy", "weighted_risk", "utility"):
             errors.append("attacker_greedy_mode must be one of: legacy, weighted_risk, utility")
         if self.attacker_defense_cost_rate < 0:
@@ -478,6 +516,16 @@ class AttackerModel:
     # 利得・コスト構造
     compromised_value: float = 0.0
     total_cost: float = 0.0
+    actual_gain: float = 0.0
+    actual_cost: float = 0.0
+    perceived_gain: float = 0.0
+    perceived_cost: float = 0.0
+    confidence: float = 1.0
+    frustration: float = 0.0
+    max_frustration: float = 0.0
+    frustration_sum: float = 0.0
+    frustration_steps: int = 0
+    frustration_retreats: int = 0
 
     effort_cost_rate: float = 0.3
     detection_penalty: float = 1.0
@@ -503,12 +551,27 @@ class AttackerModel:
     retreat_threshold: float = -2.0
     patience: int = 10
     perceived_no_progress_threshold: float = 0.0
+    perceived_utility_enabled: bool = False
+    perceived_success_confidence: float = 1.0
+    perceived_decoy_penalty: float = 1.0
+    perceived_detection_penalty: float = 1.0
+    perceived_uncertainty_decay: float = 0.95
+    retreat_based_on: str = "actual"
+    frustration_enabled: bool = False
+    frustration_decoy_hit: float = 3.0
+    frustration_credential_trap: float = 2.0
+    frustration_detection: float = 1.0
+    frustration_path_change: float = 0.5
+    frustration_no_progress: float = 0.5
+    frustration_decay: float = 0.95
+    frustration_retreat_threshold: float = 10.0
 
     # 内部状態
     no_success_steps: int = 0
     retreated: bool = False
     last_selection_score: Optional[np.ndarray] = None
     last_selected_target: int = -1
+    previous_selected_target: int = -1
     current_node: int = 0
     visited_nodes: Optional[set] = None
     compromised_nodes: Optional[set] = None
@@ -531,9 +594,24 @@ class AttackerModel:
 
     @property
     def utility(self) -> float:
-        return self.compromised_value - self.total_cost
+        return self.actual_utility
+
+    @property
+    def actual_utility(self) -> float:
+        return self.actual_gain - self.actual_cost
+
+    @property
+    def perceived_utility(self) -> float:
+        return self.perceived_gain - self.perceived_cost
+
+    @property
+    def mean_frustration(self) -> float:
+        if self.frustration_steps <= 0:
+            return float(self.frustration)
+        return float(self.frustration_sum / self.frustration_steps)
 
     def select_attack(self, x_current: np.ndarray, M_current: np.ndarray) -> np.ndarray:
+        previous_target = self.last_selected_target
         self.last_selection_score = np.zeros_like(x_current, dtype=float)
         self.last_selected_target = -1
         if not self.enabled or self.retreated:
@@ -554,6 +632,7 @@ class AttackerModel:
             raise ValueError(f"Unsupported target_selection: {self.target_selection}")
 
         self.last_selection_score = score
+        self.previous_selected_target = previous_target
         self.last_selected_target = target_idx
         attack_vector[target_idx] = self.attack_budget
         return attack_vector
@@ -642,15 +721,63 @@ class AttackerModel:
         deception_waste_step: float = 0.0,
         detection_penalty_step: float = 0.0,
         perceived_gained: Optional[float] = None,
+        attacked_decoy: bool = False,
+        credential_decoy_trigger: bool = False,
+        path_changed: bool = False,
+        no_progress: bool = False,
     ) -> None:
         if not self.enabled or self.retreated:
             return
 
-        self.compromised_value += gained
-        self.total_cost += self.attack_budget * self.effort_cost_rate
+        actual_cost_step = self.attack_budget * self.effort_cost_rate
         if detected:
-            self.total_cost += self.detection_penalty + detection_penalty_step
-        self.total_cost += self.deception_waste + deception_waste_step
+            actual_cost_step += self.detection_penalty + detection_penalty_step
+        actual_cost_step += self.deception_waste + deception_waste_step
+
+        self.actual_gain += gained
+        self.actual_cost += actual_cost_step
+        self.compromised_value = self.actual_gain
+        self.total_cost = self.actual_cost
+
+        if self.perceived_utility_enabled:
+            perceived_gain_step = (
+                (perceived_gained if perceived_gained is not None else gained)
+                * self.confidence
+                * self.perceived_success_confidence
+            )
+            perceived_cost_step = self.attack_budget * self.effort_cost_rate
+            if detected:
+                perceived_cost_step += (self.detection_penalty + detection_penalty_step) * self.perceived_detection_penalty
+            if attacked_decoy:
+                perceived_cost_step += (self.deception_waste + deception_waste_step + self.perceived_decoy_penalty)
+            if credential_decoy_trigger:
+                perceived_cost_step += self.perceived_decoy_penalty
+            self.perceived_gain += perceived_gain_step
+            self.perceived_cost += perceived_cost_step
+            if attacked_decoy or credential_decoy_trigger or detected:
+                self.confidence *= self.perceived_uncertainty_decay
+        else:
+            self.perceived_gain = self.actual_gain
+            self.perceived_cost = self.actual_cost
+            self.confidence = 1.0
+
+        if self.frustration_enabled:
+            self.frustration *= self.frustration_decay
+            if attacked_decoy:
+                self.frustration += self.frustration_decoy_hit
+            if credential_decoy_trigger:
+                self.frustration += self.frustration_credential_trap
+            if detected:
+                self.frustration += self.frustration_detection
+            if path_changed:
+                self.frustration += self.frustration_path_change
+            if no_progress:
+                self.frustration += self.frustration_no_progress
+        else:
+            self.frustration = 0.0
+        self.max_frustration = max(float(self.max_frustration), float(self.frustration))
+        self.frustration_sum += float(self.frustration)
+        self.frustration_steps += 1
 
         # Patience counter driven by perceived_gained when provided (oracle-leak fix).
         # An attacker who perceives progress (perceived_gained > threshold) does not count
@@ -667,7 +794,14 @@ class AttackerModel:
             else:
                 self.no_success_steps += 1
 
-        if self.utility < self.retreat_threshold or self.no_success_steps >= self.patience:
+        if self.retreat_based_on == "frustration":
+            should_retreat = self.frustration > self.frustration_retreat_threshold
+        else:
+            retreat_utility = self.perceived_utility if self.retreat_based_on == "perceived" else self.actual_utility
+            should_retreat = retreat_utility < self.retreat_threshold
+        if should_retreat or self.no_success_steps >= self.patience:
+            if self.retreat_based_on == "frustration" and self.frustration > self.frustration_retreat_threshold:
+                self.frustration_retreats += 1
             self.retreated = True
 
 class OptimizationEngine:
@@ -889,6 +1023,10 @@ class CyberDefenseSimulator:
             'attacker_utility': [],
             'attacker_cost': [],
             'attacker_gain': [],
+            'actual_utility': [],
+            'perceived_utility': [],
+            'confidence': [],
+            'frustration': [],
             'attacker_retreated': [],
             'attacker_detected': [],
             'attacker_success': [],
@@ -972,6 +1110,20 @@ class CyberDefenseSimulator:
             adjacency_matrix=self.active_adjacency_matrix.copy(),
             entry_nodes=list(self.config.entry_nodes),
             perceived_no_progress_threshold=self.config.attacker_perceived_no_progress_threshold,
+            perceived_utility_enabled=self.config.perceived_utility_enabled,
+            perceived_success_confidence=self.config.perceived_success_confidence,
+            perceived_decoy_penalty=self.config.perceived_decoy_penalty,
+            perceived_detection_penalty=self.config.perceived_detection_penalty,
+            perceived_uncertainty_decay=self.config.perceived_uncertainty_decay,
+            retreat_based_on=self.config.retreat_based_on,
+            frustration_enabled=self.config.frustration_enabled,
+            frustration_decoy_hit=self.config.frustration_decoy_hit,
+            frustration_credential_trap=self.config.frustration_credential_trap,
+            frustration_detection=self.config.frustration_detection,
+            frustration_path_change=self.config.frustration_path_change,
+            frustration_no_progress=self.config.frustration_no_progress,
+            frustration_decay=self.config.frustration_decay,
+            frustration_retreat_threshold=self.config.frustration_retreat_threshold,
         )
 
     def _attacker_risk_view(self) -> np.ndarray:
@@ -1145,6 +1297,17 @@ class CyberDefenseSimulator:
                 credential_decoy_trigger = False
                 perceived_gain = 0.0
                 critical_true_gain = 0.0
+            path_changed = (
+                self.config.attacker_lateral_enabled
+                and self.attacker.previous_selected_target >= 0
+                and selected_target >= 0
+                and self.attacker.previous_selected_target != selected_target
+            )
+            no_progress = (
+                self.config.attacker_lateral_enabled
+                and selected_target >= 0
+                and not self._target_moves_closer_to_critical(int(self.attacker.current_node), int(selected_target))
+            )
             self.attacker.update_state(
                 gained=gained,
                 detected=detected,
@@ -1152,6 +1315,10 @@ class CyberDefenseSimulator:
                 deception_waste_step=decoy_waste_step,
                 detection_penalty_step=detection_penalty_step,
                 perceived_gained=perceived_gain,
+                attacked_decoy=attacked_decoy,
+                credential_decoy_trigger=credential_decoy_trigger,
+                path_changed=path_changed,
+                no_progress=no_progress,
             )
             self.attacker.update_belief(
                 target_idx=selected_target,
@@ -1202,6 +1369,10 @@ class CyberDefenseSimulator:
             self.history['attacker_utility'].append(float(self.attacker.utility))
             self.history['attacker_cost'].append(float(self.attacker.total_cost))
             self.history['attacker_gain'].append(float(gained))
+            self.history['actual_utility'].append(float(self.attacker.actual_utility))
+            self.history['perceived_utility'].append(float(self.attacker.perceived_utility))
+            self.history['confidence'].append(float(self.attacker.confidence))
+            self.history['frustration'].append(float(self.attacker.frustration))
             self.history['attacker_retreated'].append(bool(self.attacker.retreated))
             self.history['attacker_detected'].append(bool(detected))
             self.history['attacker_success'].append(bool(success))
@@ -1587,6 +1758,36 @@ class CyberDefenseSimulator:
             else self.config.adjacency_matrix
         )
         return self._paths_to_critical_on(adjacency, max_depth)
+
+    def _distance_to_nearest_critical(self, source: int) -> Optional[int]:
+        if int(source) in {int(node) for node in self.config.critical_nodes}:
+            return 0
+        adjacency = (
+            self.active_adjacency_matrix
+            if hasattr(self, 'active_adjacency_matrix')
+            else self.config.adjacency_matrix
+        )
+        critical = {int(node) for node in self.config.critical_nodes}
+        visited = {int(source)}
+        queue = [(int(source), 0)]
+        while queue:
+            node, distance = queue.pop(0)
+            for neighbor in np.flatnonzero(adjacency[node] > 0).astype(int).tolist():
+                neighbor = int(neighbor)
+                if neighbor in visited:
+                    continue
+                if neighbor in critical:
+                    return distance + 1
+                visited.add(neighbor)
+                queue.append((neighbor, distance + 1))
+        return None
+
+    def _target_moves_closer_to_critical(self, current_node: int, target_node: int) -> bool:
+        current_distance = self._distance_to_nearest_critical(current_node)
+        target_distance = self._distance_to_nearest_critical(target_node)
+        if current_distance is None or target_distance is None:
+            return False
+        return target_distance < current_distance
 
     def _node_path_frequency(self, paths: list) -> np.ndarray:
         frequency = np.zeros(self.config.n_nodes, dtype=int)
@@ -2117,6 +2318,10 @@ class CyberDefenseSimulator:
         attacker_perceived_gain_series = np.asarray(self.history.get('attacker_perceived_gain', []), dtype=float)
         attacker_critical_true_gain_series = np.asarray(self.history.get('attacker_critical_true_gain', []), dtype=float)
         belief_entropy_series = np.asarray(self.history.get('belief_entropy', []), dtype=float)
+        actual_utility_series = np.asarray(self.history.get('actual_utility', []), dtype=float)
+        perceived_utility_series = np.asarray(self.history.get('perceived_utility', []), dtype=float)
+        confidence_series = np.asarray(self.history.get('confidence', []), dtype=float)
+        frustration_series = np.asarray(self.history.get('frustration', []), dtype=float)
         initial_belief = self.config.attacker_belief.astype(float)
         final_belief = np.asarray(self.attacker.current_belief, dtype=float)
         defender_belief_error = self.defender_estimated_belief - final_belief
@@ -2254,6 +2459,37 @@ class CyberDefenseSimulator:
             'attacker_retreated': bool(self.attacker.retreated),
             'attacker_retreat_step': self.attacker_retreat_step,
             'attacker_utility_final': float(self.attacker.utility),
+            'actual_utility_final': float(self.attacker.actual_utility),
+            'perceived_utility_final': float(self.attacker.perceived_utility),
+            'actual_gain': float(self.attacker.actual_gain),
+            'actual_cost': float(self.attacker.actual_cost),
+            'perceived_gain': float(self.attacker.perceived_gain),
+            'perceived_cost': float(self.attacker.perceived_cost),
+            'mean_confidence': float(np.mean(confidence_series)) if len(confidence_series) > 0 else float(self.attacker.confidence),
+            'retreat_based_on': self.config.retreat_based_on,
+            'perceived_utility_enabled': bool(self.config.perceived_utility_enabled),
+            'perceived_success_confidence': float(self.config.perceived_success_confidence),
+            'perceived_decoy_penalty': float(self.config.perceived_decoy_penalty),
+            'perceived_detection_penalty': float(self.config.perceived_detection_penalty),
+            'perceived_uncertainty_decay': float(self.config.perceived_uncertainty_decay),
+            'frustration_enabled': bool(self.config.frustration_enabled),
+            'frustration_final': float(self.attacker.frustration),
+            'frustration_mean': float(np.mean(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.mean_frustration),
+            'frustration_max': float(np.max(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.max_frustration),
+            'frustration_retreats': int(self.attacker.frustration_retreats),
+            'frustration_decoy_hit': float(self.config.frustration_decoy_hit),
+            'frustration_credential_trap': float(self.config.frustration_credential_trap),
+            'frustration_detection': float(self.config.frustration_detection),
+            'frustration_path_change': float(self.config.frustration_path_change),
+            'frustration_no_progress': float(self.config.frustration_no_progress),
+            'frustration_decay': float(self.config.frustration_decay),
+            'frustration_retreat_threshold': float(self.config.frustration_retreat_threshold),
+            'human_frustration_final': float(self.attacker.frustration),
+            'human_frustration_mean': float(np.mean(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.mean_frustration),
+            'human_frustration_max': float(np.max(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.max_frustration),
+            'ai_planning_cost_proxy': 0.0,
+            'ai_uncertainty_cost_proxy': 0.0,
+            'ai_search_cost_proxy': 0.0,
             'attacker_total_cost': float(self.attacker.total_cost),
             'attacker_compromised_value': float(self.attacker.compromised_value),
             'attacker_no_success_steps': int(self.attacker.no_success_steps),
@@ -2435,6 +2671,8 @@ class CyberDefenseSimulator:
             'belief_entropy_mean': float(np.mean(belief_entropy_series)) if len(belief_entropy_series) > 0 else 1.0,
             'belief_entropy_final': float(belief_entropy_series[-1]) if len(belief_entropy_series) > 0 else 1.0,
             'belief_entropy_min': float(np.min(belief_entropy_series)) if len(belief_entropy_series) > 0 else 1.0,
+            'actual_utility_mean': float(np.mean(actual_utility_series)) if len(actual_utility_series) > 0 else float(self.attacker.actual_utility),
+            'perceived_utility_mean': float(np.mean(perceived_utility_series)) if len(perceived_utility_series) > 0 else float(self.attacker.perceived_utility),
             **neutralization_scores,
             **post_decoy_metrics,
         }
@@ -2512,6 +2750,10 @@ class CyberDefenseSimulator:
                 attacker_utility=np.asarray(self.history['attacker_utility'], dtype=float),
                 attacker_cost=np.asarray(self.history['attacker_cost'], dtype=float),
                 attacker_gain=np.asarray(self.history['attacker_gain'], dtype=float),
+                actual_utility=np.asarray(self.history['actual_utility'], dtype=float),
+                perceived_utility=np.asarray(self.history['perceived_utility'], dtype=float),
+                confidence=np.asarray(self.history['confidence'], dtype=float),
+                frustration=np.asarray(self.history['frustration'], dtype=float),
                 attacker_retreated=np.asarray(self.history['attacker_retreated'], dtype=bool),
                 attacker_detected=np.asarray(self.history['attacker_detected'], dtype=bool),
                 attacker_success=np.asarray(self.history['attacker_success'], dtype=bool),
