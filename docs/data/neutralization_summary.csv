@@ -1,0 +1,8 @@
+label,scenario,neutralization_score,critical_protection_score,utility_suppression_score,deception_waste_score,friction_score,retreat_score,critical_compromise,critical_compromise_step,attacker_utility_final,attacker_decoy_attack_rate,credential_trigger_rate,mtd_event_count,mtd_edge_block_events,mtd_edge_block_active_steps,post_decoy_real_attack_count,post_decoy_attack_count,attacker_retreated,attacker_retreat_step
+credential_aware_mtd,credential_aware_mtd_edge_pressure,0.7422,1.0,1.0,0.335,0.613,0.0,False,,-27.282507154561223,0.14,1.0,2,2,2,43,49,False,
+gated_edge_pressure_duration_2,gated_edge_pressure_duration_2,0.4562657596371882,0.07346938775510203,1.0,0.4314074074074074,0.45934391534391533,0.4693877551020408,True,12,-51.812859590386196,0.7407407407407407,0.0,6,6,11,7,26,True,26
+gated_edge_pressure_count_2,gated_edge_pressure_count_2,0.45383367346938774,0.07346938775510203,1.0,0.4405,0.4476428571428571,0.44897959183673475,True,12,-50.712049362636094,0.75,0.0,7,7,7,7,27,True,27
+current_best_policy,policy_gated_edge_mtd_edge_pressure,0.4532657596371882,0.07346938775510203,1.0,0.4314074074074074,0.43934391534391537,0.4693877551020408,True,12,-51.812859590386196,0.7407407407407407,0.0,6,6,6,7,26,True,26
+path_aware_decoy,lateral_decoy_on_chokepoint,0.07715,0.0857142857142857,0.05600000000000001,0.066,0.15499999999999997,0.0,True,14,393.6960324289643,0.12,0.0,0,0,0,44,49,False,
+baseline,lateral_baseline,0.05482142857142857,0.030612244897959183,0.008,0.2,0.08071428571428572,0.0,True,5,1165.699463658029,0.0,0.0,0,0,0,0,0,False,
+naive_decoy,lateral_decoy,0.05302142857142857,0.030612244897959183,0.008,0.18300000000000002,0.0857142857142857,0.0,True,5,1210.5796167200197,0.02,0.0,0,0,0,6,6,False,

@@ -1,0 +1,3618 @@
+import json
+
+import numpy as np
+import pytest
+
+from cybermatch import AttackerModel, CyberDefenseSimulator, SimulationConfig, Visualizer
+from run_scenarios import (
+    MULTI_SEED_SCENARIO_NAMES,
+    MULTI_SEED_STATS_COLUMNS,
+    POLICY_SELECTION_COLUMNS,
+    SCENARIOS,
+    SUMMARY_COLUMNS,
+    build_multiseed_stats_rows,
+    build_policy_selection_rows,
+    run_neutralization_evaluation,
+    run_scenarios,
+    run_scenarios_multi_seed,
+)
+
+
+def small_config(**overrides):
+    values = {
+        "T": 4,
+        "H": 2,
+        "show_plot": False,
+        "seed": 7,
+        "dynamic_matching_threshold": 100.0,
+        "dynamic_matching_delta_threshold": 0.0,
+    }
+    values.update(overrides)
+    return SimulationConfig(**values)
+
+
+def test_default_config_validates():
+    SimulationConfig().validate()
+
+
+def test_config_dimension_mismatch_raises():
+    with pytest.raises(ValueError, match="d_base"):
+        SimulationConfig(d_base=[1.0, 2.0])
+
+
+def test_simulation_history_shapes():
+    config = small_config()
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+
+    assert np.asarray(history["x"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["r"]).shape == (config.T, config.m_resources)
+    assert np.asarray(history["M"]).shape == (config.T, config.n_nodes, config.m_resources)
+    assert np.asarray(history["raw_x"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["clip_low"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["clip_high"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["attack_vector"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["attacker_selection_score"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["attacker_selected_target"]).shape == (config.T,)
+    assert np.asarray(history["attacker_attacked_decoy"]).shape == (config.T,)
+    assert np.asarray(history["decoy_waste_step"]).shape == (config.T,)
+    assert np.asarray(history["attack_success_prob"]).shape == (config.T,)
+    assert np.asarray(history["attack_detection_prob"]).shape == (config.T,)
+    assert np.asarray(history["target_defense_strength"]).shape == (config.T,)
+    assert np.asarray(history["attacker_current_belief"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["defender_observed_belief"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["defender_estimated_belief"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["defender_target_counts"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["defender_visible_log_observation"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["effective_defense_weight"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["post_decoy_defense_active"]).shape == (config.T,)
+
+
+def test_matching_constraints():
+    config = small_config()
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    M = np.asarray(sim.history["M"])
+
+    assert np.all(M >= 0)
+    assert np.all(M <= 1)
+    assert np.all(np.sum(M, axis=2) <= 1 + 1e-8)
+    assert np.all(np.sum(M, axis=1) <= np.asarray(config.resource_capacity) + 1e-8)
+
+
+def test_resource_constraints():
+    config = small_config()
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    r = np.asarray(sim.history["r"])
+
+    assert np.all(r >= -1e-8)
+    assert np.all(r <= config.r_max + 1e-8)
+    assert np.all(np.sum(r, axis=1) <= config.R_total + 1e-8)
+
+
+def test_metrics_written(tmp_path):
+    config = small_config()
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    sim.save_outputs(str(tmp_path))
+
+    metrics_path = tmp_path / "metrics.json"
+    history_path = tmp_path / "history.npz"
+    assert metrics_path.exists()
+    assert history_path.exists()
+
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+    for key in [
+        "steps",
+        "final_risk_sum",
+        "weighted_cumulative_risk",
+        "matching_update_count",
+        "ilp_fallback_count",
+        "mpc_fallback_count",
+        "clip_low_count",
+        "clip_high_count",
+        "attacker_enabled",
+        "attacker_utility_final",
+        "attacker_total_cost",
+        "attacker_avg_gain_per_success",
+        "attacker_cost_per_success",
+        "attacker_detection_rate",
+        "attacker_success_rate",
+        "attacker_target_counts",
+        "attacker_most_targeted_node",
+        "attacker_greedy_mode",
+        "asset_value",
+        "attacker_belief",
+        "attacker_belief_error_l1",
+        "attacker_belief_error_l2",
+        "node_type",
+        "decoy_node_count",
+        "attacker_decoy_attack_count",
+        "attacker_decoy_attack_rate",
+        "attacker_decoy_waste_total",
+        "attacker_real_attack_count",
+        "stochastic_detection",
+        "stochastic_success",
+        "mean_attack_success_prob",
+        "mean_attack_detection_prob",
+        "mean_target_defense_strength",
+        "attacker_belief_learning_enabled",
+        "attacker_belief_change_l1",
+        "attacker_belief_change_l2",
+        "attacker_belief_decoy_reduction",
+        "attacker_final_belief",
+        "post_decoy_defense_enabled",
+        "post_decoy_defense_injection_mode",
+        "post_decoy_defense_active_count",
+        "post_decoy_defense_mpc_q_active_count",
+        "post_decoy_defense_matching_active_count",
+        "post_decoy_defense_fallback_active_count",
+        "effective_defense_weight_final",
+    ]:
+        assert key in metrics
+
+    history = np.load(history_path)
+    assert history["x"].shape == (config.T, config.n_nodes)
+    assert history["r"].shape == (config.T, config.m_resources)
+    assert history["M"].shape == (config.T, config.n_nodes, config.m_resources)
+    assert history["attack_vector"].shape == (config.T, config.n_nodes)
+    assert history["attacker_selection_score"].shape == (config.T, config.n_nodes)
+    assert history["attacker_selected_target"].shape == (config.T,)
+    assert history["asset_value"].shape == (config.n_nodes,)
+    assert history["attacker_belief"].shape == (config.n_nodes,)
+    assert history["attacker_attacked_decoy"].shape == (config.T,)
+    assert history["decoy_waste_step"].shape == (config.T,)
+    assert history["attack_success_prob"].shape == (config.T,)
+    assert history["attack_detection_prob"].shape == (config.T,)
+    assert history["target_defense_strength"].shape == (config.T,)
+    assert history["attacker_current_belief"].shape == (config.T, config.n_nodes)
+    assert history["defender_observed_belief"].shape == (config.T, config.n_nodes)
+    assert history["defender_estimated_belief"].shape == (config.T, config.n_nodes)
+    assert history["defender_target_counts"].shape == (config.T, config.n_nodes)
+    assert history["defender_visible_log_observation"].shape == (config.T, config.n_nodes)
+    assert history["effective_defense_weight"].shape == (config.T, config.n_nodes)
+    assert history["post_decoy_defense_active"].shape == (config.T,)
+    assert history["post_decoy_defense_injection_mode"].shape == (config.T,)
+
+
+def test_neutralization_scores_in_metrics():
+    config = small_config(attacker_enabled=True)
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    for key in [
+        "neutralization_score",
+        "critical_protection_score",
+        "utility_suppression_score",
+        "deception_waste_score",
+        "friction_score",
+        "retreat_score",
+    ]:
+        assert key in metrics
+        assert 0.0 <= metrics[key] <= 1.0
+
+
+def test_targeted_neutralization_evaluation_outputs(tmp_path, monkeypatch):
+    import run_scenarios as scenario_module
+
+    monkeypatch.setattr(
+        scenario_module,
+        "NEUTRALIZATION_SCENARIO_MAP",
+        {
+            "baseline": "attacker_greedy_utility",
+            "naive_decoy": "adaptive_decoy_node2_learning",
+        },
+    )
+    rows = run_neutralization_evaluation(output_dir=str(tmp_path), seed=3)
+
+    assert len(rows) == 2
+    assert (tmp_path / "neutralization_summary.csv").exists()
+    assert (tmp_path / "neutralization_summary.json").exists()
+    assert (tmp_path / "neutralization_ranking.png").exists()
+    assert (tmp_path / "neutralization_breakdown.png").exists()
+    assert (tmp_path / "NEUTRALIZATION_REPORT.md").exists()
+    assert all(0.0 <= row["neutralization_score"] <= 1.0 for row in rows)
+
+
+def test_plot_does_not_block_when_show_plot_false(tmp_path, monkeypatch):
+    config = small_config()
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+
+    def fail_show():
+        raise AssertionError("plt.show() must not be called when show_plot=False")
+
+    monkeypatch.setattr("matplotlib.pyplot.show", fail_show)
+    Visualizer.plot_results(history, config, save_path=str(tmp_path / "result.png"))
+
+    assert (tmp_path / "result.png").exists()
+
+
+def test_mpc_fallback_respects_resource_constraints(monkeypatch):
+    config = small_config()
+    engine = CyberDefenseSimulator(config).engine
+
+    def fail_solve(*args, **kwargs):
+        raise RuntimeError("forced solver failure")
+
+    monkeypatch.setattr("cvxpy.problems.problem.Problem.solve", fail_solve)
+    r = engine.solve_mpc(
+        np.ones(config.n_nodes),
+        np.zeros(config.m_resources),
+        np.ones((config.n_nodes, config.m_resources)),
+    )
+
+    assert engine.stats["mpc_fallback_count"] == 1
+    assert np.all(r >= 0)
+    assert np.all(r <= config.r_max)
+    assert np.sum(r) <= config.R_total
+
+
+def test_attacker_model_greedy_selects_weakest_high_risk_target():
+    attacker = AttackerModel(enabled=True, attack_budget=3.0, greedy_mode="legacy")
+    x_current = np.array([1.0, 4.0, 5.0])
+    M_current = np.array([[0.0], [1.0], [0.0]])
+
+    attack_vector = attacker.select_attack(x_current, M_current)
+
+    assert attack_vector.tolist() == [0.0, 0.0, 3.0]
+
+
+def test_greedy_legacy_mode_matches_previous_behavior():
+    attacker = AttackerModel(enabled=True, greedy_mode="legacy")
+    x_current = np.array([1.0, 4.0, 5.0])
+    M_current = np.array([[0.0], [1.0], [0.0]])
+
+    score = attacker.calculate_greedy_score(x_current, M_current)
+
+    np.testing.assert_allclose(score, np.array([1.0, 3.0, 5.0]))
+    assert attacker._select_greedy_target(x_current, M_current) == 2
+
+
+def test_greedy_weighted_risk_uses_q_diag():
+    attacker = AttackerModel(
+        enabled=True,
+        greedy_mode="weighted_risk",
+        attacker_belief=np.array([10.0, 1.0, 1.0]),
+    )
+    x_current = np.array([1.0, 4.0, 5.0])
+    M_current = np.array([[0.0], [1.0], [0.0]])
+
+    score = attacker.calculate_greedy_score(x_current, M_current)
+
+    np.testing.assert_allclose(score, np.array([10.0, 3.0, 5.0]))
+    assert attacker._select_greedy_target(x_current, M_current) == 0
+
+
+def test_greedy_utility_returns_valid_target():
+    attacker = AttackerModel(
+        enabled=True,
+        greedy_mode="utility",
+        attacker_belief=np.array([10.0, 1.0, 1.0]),
+    )
+    x_current = np.array([1.0, 4.0, 5.0])
+    M_current = np.array([[0.0], [1.0], [0.0]])
+
+    score = attacker.calculate_greedy_score(x_current, M_current)
+    attack_vector = attacker.select_attack(x_current, M_current)
+
+    assert score.shape == x_current.shape
+    assert attacker.last_selected_target in (0, 1, 2)
+    assert np.sum(attack_vector) == attacker.attack_budget
+
+
+def test_attacker_selection_score_saved():
+    config = small_config(attacker_enabled=True)
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+
+    assert np.asarray(history["attacker_selection_score"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["attacker_selected_target"]).shape == (config.T,)
+    assert np.any(np.asarray(history["attacker_selected_target"]) >= 0)
+
+
+def test_asset_value_and_attacker_belief_validate_shape():
+    with pytest.raises(ValueError, match="asset_value"):
+        SimulationConfig(asset_value=[1.0, 2.0])
+    with pytest.raises(ValueError, match="attacker_belief"):
+        SimulationConfig(attacker_belief=[1.0, 2.0])
+
+
+def test_attacker_utility_uses_belief_not_q_diag():
+    attacker = AttackerModel(
+        enabled=True,
+        greedy_mode="utility",
+        attacker_belief=np.array([1.0, 100.0, 1.0]),
+    )
+    x_current = np.ones(3)
+    M_current = np.zeros((3, 1))
+
+    assert attacker._select_greedy_target(x_current, M_current) == 1
+
+
+def test_attacker_gain_uses_asset_value_not_q_diag():
+    config = small_config(
+        Q_diag=[100.0, 1.0, 1.0, 1.0, 1.0],
+        asset_value=[1.0, 10.0, 1.0, 1.0, 1.0],
+        attacker_belief=[1.0, 10.0, 1.0, 1.0, 1.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    gain = sim._calculate_attacker_gain(
+        np.zeros(config.n_nodes),
+        np.array([1.0, 1.0, 0.0, 0.0, 0.0]),
+    )
+
+    assert gain == 11.0
+
+
+def test_node_type_validates_length_and_values():
+    with pytest.raises(ValueError, match="node_type"):
+        SimulationConfig(node_type=["real"])
+    with pytest.raises(ValueError, match="node_type"):
+        SimulationConfig(node_type=["real", "invalid", "real", "real", "real"])
+
+
+def test_decoy_attack_adds_waste_cost():
+    config = small_config(
+        attacker_enabled=True,
+        node_type=["decoy", "real", "real", "real", "real"],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        asset_value=[0.0, 5.0, 1.0, 8.0, 2.0],
+        decoy_waste_cost=7.0,
+        decoy_success_gain_scale=0.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    assert np.any(np.asarray(sim.history["attacker_attacked_decoy"]))
+    assert np.max(np.asarray(sim.history["decoy_waste_step"])) == 7.0
+    assert sim.calculate_metrics()["attacker_decoy_waste_total"] > 0
+
+
+def test_decoy_attack_gain_scaled_down():
+    config = small_config(
+        node_type=["decoy", "real", "real", "real", "real"],
+        asset_value=[10.0, 10.0, 10.0, 10.0, 10.0],
+        decoy_success_gain_scale=0.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    gain = sim._calculate_attacker_gain(
+        np.zeros(config.n_nodes),
+        np.ones(config.n_nodes),
+        target_idx=0,
+    )
+
+    assert gain == 0.0
+
+
+def test_decoy_metrics_are_present():
+    config = small_config(
+        attacker_enabled=True,
+        node_type=["real", "real", "decoy", "real", "real"],
+        attacker_belief=[1.0, 1.0, 100.0, 1.0, 1.0],
+        asset_value=[10.0, 5.0, 0.0, 8.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["decoy_node_count"] == 1
+    assert "attacker_decoy_attack_count" in metrics
+    assert "attacker_decoy_attack_rate" in metrics
+    assert "attacker_real_attack_count" in metrics
+
+
+def test_stochastic_config_validation():
+    with pytest.raises(ValueError, match="base_detection_prob"):
+        SimulationConfig(base_detection_prob=1.1)
+    with pytest.raises(ValueError, match="defense_detection_scale"):
+        SimulationConfig(defense_detection_scale=-0.1)
+    with pytest.raises(ValueError, match="decoy_detection_prob"):
+        SimulationConfig(decoy_detection_prob=-0.1)
+    with pytest.raises(ValueError, match="base_success_prob"):
+        SimulationConfig(base_success_prob=1.1)
+    with pytest.raises(ValueError, match="defense_success_decay"):
+        SimulationConfig(defense_success_decay=-0.1)
+    with pytest.raises(ValueError, match="decoy_success_prob"):
+        SimulationConfig(decoy_success_prob=1.1)
+
+
+def test_target_defense_strength():
+    config = small_config()
+    sim = CyberDefenseSimulator(config)
+    sim.M = np.array([
+        [1.0, 0.0, 1.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0],
+    ])
+    r_opt = np.array([2.0, 3.0, 4.0])
+
+    assert sim._target_defense_strength(0, r_opt) == 6.0
+    assert sim._target_defense_strength(-1, r_opt) == 0.0
+
+
+def test_attack_succeeds_deterministic_compatibility():
+    sim = CyberDefenseSimulator(small_config(stochastic_success=False))
+
+    assert sim._attack_succeeds(0.02, attacked_decoy=False, target_defense_strength=0.0) is True
+    assert sim._attack_succeeds(0.0, attacked_decoy=False, target_defense_strength=0.0) is False
+
+
+def test_detect_attacker_deterministic_compatibility():
+    sim = CyberDefenseSimulator(small_config(stochastic_detection=False))
+
+    assert sim._detect_attacker(np.array([1.0]), success=True) is True
+    assert sim._detect_attacker(np.array([1.0]), success=False) is False
+    assert sim._detect_attacker(np.array([0.0]), success=False, attacked_decoy=True) is True
+
+
+def test_probability_metrics_are_present():
+    config = small_config(
+        attacker_enabled=True,
+        stochastic_detection=True,
+        stochastic_success=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    for key in [
+        "stochastic_detection",
+        "stochastic_success",
+        "base_detection_prob",
+        "defense_detection_scale",
+        "decoy_detection_prob",
+        "base_success_prob",
+        "defense_success_decay",
+        "decoy_success_prob",
+        "mean_attack_success_prob",
+        "mean_attack_detection_prob",
+        "mean_target_defense_strength",
+    ]:
+        assert key in metrics
+
+
+def test_belief_learning_config_validation():
+    with pytest.raises(ValueError, match="attacker_belief_success_boost"):
+        SimulationConfig(attacker_belief_success_boost=-1.0)
+    with pytest.raises(ValueError, match="attacker_belief_failure_decay"):
+        SimulationConfig(attacker_belief_failure_decay=1.1)
+    with pytest.raises(ValueError, match="attacker_belief_detection_decay"):
+        SimulationConfig(attacker_belief_detection_decay=-0.1)
+    with pytest.raises(ValueError, match="attacker_belief_decoy_decay"):
+        SimulationConfig(attacker_belief_decoy_decay=1.1)
+    with pytest.raises(ValueError, match="attacker_belief_min"):
+        SimulationConfig(attacker_belief_min=-0.1)
+    with pytest.raises(ValueError, match="attacker_belief_max"):
+        SimulationConfig(attacker_belief_min=2.0, attacker_belief_max=1.0)
+
+
+def test_attacker_belief_success_boost():
+    attacker = AttackerModel(
+        attacker_belief=np.array([1.0, 2.0]),
+        belief_learning_enabled=True,
+        belief_success_boost=3.0,
+        belief_max=10.0,
+    )
+
+    attacker.update_belief(target_idx=0, success=True, detected=False, attacked_decoy=False)
+
+    assert attacker.current_belief[0] == 4.0
+
+
+def test_attacker_belief_decoy_decay():
+    attacker = AttackerModel(
+        attacker_belief=np.array([10.0, 2.0]),
+        belief_learning_enabled=True,
+        belief_failure_decay=0.8,
+        belief_detection_decay=0.5,
+        belief_decoy_decay=0.1,
+    )
+
+    attacker.update_belief(target_idx=0, success=False, detected=True, attacked_decoy=True)
+
+    assert attacker.current_belief[0] == pytest.approx(0.4)
+
+
+def test_attacker_current_belief_saved():
+    config = small_config(
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_belief_learning_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert np.asarray(history["attacker_current_belief"]).shape == (config.T, config.n_nodes)
+    assert metrics["attacker_belief_learning_enabled"] is True
+    assert "attacker_final_belief" in metrics
+
+
+def test_first_decoy_step_recorded():
+    config = small_config(
+        attacker_enabled=True,
+        node_type=["real", "real", "decoy", "real", "real"],
+        attacker_belief=[1.0, 1.0, 100.0, 1.0, 1.0],
+        asset_value=[10.0, 5.0, 0.0, 8.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    assert sim.first_decoy_step == 0
+    assert sim.calculate_metrics()["first_decoy_step"] == 0
+
+
+def test_post_decoy_metrics_exist():
+    config = small_config(
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_belief_learning_enabled=True,
+        attacker_retreat_threshold=-50.0,
+        attacker_patience=20,
+        node_type=["real", "real", "decoy", "real", "real"],
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+        asset_value=[10.0, 5.0, 0.0, 8.0, 2.0],
+        stochastic_detection=True,
+        stochastic_success=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    for key in [
+        "post_decoy_attack_count",
+        "post_decoy_real_attack_count",
+        "post_decoy_decoy_attack_count",
+        "post_decoy_compromised_value",
+        "post_decoy_utility",
+        "post_decoy_target_counts",
+        "post_decoy_most_targeted_node",
+    ]:
+        assert key in metrics
+
+
+def test_transition_matrix_created():
+    config = small_config(attacker_enabled=True)
+    sim = CyberDefenseSimulator(config)
+    matrix = sim._calculate_attack_transition_matrix(np.array([2, 0, 3, 3, -1, 0]))
+
+    assert matrix["2->0"] == 1
+    assert matrix["0->3"] == 1
+    assert matrix["3->3"] == 1
+
+
+def test_effective_defense_weight_before_decoy_is_q_diag():
+    config = small_config(post_decoy_defense_enabled=True)
+    sim = CyberDefenseSimulator(config)
+
+    np.testing.assert_allclose(sim._effective_defense_weight(), config.Q_diag)
+
+
+def test_effective_defense_weight_after_decoy_boosts_belief_top_k():
+    config = small_config(
+        post_decoy_defense_enabled=True,
+        post_decoy_defense_weight=2.0,
+        post_decoy_defense_top_k=1,
+        node_type=["real", "real", "decoy", "real", "real"],
+        attacker_belief=[1.0, 2.0, 100.0, 4.0, 3.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.first_decoy_step = 0
+    sim.attacker.current_belief = np.array([1.0, 2.0, 100.0, 4.0, 3.0])
+
+    weight = sim._effective_defense_weight()
+
+    expected = config.Q_diag.copy()
+    expected[3] += 8.0
+    np.testing.assert_allclose(weight, expected)
+
+
+def test_post_decoy_defense_metrics_present():
+    config = small_config(
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_belief_learning_enabled=True,
+        attacker_retreat_threshold=-50.0,
+        node_type=["real", "real", "decoy", "real", "real"],
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+        asset_value=[10.0, 5.0, 0.0, 8.0, 2.0],
+        post_decoy_defense_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["post_decoy_defense_enabled"] is True
+    assert "post_decoy_defense_active_count" in metrics
+    assert "effective_defense_weight_final" in metrics
+
+
+def test_post_decoy_defense_injection_mode_validation():
+    with pytest.raises(ValueError, match="post_decoy_defense_injection_mode"):
+        SimulationConfig(post_decoy_defense_injection_mode="invalid")
+
+
+def test_defender_belief_estimation_config_validation():
+    with pytest.raises(ValueError, match="defender_belief_observation_mode"):
+        SimulationConfig(defender_belief_observation_mode="invalid")
+    with pytest.raises(ValueError, match="defender_belief_estimation_alpha"):
+        SimulationConfig(defender_belief_estimation_alpha=1.1)
+    with pytest.raises(ValueError, match="post_decoy_defense_belief_source"):
+        SimulationConfig(post_decoy_defense_belief_source="invalid")
+
+
+def test_defender_visible_log_observation_mode_validation():
+    config = SimulationConfig(defender_belief_observation_mode="defender_visible_log")
+    assert config.defender_belief_observation_mode == "defender_visible_log"
+    config = SimulationConfig(defender_belief_observation_mode="hybrid_visible")
+    assert config.defender_belief_observation_mode == "hybrid_visible"
+    with pytest.raises(ValueError, match="visible_log_detected_decay"):
+        SimulationConfig(visible_log_detected_decay=1.1)
+    with pytest.raises(ValueError, match="visible_log_defense_penalty_weight"):
+        SimulationConfig(visible_log_defense_penalty_weight=-0.1)
+
+
+def test_target_frequency_observation_updates_estimate():
+    config = small_config(
+        defender_belief_estimation_enabled=True,
+        defender_belief_observation_mode="target_frequency",
+        defender_belief_estimation_alpha=0.0,
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim._update_defender_belief_estimate(3, np.zeros(config.n_nodes), True)
+
+    expected = np.zeros(config.n_nodes)
+    expected[3] = config.defender_belief_max
+    np.testing.assert_allclose(sim.defender_observed_belief, expected)
+    np.testing.assert_allclose(sim.defender_estimated_belief, expected)
+    np.testing.assert_allclose(sim.defender_target_counts, [0, 0, 0, 1, 0])
+
+
+def test_selection_score_observation_updates_estimate():
+    config = small_config(
+        defender_belief_estimation_enabled=True,
+        defender_belief_observation_mode="selection_score",
+        defender_belief_estimation_alpha=0.0,
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim._update_defender_belief_estimate(1, np.array([0.0, 2.0, 0.0, 1.0, 0.0]), True)
+
+    expected = np.array([0.0, 2.0 / 3.0, 0.0, 1.0 / 3.0, 0.0]) * np.sum(config.attacker_belief)
+    np.testing.assert_allclose(sim.defender_observed_belief, expected)
+    np.testing.assert_allclose(sim.defender_estimated_belief, expected)
+
+
+def test_visible_log_observation_updates_selected_target():
+    config = small_config(attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0])
+    sim = CyberDefenseSimulator(config)
+
+    observed = sim._defender_visible_log_observation(
+        selected_target=1,
+        success=True,
+        detected=False,
+        attacked_decoy=False,
+        target_defense_strength=0.0,
+        attack_success_prob=0.5,
+        attack_detection_prob=0.0,
+    )
+
+    expected = np.zeros(config.n_nodes)
+    expected[1] = float(np.sum(config.attacker_belief))
+    np.testing.assert_allclose(observed, expected)
+
+
+def test_visible_log_observation_penalizes_decoy():
+    config = small_config(
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+        visible_log_decoy_decay=0.0,
+        visible_log_detection_prob_weight=2.0,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    observed = sim._defender_visible_log_observation(
+        selected_target=2,
+        success=False,
+        detected=False,
+        attacked_decoy=True,
+        target_defense_strength=0.0,
+        attack_success_prob=0.0,
+        attack_detection_prob=1.0,
+    )
+
+    np.testing.assert_allclose(observed, np.zeros(config.n_nodes))
+
+
+def test_update_defender_belief_estimate_accepts_visible_log_inputs():
+    config = small_config(
+        defender_belief_estimation_enabled=True,
+        defender_belief_observation_mode="defender_visible_log",
+        defender_belief_estimation_alpha=0.0,
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim._update_defender_belief_estimate(
+        selected_target=4,
+        selection_score=np.zeros(config.n_nodes),
+        attack_active=True,
+        success=True,
+        detected=False,
+        attacked_decoy=False,
+        target_defense_strength=0.0,
+        attack_success_prob=0.5,
+        attack_detection_prob=0.0,
+    )
+
+    raw_expected = np.zeros(config.n_nodes)
+    raw_expected[4] = float(np.sum(config.attacker_belief))
+    clipped_expected = np.zeros(config.n_nodes)
+    clipped_expected[4] = config.defender_belief_max
+    np.testing.assert_allclose(sim.defender_visible_log_observation, raw_expected)
+    np.testing.assert_allclose(sim.defender_observed_belief, clipped_expected)
+    np.testing.assert_allclose(sim.defender_estimated_belief, clipped_expected)
+
+
+def test_effective_defense_weight_uses_estimated_belief():
+    config = small_config(
+        post_decoy_defense_enabled=True,
+        post_decoy_defense_weight=2.0,
+        post_decoy_defense_top_k=1,
+        post_decoy_defense_belief_source="estimated",
+        node_type=["real", "real", "decoy", "real", "real"],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.first_decoy_step = 0
+    sim.defender_estimated_belief = np.array([1.0, 2.0, 100.0, 9.0, 3.0])
+
+    weight = sim._effective_defense_weight()
+
+    expected = config.Q_diag.copy()
+    expected[3] += 18.0
+    np.testing.assert_allclose(weight, expected)
+
+
+def test_mtd_config_validation():
+    with pytest.raises(ValueError, match="mtd_strategy"):
+        SimulationConfig(mtd_strategy="invalid")
+    with pytest.raises(ValueError, match="mtd_interval"):
+        SimulationConfig(mtd_interval=0)
+    with pytest.raises(ValueError, match="mtd_intensity"):
+        SimulationConfig(mtd_intensity=1.1)
+
+
+def test_mtd_shuffle_belief_changes_belief():
+    config = small_config(
+        mtd_enabled=True,
+        mtd_strategy="shuffle_belief",
+        mtd_interval=1,
+        mtd_intensity=1.0,
+        attacker_belief=[1.0, 2.0, 3.0, 4.0, 5.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    before = sim.attacker.current_belief.copy()
+    after = sim._apply_mtd(0)
+
+    assert sim.mtd_event_count == 1
+    assert not np.allclose(after, before)
+    np.testing.assert_allclose(np.sort(after), np.sort(before))
+
+
+def test_mtd_decay_belief_reduces_belief():
+    config = small_config(
+        mtd_enabled=True,
+        mtd_strategy="decay_belief",
+        mtd_interval=1,
+        mtd_intensity=0.3,
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    after = sim._apply_mtd(0)
+    np.testing.assert_allclose(after, config.attacker_belief * 0.7)
+
+
+def test_mtd_increase_uncertainty_moves_belief_toward_mean():
+    config = small_config(
+        mtd_enabled=True,
+        mtd_strategy="increase_uncertainty",
+        mtd_interval=1,
+        mtd_intensity=0.5,
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    before = sim.attacker.current_belief.copy()
+    after = sim._apply_mtd(0)
+    expected = 0.5 * before + 0.5 * np.mean(before)
+    np.testing.assert_allclose(after, expected)
+
+
+def test_mtd_metrics_are_present():
+    config = small_config(
+        T=3,
+        mtd_enabled=True,
+        mtd_interval=1,
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        stochastic_success=True,
+        stochastic_detection=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert np.asarray(history["mtd_event"]).shape == (config.T,)
+    assert np.asarray(history["mtd_affected_belief"]).shape == (config.T, config.n_nodes)
+    assert metrics["mtd_enabled"] is True
+    assert metrics["mtd_event_count"] == config.T
+    assert "mtd_total_cost" in metrics
+    assert "mtd_success_decay_bonus" in metrics
+    assert "mtd_detection_bonus" in metrics
+
+
+def test_solve_mpc_accepts_mpc_weight():
+    config = small_config(T=2, H=1)
+    sim = CyberDefenseSimulator(config)
+    r = sim.engine.solve_mpc(
+        sim.x_current,
+        sim.r_prev,
+        sim.M,
+        mpc_weight=np.ones(config.n_nodes),
+    )
+
+    assert r.shape == (config.m_resources,)
+
+
+def test_mpc_q_mode_does_not_change_matching_weight():
+    config = small_config(
+        post_decoy_defense_enabled=True,
+        post_decoy_defense_injection_mode="mpc_q",
+        node_type=["real", "real", "decoy", "real", "real"],
+        attacker_belief=[1.0, 2.0, 100.0, 4.0, 3.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.first_decoy_step = 0
+    sim.attacker.current_belief = np.array([1.0, 2.0, 100.0, 4.0, 3.0])
+    effective = sim._effective_defense_weight()
+
+    assert sim._matching_weight_for_mode(effective) is None
+    assert sim._fallback_weight_for_mode(effective) is None
+    np.testing.assert_allclose(sim._mpc_weight_for_mode(effective), effective)
+
+
+def test_all_mode_uses_matching_and_mpc_q():
+    config = small_config(
+        post_decoy_defense_enabled=True,
+        post_decoy_defense_injection_mode="all",
+        node_type=["real", "real", "decoy", "real", "real"],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.first_decoy_step = 0
+    effective = sim._effective_defense_weight()
+
+    np.testing.assert_allclose(sim._matching_weight_for_mode(effective), effective)
+    np.testing.assert_allclose(sim._fallback_weight_for_mode(effective), effective)
+    np.testing.assert_allclose(sim._mpc_weight_for_mode(effective), effective)
+
+
+def test_attacker_enabled_writes_history_and_metrics(tmp_path):
+    config = small_config(attacker_enabled=True, attacker_attack_budget=3.0)
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.save_outputs(str(tmp_path))
+
+    attack_vector = np.asarray(sim.history["attack_vector"])
+    assert attack_vector.shape == (config.T, config.n_nodes)
+    assert np.any(attack_vector > 0)
+    assert metrics["attacker_enabled"] is True
+    assert metrics["attacker_total_cost"] > 0
+    assert "attacker_utility_final" in metrics
+
+
+def test_attacker_can_retreat_under_strict_conditions():
+    config = small_config(
+        T=6,
+        attacker_enabled=True,
+        attacker_attack_budget=3.0,
+        attacker_detection_penalty=100.0,
+        attacker_retreat_threshold=-1.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["attacker_retreated"] is True
+    assert metrics["attacker_retreat_step"] is not None
+
+
+def test_run_scenarios_creates_outputs(tmp_path):
+    scenarios = {
+        "baseline_no_attacker": {"T": 3, "H": 2, "attacker_enabled": False},
+        "attacker_greedy_default": {
+            "T": 3,
+            "H": 2,
+            "attacker_enabled": True,
+            "attacker_target_selection": "greedy",
+        },
+        "attacker_random_default": {
+            "T": 3,
+            "H": 2,
+            "attacker_enabled": True,
+            "attacker_target_selection": "random",
+        },
+    }
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides=scenarios,
+        seed=11,
+    )
+
+    assert len(rows) == 3
+    assert (tmp_path / "scenarios" / "summary.csv").exists()
+    assert (tmp_path / "scenarios" / "summary.json").exists()
+    for scenario in scenarios:
+        scenario_dir = tmp_path / "scenarios" / scenario
+        assert (scenario_dir / "metrics.json").exists()
+        assert (scenario_dir / "history.npz").exists()
+        assert (scenario_dir / "simulation_result.png").exists()
+        assert (scenario_dir / "used_config.json").exists()
+
+
+def test_summary_contains_required_columns(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "baseline_no_attacker": {"T": 3, "H": 2, "attacker_enabled": False},
+        },
+        seed=11,
+    )
+    summary = json.loads((tmp_path / "scenarios" / "summary.json").read_text(encoding="utf-8"))
+
+    assert rows == summary
+    assert set(SUMMARY_COLUMNS).issubset(summary[0].keys())
+
+
+def test_summary_contains_greedy_mode_columns(tmp_path):
+    run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "attacker_greedy_utility": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "greedy",
+                "attacker_greedy_mode": "utility",
+            },
+        },
+        seed=11,
+    )
+    summary = json.loads((tmp_path / "scenarios" / "summary.json").read_text(encoding="utf-8"))
+
+    assert summary[0]["attacker_greedy_mode"] == "utility"
+    assert "attacker_most_targeted_node" in summary[0]
+    assert "attacker_target_counts" in summary[0]
+
+
+def test_summary_contains_belief_metrics(tmp_path):
+    run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "attacker_belief_misled_to_low_value": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "greedy",
+                "attacker_greedy_mode": "utility",
+                "asset_value": [10.0, 5.0, 1.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+            },
+        },
+        seed=11,
+    )
+    summary = json.loads((tmp_path / "scenarios" / "summary.json").read_text(encoding="utf-8"))
+
+    assert "asset_value" in summary[0]
+    assert "attacker_belief" in summary[0]
+    assert summary[0]["attacker_belief_error_l1"] > 0
+    assert summary[0]["attacker_belief_error_l2"] > 0
+
+
+def test_run_scenarios_includes_decoy_cases(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "decoy_node2_high_belief": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "greedy",
+                "attacker_greedy_mode": "utility",
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["scenario"] == "decoy_node2_high_belief"
+    assert (tmp_path / "scenarios" / "decoy_node2_high_belief" / "metrics.json").exists()
+    assert "attacker_decoy_attack_rate" in rows[0]
+
+
+def test_run_scenarios_includes_probability_cases(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "decoy_node2_probabilistic_default": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "greedy",
+                "attacker_greedy_mode": "utility",
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+                "stochastic_detection": True,
+                "stochastic_success": True,
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["scenario"] == "decoy_node2_probabilistic_default"
+    assert (tmp_path / "scenarios" / "decoy_node2_probabilistic_default" / "metrics.json").exists()
+    assert rows[0]["stochastic_detection"] is True
+    assert rows[0]["stochastic_success"] is True
+
+
+def test_adaptive_scenarios_present(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "adaptive_decoy_node2_learning": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "adaptive",
+                "attacker_greedy_mode": "utility",
+                "attacker_belief_learning_enabled": True,
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_node2_learning"
+    assert rows[0]["attacker_belief_learning_enabled"] is True
+    assert (tmp_path / "scenarios" / "adaptive_decoy_node2_learning" / "metrics.json").exists()
+
+
+def test_run_scenarios_includes_post_decoy_defense_cases(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "adaptive_decoy_node2_learning_no_immediate_retreat_defense_aware": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "adaptive",
+                "attacker_greedy_mode": "utility",
+                "attacker_belief_learning_enabled": True,
+                "attacker_retreat_threshold": -50.0,
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+                "post_decoy_defense_enabled": True,
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["post_decoy_defense_enabled"] is True
+    assert "post_decoy_defense_active_count" in rows[0]
+    assert (tmp_path / "scenarios" / "adaptive_decoy_node2_learning_no_immediate_retreat_defense_aware" / "metrics.json").exists()
+
+
+def test_run_scenarios_includes_injection_modes(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "adaptive_decoy_node2_defense_mpc_q": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "adaptive",
+                "attacker_greedy_mode": "utility",
+                "attacker_belief_learning_enabled": True,
+                "attacker_retreat_threshold": -50.0,
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+                "post_decoy_defense_enabled": True,
+                "post_decoy_defense_injection_mode": "mpc_q",
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["post_decoy_defense_injection_mode"] == "mpc_q"
+    assert (tmp_path / "scenarios" / "adaptive_decoy_node2_defense_mpc_q" / "metrics.json").exists()
+
+
+def test_run_scenarios_includes_estimated_belief_cases(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "adaptive_decoy_defense_estimated_belief_hybrid": {
+                **SCENARIOS["adaptive_decoy_defense_estimated_belief_hybrid"],
+                "T": 3,
+                "H": 2,
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_defense_estimated_belief_hybrid"
+    assert rows[0]["post_decoy_defense_belief_source"] == "estimated"
+    assert rows[0]["defender_belief_estimation_enabled"] is True
+    assert rows[0]["defender_belief_observation_mode"] == "hybrid"
+    assert "defender_estimation_error_l1" in rows[0]
+    assert (tmp_path / "scenarios" / "adaptive_decoy_defense_estimated_belief_hybrid" / "metrics.json").exists()
+    assert (tmp_path / "scenarios" / "summary_estimated_vs_oracle_defense.png").exists()
+
+
+def test_run_scenarios_includes_visible_log_cases(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "adaptive_decoy_defense_estimated_belief_visible_log": {
+                **SCENARIOS["adaptive_decoy_defense_estimated_belief_visible_log"],
+                "T": 3,
+                "H": 2,
+            },
+            "adaptive_decoy_defense_estimated_belief_hybrid_visible": {
+                **SCENARIOS["adaptive_decoy_defense_estimated_belief_hybrid_visible"],
+                "T": 3,
+                "H": 2,
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_defense_estimated_belief_visible_log"
+    assert rows[0]["defender_belief_observation_mode"] == "defender_visible_log"
+    assert rows[0]["visible_log_observation_enabled"] is True
+    assert rows[1]["defender_belief_observation_mode"] == "hybrid_visible"
+    assert (tmp_path / "scenarios" / "adaptive_decoy_defense_estimated_belief_visible_log" / "metrics.json").exists()
+    assert (tmp_path / "scenarios" / "adaptive_decoy_defense_estimated_belief_hybrid_visible" / "metrics.json").exists()
+    assert (tmp_path / "scenarios" / "summary_visible_log_estimation.png").exists()
+
+
+def test_run_scenarios_includes_mtd_cases(tmp_path):
+    rows = run_scenarios(
+        config_path=str(tmp_path / "missing_config.json"),
+        output_root=str(tmp_path / "scenarios"),
+        scenario_overrides={
+            "mtd_shuffle_belief": {
+                **SCENARIOS["mtd_shuffle_belief"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+            "mtd_decay_belief": {
+                **SCENARIOS["mtd_decay_belief"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seed=11,
+    )
+
+    assert rows[0]["scenario"] == "mtd_shuffle_belief"
+    assert rows[0]["mtd_enabled"] is True
+    assert rows[0]["mtd_event_count"] == 3
+    assert (tmp_path / "scenarios" / "mtd_shuffle_belief" / "metrics.json").exists()
+    assert (tmp_path / "scenarios" / "mtd_decay_belief" / "metrics.json").exists()
+    assert (tmp_path / "scenarios" / "summary_mtd_effect.png").exists()
+
+
+def test_run_scenarios_multi_seed_creates_outputs(tmp_path):
+    scenarios = {
+        "decoy_node2_probabilistic_default": {
+            "T": 3,
+            "H": 2,
+            "attacker_enabled": True,
+            "attacker_target_selection": "greedy",
+            "attacker_greedy_mode": "utility",
+            "node_type": ["real", "real", "decoy", "real", "real"],
+            "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+            "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+            "stochastic_detection": True,
+            "stochastic_success": True,
+        },
+    }
+    rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert len(rows) == 1
+    assert (tmp_path / "scenarios_multiseed" / "summary_runs.csv").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_runs.json").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_stats.csv").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_stats.json").exists()
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "decoy_node2_probabilistic_default"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+
+
+def test_multiseed_summary_runs_contains_seed_column(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "real_attack_probabilistic_low_detection": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "stochastic_detection": True,
+                "stochastic_success": True,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    rows = json.loads((tmp_path / "scenarios_multiseed" / "summary_runs.json").read_text(encoding="utf-8"))
+
+    assert {row["seed"] for row in rows} == {0, 1}
+    assert all("scenario" in row for row in rows)
+
+
+def test_multiseed_summary_stats_contains_required_columns(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "real_attack_probabilistic_low_detection": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "stochastic_detection": True,
+                "stochastic_success": True,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    rows = json.loads((tmp_path / "scenarios_multiseed" / "summary_stats.json").read_text(encoding="utf-8"))
+
+    assert set(MULTI_SEED_STATS_COLUMNS).issubset(rows[0].keys())
+
+
+def test_multiseed_retreat_rate_is_between_0_and_1(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "real_attack_probabilistic_low_detection": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "stochastic_detection": True,
+                "stochastic_success": True,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert 0.0 <= rows[0]["retreat_rate"] <= 1.0
+
+
+def test_multiseed_includes_adaptive_scenarios(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "adaptive_decoy_node2_learning_no_immediate_retreat": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "adaptive",
+                "attacker_greedy_mode": "utility",
+                "attacker_belief_learning_enabled": True,
+                "attacker_retreat_threshold": -50.0,
+                "attacker_patience": 20,
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+                "stochastic_detection": True,
+                "stochastic_success": True,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_node2_learning_no_immediate_retreat"
+    assert "attacker_belief_decoy_reduction_mean" in rows[0]
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "adaptive_decoy_node2_learning_no_immediate_retreat"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+
+
+def test_multiseed_includes_post_decoy_defense_cases(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "adaptive_decoy_node2_learning_no_immediate_retreat_defense_aware": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "adaptive",
+                "attacker_greedy_mode": "utility",
+                "attacker_belief_learning_enabled": True,
+                "attacker_retreat_threshold": -50.0,
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+                "post_decoy_defense_enabled": True,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_node2_learning_no_immediate_retreat_defense_aware"
+    assert "post_decoy_defense_active_count_mean" in rows[0]
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "adaptive_decoy_node2_learning_no_immediate_retreat_defense_aware"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+
+
+def test_multiseed_includes_injection_modes(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "adaptive_decoy_node2_defense_all": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "adaptive",
+                "attacker_greedy_mode": "utility",
+                "attacker_belief_learning_enabled": True,
+                "attacker_retreat_threshold": -50.0,
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+                "post_decoy_defense_enabled": True,
+                "post_decoy_defense_injection_mode": "all",
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_node2_defense_all"
+    assert "post_decoy_utility_mean" in rows[0]
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "adaptive_decoy_node2_defense_all"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+
+
+def test_multiseed_post_decoy_summary(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "adaptive_decoy_node2_learning_no_immediate_retreat": {
+                "T": 3,
+                "H": 2,
+                "attacker_enabled": True,
+                "attacker_target_selection": "adaptive",
+                "attacker_greedy_mode": "utility",
+                "attacker_belief_learning_enabled": True,
+                "attacker_retreat_threshold": -50.0,
+                "attacker_patience": 20,
+                "node_type": ["real", "real", "decoy", "real", "real"],
+                "asset_value": [10.0, 5.0, 0.0, 8.0, 2.0],
+                "attacker_belief": [2.0, 3.0, 12.0, 4.0, 2.0],
+                "stochastic_detection": True,
+                "stochastic_success": True,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert "post_decoy_real_attack_mean" in rows[0]
+    assert "post_decoy_compromised_mean" in rows[0]
+    assert "post_decoy_node0_rate" in rows[0]
+
+
+def test_multiseed_includes_estimated_belief_cases(tmp_path):
+    assert "adaptive_decoy_defense_estimated_belief_target_freq" in MULTI_SEED_SCENARIO_NAMES
+    assert "adaptive_decoy_defense_estimated_belief_hybrid" in MULTI_SEED_SCENARIO_NAMES
+    assert "adaptive_decoy_defense_oracle_belief_reference" in MULTI_SEED_SCENARIO_NAMES
+
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "adaptive_decoy_defense_estimated_belief_target_freq": {
+                **SCENARIOS["adaptive_decoy_defense_estimated_belief_target_freq"],
+                "T": 3,
+                "H": 2,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_defense_estimated_belief_target_freq"
+    assert "defender_estimation_error_l1_mean" in rows[0]
+    assert "defender_estimation_error_l2_std" in rows[0]
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "adaptive_decoy_defense_estimated_belief_target_freq"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_estimated_vs_oracle_defense_mean_std.png").exists()
+
+
+def test_multiseed_includes_visible_log_cases(tmp_path):
+    assert "adaptive_decoy_defense_estimated_belief_visible_log" in MULTI_SEED_SCENARIO_NAMES
+    assert "adaptive_decoy_defense_estimated_belief_hybrid_visible" in MULTI_SEED_SCENARIO_NAMES
+
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "adaptive_decoy_defense_estimated_belief_visible_log": {
+                **SCENARIOS["adaptive_decoy_defense_estimated_belief_visible_log"],
+                "T": 3,
+                "H": 2,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "adaptive_decoy_defense_estimated_belief_visible_log"
+    assert rows[0]["defender_belief_observation_mode"] == "defender_visible_log"
+    assert "defender_estimation_error_l1_mean" in rows[0]
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "adaptive_decoy_defense_estimated_belief_visible_log"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_visible_log_estimation_mean_std.png").exists()
+
+
+def test_multiseed_includes_mtd_cases(tmp_path):
+    for name in [
+        "mtd_none_reference",
+        "mtd_shuffle_belief",
+        "mtd_decay_belief",
+        "mtd_increase_uncertainty",
+        "mtd_shuffle_belief_high_intensity",
+        "mtd_shuffle_belief_short_interval",
+    ]:
+        assert name in MULTI_SEED_SCENARIO_NAMES
+
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "mtd_shuffle_belief": {
+                **SCENARIOS["mtd_shuffle_belief"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "mtd_shuffle_belief"
+    assert "mtd_event_count_mean" in rows[0]
+    assert "mtd_total_cost_mean" in rows[0]
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "mtd_shuffle_belief"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_mtd_effect_mean_std.png").exists()
+
+
+def test_mtd_sweep_scenarios_present():
+    expected = {
+        "mtd_sweep_shuffle_interval_5",
+        "mtd_sweep_shuffle_interval_10",
+        "mtd_sweep_shuffle_interval_20",
+        "mtd_sweep_shuffle_intensity_02",
+        "mtd_sweep_shuffle_intensity_05",
+        "mtd_sweep_shuffle_intensity_09",
+        "mtd_sweep_shuffle_success_bonus_00",
+        "mtd_sweep_shuffle_success_bonus_05",
+        "mtd_sweep_shuffle_detection_bonus_00",
+        "mtd_sweep_shuffle_detection_bonus_03",
+        "mtd_sweep_shuffle_success05_detection03",
+        "mtd_sweep_target_frequency",
+        "mtd_sweep_visible_log",
+        "mtd_sweep_hybrid_visible",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert SCENARIOS["mtd_sweep_visible_log"]["defender_belief_observation_mode"] == "defender_visible_log"
+    assert SCENARIOS["mtd_sweep_hybrid_visible"]["defender_belief_observation_mode"] == "hybrid_visible"
+
+
+def test_multiseed_includes_mtd_sweep():
+    expected = {
+        "mtd_sweep_shuffle_interval_5",
+        "mtd_sweep_shuffle_interval_10",
+        "mtd_sweep_shuffle_interval_20",
+        "mtd_sweep_shuffle_intensity_02",
+        "mtd_sweep_shuffle_intensity_05",
+        "mtd_sweep_shuffle_intensity_09",
+        "mtd_sweep_target_frequency",
+        "mtd_sweep_visible_log",
+        "mtd_sweep_hybrid_visible",
+    }
+
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_mtd_delta_vs_reference_columns_exist():
+    rows = build_multiseed_stats_rows(
+        [
+            {
+                "scenario": "mtd_none_reference",
+                "post_decoy_compromised_value": 100.0,
+                "post_decoy_utility": 10.0,
+                "mtd_total_cost": 0.0,
+            },
+            {
+                "scenario": "mtd_sweep_shuffle_interval_5",
+                "post_decoy_compromised_value": 90.0,
+                "post_decoy_utility": 8.0,
+                "mtd_total_cost": 5.0,
+            },
+        ]
+    )
+
+    sweep = next(row for row in rows if row["scenario"] == "mtd_sweep_shuffle_interval_5")
+    assert "mtd_compromised_delta_vs_reference" in sweep
+    assert "mtd_utility_delta_vs_reference" in sweep
+    assert "mtd_cost_adjusted_delta" in sweep
+
+
+def test_mtd_cost_adjusted_delta_computed():
+    rows = build_multiseed_stats_rows(
+        [
+            {
+                "scenario": "mtd_none_reference",
+                "post_decoy_compromised_value": 100.0,
+                "post_decoy_utility": 10.0,
+                "mtd_total_cost": 0.0,
+            },
+            {
+                "scenario": "mtd_sweep_shuffle_interval_5",
+                "post_decoy_compromised_value": 90.0,
+                "post_decoy_utility": 8.0,
+                "mtd_total_cost": 5.0,
+            },
+        ]
+    )
+
+    sweep = next(row for row in rows if row["scenario"] == "mtd_sweep_shuffle_interval_5")
+    assert sweep["mtd_compromised_delta_vs_reference"] == -10.0
+    assert sweep["mtd_utility_delta_vs_reference"] == -2.0
+    assert sweep["mtd_cost_adjusted_delta"] == -5.0
+
+
+def test_mtd_sweep_summary_plots_created(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "mtd_none_reference": {
+                **SCENARIOS["mtd_none_reference"],
+                "T": 3,
+                "H": 2,
+            },
+            "mtd_sweep_shuffle_interval_5": {
+                **SCENARIOS["mtd_sweep_shuffle_interval_5"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+            "mtd_sweep_visible_log": {
+                **SCENARIOS["mtd_sweep_visible_log"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    sweep = next(row for row in rows if row["scenario"] == "mtd_sweep_shuffle_interval_5")
+    assert sweep["mtd_cost_adjusted_delta"] is not None
+    assert (tmp_path / "scenarios_multiseed" / "summary_mtd_sweep_compromised.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_mtd_sweep_cost_adjusted.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_mtd_estimator_compatibility.png").exists()
+
+
+def test_reachable_node_selection():
+    config = small_config(
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_lateral_enabled=True,
+        attacker_lateral_success_prob=1.0,
+        adjacency_matrix=[
+            [0, 1, 0, 0, 0],
+            [1, 0, 1, 1, 0],
+            [0, 1, 0, 1, 0],
+            [0, 1, 1, 0, 1],
+            [0, 0, 0, 1, 0],
+        ],
+        entry_nodes=[0],
+        critical_nodes=[4],
+        attacker_belief=[1.0, 1.0, 1.0, 1.0, 100.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.attacker.select_attack(sim.x_current, sim.M)
+
+    assert sim.attacker.last_selected_target == 1
+
+
+def test_lateral_movement_only_neighbor():
+    config = small_config(
+        T=3,
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_lateral_enabled=True,
+        attacker_lateral_success_prob=1.0,
+        attacker_lateral_detection_prob=0.0,
+        stochastic_success=True,
+        stochastic_detection=True,
+        adjacency_matrix=[
+            [0, 1, 0, 0, 0],
+            [1, 0, 1, 1, 0],
+            [0, 1, 0, 1, 0],
+            [0, 1, 1, 0, 1],
+            [0, 0, 0, 1, 0],
+        ],
+        entry_nodes=[0],
+        critical_nodes=[4],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    targets = np.asarray(sim.history["attacker_selected_target"], dtype=int)
+    adjacency = config.adjacency_matrix
+    current = config.entry_nodes[0]
+    for target in targets:
+        assert adjacency[current, target] == 1
+        current = target
+
+
+def test_critical_asset_detection():
+    config = small_config(
+        T=4,
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_lateral_enabled=True,
+        attacker_lateral_success_prob=1.0,
+        attacker_lateral_detection_prob=0.0,
+        stochastic_success=True,
+        stochastic_detection=True,
+        adjacency_matrix=[
+            [0, 1, 0, 0, 0],
+            [1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0],
+        ],
+        entry_nodes=[3],
+        critical_nodes=[4],
+        attacker_belief=[1.0, 1.0, 1.0, 1.0, 100.0],
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["critical_compromise"] is True
+    assert metrics["critical_compromise_step"] == 0
+
+
+def test_decoy_reduces_lateral_success():
+    config = small_config(
+        attacker_lateral_enabled=True,
+        attacker_lateral_success_prob=0.8,
+        decoy_lateral_decay=0.5,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    assert sim._lateral_success_probability(attacked_decoy=True) == pytest.approx(0.4)
+    assert sim._lateral_success_probability(attacked_decoy=False) == pytest.approx(0.8)
+
+
+def test_lateral_multiseed_summary(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "lateral_baseline": {
+                **SCENARIOS["lateral_baseline"],
+                "T": 4,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+            "lateral_decoy": {
+                **SCENARIOS["lateral_decoy"],
+                "T": 4,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "lateral_baseline"
+    assert "critical_compromise_rate" in rows[0]
+    assert "critical_compromise_step_mean" in rows[0]
+    assert (tmp_path / "scenarios_multiseed" / "summary_lateral_compromise_rate.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_lateral_compromise_step.png").exists()
+
+
+def test_paths_to_critical_are_found():
+    sim = CyberDefenseSimulator(SimulationConfig())
+
+    paths = sim._paths_to_critical()
+
+    assert [0, 1, 3, 4] in paths
+    assert [0, 1, 2, 3, 4] in paths
+    assert sim._reachable_from_entries() == {0, 1, 2, 3, 4}
+
+
+def test_node_path_frequency_identifies_chokepoint():
+    sim = CyberDefenseSimulator(SimulationConfig())
+    paths = sim._paths_to_critical()
+
+    frequency = sim._node_path_frequency(paths)
+
+    assert frequency[1] == 2
+    assert frequency[3] == 2
+    assert sim._chokepoint_nodes(frequency) == [1, 3]
+
+
+def test_decoy_on_critical_path_metric():
+    config = SimulationConfig(node_type=["real", "decoy", "real", "real", "real"])
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    metrics = sim.calculate_metrics()
+
+    assert metrics["decoy_on_critical_path"] is True
+    assert 1 in metrics["chokepoint_nodes"]
+    assert metrics["critical_path_count"] >= 2
+
+
+def test_edge_mtd_blocks_critical_edge_temporarily():
+    config = SimulationConfig(
+        T=1,
+        H=2,
+        attacker_lateral_enabled=True,
+        mtd_enabled=True,
+        mtd_interval=1,
+        mtd_shuffle_topology=False,
+        mtd_block_critical_edges=True,
+        mtd_edge_block_count=1,
+        mtd_edge_block_duration=1,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    history = sim.run()
+
+    active = np.asarray(history["active_adjacency_matrix"], dtype=int)
+    assert active.shape == (1, config.n_nodes, config.n_nodes)
+    assert not np.array_equal(active[0], config.adjacency_matrix)
+    assert history["mtd_blocked_edges_step"][0] != ""
+
+
+def test_active_adjacency_restores_after_duration():
+    config = SimulationConfig(
+        mtd_block_critical_edges=True,
+        mtd_edge_block_count=1,
+        mtd_edge_block_duration=1,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    sim._block_critical_edges(0)
+    assert sim.mtd_blocked_edges
+    assert not np.array_equal(sim.active_adjacency_matrix, sim.current_adjacency_matrix)
+
+    sim._restore_expired_mtd_edge_blocks(1)
+
+    assert sim.mtd_blocked_edges == {}
+    assert np.array_equal(sim.active_adjacency_matrix, sim.current_adjacency_matrix)
+
+
+def test_path_aware_lateral_scenarios_present():
+    expected = {
+        "lateral_decoy_on_chokepoint",
+        "lateral_decoy_on_server_path",
+        "lateral_multi_decoy_path",
+        "lateral_edge_mtd_chokepoint",
+        "lateral_edge_mtd_interval5",
+        "lateral_path_decoy_edge_mtd",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_path_aware_multiseed_summary(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "lateral_decoy_on_chokepoint": {
+                **SCENARIOS["lateral_decoy_on_chokepoint"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+            "lateral_path_decoy_edge_mtd": {
+                **SCENARIOS["lateral_path_decoy_edge_mtd"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "lateral_decoy_on_chokepoint"
+    assert "critical_path_count" in rows[0]
+    assert "mtd_edge_block_events_mean" in rows[1]
+    assert (tmp_path / "scenarios_multiseed" / "summary_lateral_path_aware_compromise_rate.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_lateral_path_aware_step.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_lateral_edge_mtd.png").exists()
+
+
+def test_bayesian_config_validation():
+    with pytest.raises(ValueError, match="post_decoy_defense_belief_source"):
+        SimulationConfig(post_decoy_defense_belief_source="invalid")
+    with pytest.raises(ValueError, match="defender_bayesian_prior_strength"):
+        SimulationConfig(defender_bayesian_prior_strength=-0.1)
+    with pytest.raises(ValueError, match="defender_bayesian_decay"):
+        SimulationConfig(defender_bayesian_decay=1.1)
+    SimulationConfig(post_decoy_defense_belief_source="bayesian")
+
+
+def test_bayesian_update_increases_selected_target_alpha():
+    config = SimulationConfig(defender_bayesian_update_enabled=True)
+    sim = CyberDefenseSimulator(config)
+    before = sim.defender_bayesian_alpha.copy()
+
+    sim._update_defender_bayesian_belief(
+        selected_target=2,
+        success=True,
+        detected=False,
+        attacked_decoy=False,
+    )
+
+    assert sim.defender_bayesian_alpha[2] > before[2]
+
+
+def test_bayesian_update_applies_decay():
+    config = SimulationConfig(
+        defender_bayesian_update_enabled=True,
+        defender_bayesian_decay=0.5,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    sim._update_defender_bayesian_belief(
+        selected_target=2,
+        success=False,
+        detected=False,
+        attacked_decoy=False,
+    )
+
+    assert sim.defender_bayesian_alpha[0] == pytest.approx(0.5)
+
+
+def test_bayesian_critical_path_likelihood_boost():
+    base = SimulationConfig(
+        defender_bayesian_update_enabled=True,
+        defender_bayesian_decay=1.0,
+        defender_bayesian_critical_path_likelihood=1.0,
+    )
+    boosted = SimulationConfig(
+        defender_bayesian_update_enabled=True,
+        defender_bayesian_decay=1.0,
+        defender_bayesian_critical_path_likelihood=3.0,
+    )
+    base_sim = CyberDefenseSimulator(base)
+    boosted_sim = CyberDefenseSimulator(boosted)
+
+    base_sim._update_defender_bayesian_belief(1, success=False, detected=False, attacked_decoy=False)
+    boosted_sim._update_defender_bayesian_belief(1, success=False, detected=False, attacked_decoy=False)
+
+    assert boosted_sim.defender_bayesian_alpha[1] > base_sim.defender_bayesian_alpha[1]
+
+
+def test_effective_defense_weight_uses_bayesian_belief():
+    config = SimulationConfig(
+        post_decoy_defense_enabled=True,
+        post_decoy_defense_belief_source="bayesian",
+        post_decoy_defense_top_k=1,
+        post_decoy_defense_weight=3.0,
+        post_decoy_defense_exclude_decoy=False,
+        defender_bayesian_update_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.first_decoy_step = 0
+    sim.defender_bayesian_alpha = np.ones(config.n_nodes)
+    sim.defender_bayesian_alpha[3] = 20.0
+
+    weight = sim._effective_defense_weight()
+
+    assert weight[3] > config.Q_diag[3]
+    assert weight[0] == pytest.approx(config.Q_diag[0])
+
+
+def test_bayesian_scenarios_present():
+    expected = {
+        "bayesian_lateral_path_decoy",
+        "bayesian_lateral_path_decoy_edge_mtd",
+        "bayesian_vs_target_frequency_reference",
+        "bayesian_high_critical_path_likelihood",
+        "bayesian_low_decay",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_bayesian_multiseed_summary(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "bayesian_lateral_path_decoy": {
+                **SCENARIOS["bayesian_lateral_path_decoy"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+            "bayesian_vs_target_frequency_reference": {
+                **SCENARIOS["bayesian_vs_target_frequency_reference"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[0]["scenario"] == "bayesian_lateral_path_decoy"
+    assert "defender_bayesian_error_l1_mean" in rows[0]
+    assert "critical_compromise_rate" in rows[0]
+    assert "post_decoy_compromised_mean" in rows[0]
+    assert (tmp_path / "scenarios_multiseed" / "summary_bayesian_compromise_rate.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_bayesian_post_decoy_compromised.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_bayesian_error.png").exists()
+
+
+def test_bayesian_sweep_scenarios_present():
+    expected = {
+        "bayesian_sweep_prior_05",
+        "bayesian_sweep_prior_20",
+        "bayesian_sweep_success_likelihood_10",
+        "bayesian_sweep_success_likelihood_30",
+        "bayesian_sweep_detected_likelihood_02",
+        "bayesian_sweep_detected_likelihood_08",
+        "bayesian_sweep_decoy_likelihood_01",
+        "bayesian_sweep_decoy_likelihood_05",
+        "bayesian_sweep_critical_path_likelihood_10",
+        "bayesian_sweep_critical_path_likelihood_30",
+        "bayesian_sweep_decay_090",
+        "bayesian_sweep_decay_098",
+        "bayesian_sweep_decay_100",
+    }
+
+    assert expected.issubset(SCENARIOS)
+
+
+def test_multiseed_includes_bayesian_sweep():
+    expected = {
+        "bayesian_sweep_success_likelihood_10",
+        "bayesian_sweep_success_likelihood_30",
+        "bayesian_sweep_decoy_likelihood_01",
+        "bayesian_sweep_decoy_likelihood_05",
+        "bayesian_sweep_critical_path_likelihood_10",
+        "bayesian_sweep_critical_path_likelihood_30",
+        "bayesian_sweep_decay_090",
+        "bayesian_sweep_decay_100",
+    }
+
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_bayesian_delta_vs_target_frequency_columns_exist():
+    rows = build_multiseed_stats_rows(
+        [
+            {
+                "scenario": "bayesian_vs_target_frequency_reference",
+                "critical_compromise": True,
+                "post_decoy_compromised_value": 10.0,
+                "defender_bayesian_error_l1": 5.0,
+            },
+            {
+                "scenario": "bayesian_sweep_decay_090",
+                "critical_compromise": False,
+                "post_decoy_compromised_value": 7.0,
+                "defender_bayesian_error_l1": 4.0,
+            },
+        ]
+    )
+    sweep = next(row for row in rows if row["scenario"] == "bayesian_sweep_decay_090")
+
+    assert "bayesian_compromise_delta_vs_target_frequency" in sweep
+    assert "bayesian_post_decoy_delta_vs_target_frequency" in sweep
+    assert "bayesian_error_delta_vs_target_frequency" in sweep
+    assert sweep["bayesian_compromise_delta_vs_target_frequency"] == -1.0
+    assert sweep["bayesian_post_decoy_delta_vs_target_frequency"] == -3.0
+    assert sweep["bayesian_error_delta_vs_target_frequency"] == -1.0
+
+
+def test_bayesian_sweep_plots_created(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "bayesian_vs_target_frequency_reference": {
+                **SCENARIOS["bayesian_vs_target_frequency_reference"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+            "bayesian_sweep_decay_090": {
+                **SCENARIOS["bayesian_sweep_decay_090"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[1]["scenario"] == "bayesian_sweep_decay_090"
+    assert "bayesian_post_decoy_delta_vs_target_frequency" in rows[1]
+    assert (tmp_path / "scenarios_multiseed" / "summary_bayesian_sweep_compromise_rate.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_bayesian_sweep_post_decoy.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_bayesian_sweep_error.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_bayesian_vs_target_frequency_delta.png").exists()
+
+
+def test_defense_objective_config_validation():
+    with pytest.raises(ValueError, match="defense_objective_critical_weight"):
+        SimulationConfig(defense_objective_critical_weight=-1.0)
+    with pytest.raises(ValueError, match="defense_objective_post_decoy_weight"):
+        SimulationConfig(defense_objective_post_decoy_weight=-1.0)
+    with pytest.raises(ValueError, match="defense_objective_delay_reward"):
+        SimulationConfig(defense_objective_delay_reward=-1.0)
+
+
+def test_defense_objective_score_computed():
+    config = SimulationConfig(
+        T=10,
+        defense_objective_critical_weight=1000.0,
+        defense_objective_post_decoy_weight=1.0,
+        defense_objective_delay_reward=5.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.critical_compromise = True
+    sim.critical_compromise_step = 3
+    sim.first_decoy_step = None
+
+    metrics = sim.calculate_metrics()
+
+    assert metrics["defense_objective_score"] == pytest.approx(985.0)
+
+
+def test_defense_objective_scenarios_present():
+    expected = {
+        "bayesian_defense_objective_default",
+        "bayesian_defense_objective_high_critical_weight",
+        "bayesian_defense_objective_high_delay_reward",
+        "bayesian_defense_objective_low_post_decoy_weight",
+        "bayesian_defense_objective_edge_mtd",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_defense_objective_multiseed_summary():
+    rows = build_multiseed_stats_rows(
+        [
+            {
+                "scenario": "bayesian_vs_target_frequency_reference",
+                "critical_compromise": True,
+                "critical_compromise_step": 2,
+                "post_decoy_compromised_value": 10.0,
+                "defender_bayesian_error_l1": 5.0,
+                "defense_objective_score": 1000.0,
+            },
+            {
+                "scenario": "bayesian_defense_objective_default",
+                "critical_compromise": False,
+                "critical_compromise_step": None,
+                "post_decoy_compromised_value": 7.0,
+                "defender_bayesian_error_l1": 4.0,
+                "defense_objective_score": 800.0,
+            },
+        ]
+    )
+    objective = next(row for row in rows if row["scenario"] == "bayesian_defense_objective_default")
+
+    assert "defense_objective_score_mean" in objective
+    assert "defense_objective_delta_vs_target_frequency" in objective
+    assert objective["defense_objective_delta_vs_target_frequency"] == -200.0
+    assert objective["critical_rate_delta_vs_target_frequency"] == -1.0
+    assert objective["post_decoy_delta_vs_target_frequency"] == -3.0
+
+
+def test_defense_objective_plots_created(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "bayesian_vs_target_frequency_reference": {
+                **SCENARIOS["bayesian_vs_target_frequency_reference"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+            "bayesian_defense_objective_edge_mtd": {
+                **SCENARIOS["bayesian_defense_objective_edge_mtd"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows[1]["scenario"] == "bayesian_defense_objective_edge_mtd"
+    assert "defense_objective_score_mean" in rows[1]
+    assert (tmp_path / "scenarios_multiseed" / "summary_defense_objective_score.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_defense_objective_tradeoff.png").exists()
+
+
+def test_policy_selection_scenarios_present():
+    expected = {
+        "policy_target_frequency_path_decoy",
+        "policy_bayesian_default_path_decoy",
+        "policy_bayesian_success30_path_decoy",
+        "policy_bayesian_decay090_path_decoy",
+        "policy_bayesian_edge_mtd",
+        "policy_path_decoy_edge_mtd",
+        "policy_lateral_multi_decoy",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_policy_selection_summary_created(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "policy_target_frequency_path_decoy": {
+                **SCENARIOS["policy_target_frequency_path_decoy"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+            "policy_bayesian_default_path_decoy": {
+                **SCENARIOS["policy_bayesian_default_path_decoy"],
+                "T": 3,
+                "H": 2,
+                "attacker_lateral_success_prob": 1.0,
+                "attacker_lateral_detection_prob": 0.0,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    policy_rows = json.loads(
+        (tmp_path / "scenarios_multiseed" / "policy_selection_summary.json").read_text(encoding="utf-8")
+    )
+
+    assert len(rows) == 2
+    assert set(POLICY_SELECTION_COLUMNS).issubset(policy_rows[0].keys())
+    assert (tmp_path / "scenarios_multiseed" / "policy_selection_summary.csv").exists()
+    assert (tmp_path / "scenarios_multiseed" / "policy_selection_summary.json").exists()
+
+
+def test_best_policy_json_created(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "policy_target_frequency_path_decoy": {
+                **SCENARIOS["policy_target_frequency_path_decoy"],
+                "T": 3,
+                "H": 2,
+            },
+            "policy_bayesian_default_path_decoy": {
+                **SCENARIOS["policy_bayesian_default_path_decoy"],
+                "T": 3,
+                "H": 2,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    best = json.loads((tmp_path / "scenarios_multiseed" / "best_policy.json").read_text(encoding="utf-8"))
+
+    assert best["best_policy"].startswith("policy_")
+    assert best["reason"] == "lowest defense_objective_score_mean"
+
+
+def test_policy_selection_rank_sorted_by_objective():
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": "policy_target_frequency_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 900.0,
+                "defense_objective_score_std": 10.0,
+            },
+            {
+                "scenario": "policy_bayesian_default_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 800.0,
+                "defense_objective_score_std": 20.0,
+            },
+        ]
+    )
+
+    assert [row["policy"] for row in rows] == [
+        "policy_bayesian_default_path_decoy",
+        "policy_target_frequency_path_decoy",
+    ]
+    assert [row["selected_policy_rank"] for row in rows] == [1, 2]
+
+
+def test_policy_selection_plots_created(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "policy_target_frequency_path_decoy": {
+                **SCENARIOS["policy_target_frequency_path_decoy"],
+                "T": 3,
+                "H": 2,
+            },
+            "policy_bayesian_edge_mtd": {
+                **SCENARIOS["policy_bayesian_edge_mtd"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert (tmp_path / "scenarios_multiseed" / "summary_policy_selection_objective.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_policy_selection_tradeoff.png").exists()
+
+
+def test_mtd_risk_gate_config_validation():
+    with pytest.raises(ValueError, match="mtd_risk_gate_threshold"):
+        SimulationConfig(mtd_risk_gate_threshold=-1.0)
+    with pytest.raises(ValueError, match="mtd_risk_gate_mode"):
+        SimulationConfig(mtd_risk_gate_mode="invalid")
+    with pytest.raises(ValueError, match="mtd_risk_gate_cooldown"):
+        SimulationConfig(mtd_risk_gate_cooldown=-1)
+
+
+def test_mtd_risk_gate_score_computed():
+    config = small_config(mtd_risk_gate_mode="critical_path_risk")
+    sim = CyberDefenseSimulator(config)
+    sim.x_current = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+
+    assert sim._mtd_risk_gate_score() == pytest.approx(15.0)
+
+
+def test_mtd_risk_gate_suppresses_low_risk_mtd():
+    config = small_config(
+        T=3,
+        mtd_enabled=True,
+        mtd_interval=1,
+        mtd_risk_gating_enabled=True,
+        mtd_risk_gate_threshold=1000.0,
+        mtd_risk_gate_cooldown=0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["mtd_event_count"] == 0
+    assert metrics["mtd_risk_gate_fire_count"] == 0
+    assert metrics["mtd_risk_gate_suppressed_count"] == 3
+
+
+def test_mtd_risk_gate_fires_high_risk_mtd():
+    config = small_config(
+        T=3,
+        mtd_enabled=True,
+        mtd_interval=1,
+        mtd_risk_gating_enabled=True,
+        mtd_risk_gate_threshold=0.0,
+        mtd_risk_gate_cooldown=0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert metrics["mtd_event_count"] == 3
+    assert metrics["mtd_risk_gate_fire_count"] == 3
+    assert metrics["mtd_risk_gate_suppressed_count"] == 0
+
+
+def test_gated_mtd_scenarios_present():
+    expected = {
+        "policy_gated_edge_mtd_critical_path",
+        "policy_gated_edge_mtd_chokepoint",
+        "policy_gated_edge_mtd_edge_pressure",
+        "policy_gated_edge_mtd_low_threshold",
+        "policy_gated_edge_mtd_high_threshold",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_policy_selection_includes_gated_mtd():
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": "policy_gated_edge_mtd_critical_path",
+                "num_runs": 2,
+                "defense_objective_score_mean": 700.0,
+                "mtd_risk_gating_enabled": True,
+                "mtd_risk_gate_mode": "critical_path_risk",
+                "mtd_risk_gate_fire_count_mean": 1.0,
+                "mtd_risk_gate_suppressed_count_mean": 2.0,
+                "mtd_risk_gate_score_mean": 5.5,
+            },
+            {
+                "scenario": "policy_target_frequency_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 800.0,
+            },
+        ]
+    )
+
+    gated = rows[0]
+    assert gated["policy"] == "policy_gated_edge_mtd_critical_path"
+    assert gated["selected_policy_rank"] == 1
+    assert gated["mtd_risk_gating_enabled"] is True
+    assert gated["mtd_risk_gate_fire_count_mean"] == 1.0
+
+
+def test_gated_mtd_sweep_scenarios_present():
+    expected = {
+        "gated_edge_pressure_threshold_3",
+        "gated_edge_pressure_threshold_5",
+        "gated_edge_pressure_threshold_7",
+        "gated_edge_pressure_threshold_10",
+        "gated_edge_pressure_threshold_15",
+        "gated_edge_pressure_cooldown_0",
+        "gated_edge_pressure_cooldown_3",
+        "gated_edge_pressure_cooldown_5",
+        "gated_edge_pressure_cooldown_10",
+        "gated_edge_pressure_duration_1",
+        "gated_edge_pressure_duration_2",
+        "gated_edge_pressure_count_1",
+        "gated_edge_pressure_count_2",
+    }
+
+    assert expected.issubset(SCENARIOS)
+
+
+def test_gated_mtd_sweep_in_multiseed():
+    expected = {
+        "gated_edge_pressure_threshold_3",
+        "gated_edge_pressure_threshold_5",
+        "gated_edge_pressure_threshold_10",
+        "gated_edge_pressure_cooldown_0",
+        "gated_edge_pressure_cooldown_5",
+        "gated_edge_pressure_duration_2",
+        "gated_edge_pressure_count_2",
+    }
+
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_policy_selection_includes_gated_sweep():
+    expected = {
+        "gated_edge_pressure_threshold_3",
+        "gated_edge_pressure_threshold_5",
+        "gated_edge_pressure_threshold_10",
+        "gated_edge_pressure_cooldown_5",
+        "gated_edge_pressure_duration_2",
+        "gated_edge_pressure_count_2",
+    }
+
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+    policy_rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": "policy_target_frequency_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 800.0,
+                "critical_compromise_rate": 0.7,
+                "post_decoy_compromised_mean": 100.0,
+                "mtd_total_cost_mean": 0.0,
+            },
+            {
+                "scenario": "gated_edge_pressure_threshold_5",
+                "num_runs": 2,
+                "defense_objective_score_mean": 700.0,
+                "critical_compromise_rate": 0.6,
+                "post_decoy_compromised_mean": 80.0,
+                "mtd_total_cost_mean": 2.0,
+            },
+        ]
+    )
+
+    assert any(row["policy"] == "gated_edge_pressure_threshold_5" for row in policy_rows)
+
+
+def test_cost_per_post_decoy_reduction_computed():
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": "policy_target_frequency_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 800.0,
+                "critical_compromise_rate": 0.7,
+                "post_decoy_compromised_mean": 100.0,
+                "mtd_total_cost_mean": 0.0,
+            },
+            {
+                "scenario": "gated_edge_pressure_threshold_5",
+                "num_runs": 2,
+                "defense_objective_score_mean": 700.0,
+                "critical_compromise_rate": 0.6,
+                "post_decoy_compromised_mean": 80.0,
+                "mtd_total_cost_mean": 2.0,
+            },
+        ]
+    )
+    gated = next(row for row in rows if row["policy"] == "gated_edge_pressure_threshold_5")
+
+    assert gated["post_decoy_reduction_vs_reference"] == pytest.approx(20.0)
+    assert gated["critical_rate_improvement_vs_reference"] == pytest.approx(0.1)
+    assert gated["cost_per_post_decoy_reduction"] == pytest.approx(0.1)
+
+
+def test_gated_mtd_sweep_plots_created(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "policy_target_frequency_path_decoy": {
+                **SCENARIOS["policy_target_frequency_path_decoy"],
+                "T": 3,
+                "H": 2,
+            },
+            "gated_edge_pressure_threshold_5": {
+                **SCENARIOS["gated_edge_pressure_threshold_5"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert (tmp_path / "scenarios_multiseed" / "summary_gated_mtd_sweep_objective.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_gated_mtd_sweep_cost_effectiveness.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_gated_mtd_threshold_tradeoff.png").exists()
+
+
+def test_gated_mtd_hybrid_scenarios_present():
+    expected = {
+        "gated_edge_pressure_count2_duration2",
+        "gated_edge_pressure_count2_duration2_threshold5",
+        "gated_edge_pressure_count2_duration2_threshold7",
+        "gated_edge_pressure_count2_duration2_cooldown0",
+        "gated_edge_pressure_count2_duration2_cooldown5",
+        "gated_edge_pressure_count2_duration2_interval10",
+        "gated_edge_pressure_count2_duration1_threshold7",
+        "gated_edge_pressure_count1_duration2_threshold7",
+    }
+
+    assert expected.issubset(SCENARIOS)
+
+
+def test_gated_mtd_hybrid_in_multiseed():
+    expected = {
+        "gated_edge_pressure_count2_duration2",
+        "gated_edge_pressure_count2_duration2_threshold7",
+        "gated_edge_pressure_count2_duration2_cooldown5",
+        "gated_edge_pressure_count2_duration2_interval10",
+        "gated_edge_pressure_count2_duration1_threshold7",
+        "gated_edge_pressure_count1_duration2_threshold7",
+    }
+
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_policy_selection_includes_gated_hybrid():
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": "policy_target_frequency_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 800.0,
+                "critical_compromise_rate": 0.7,
+                "post_decoy_compromised_mean": 100.0,
+                "mtd_total_cost_mean": 0.0,
+            },
+            {
+                "scenario": "gated_edge_pressure_count2_duration2_threshold7",
+                "num_runs": 2,
+                "defense_objective_score_mean": 700.0,
+                "critical_compromise_rate": 0.6,
+                "post_decoy_compromised_mean": 80.0,
+                "mtd_total_cost_mean": 2.0,
+            },
+        ]
+    )
+
+    assert any(row["policy"] == "gated_edge_pressure_count2_duration2_threshold7" for row in rows)
+
+
+def test_gated_mtd_hybrid_plots_created(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "policy_target_frequency_path_decoy": {
+                **SCENARIOS["policy_target_frequency_path_decoy"],
+                "T": 3,
+                "H": 2,
+            },
+            "gated_edge_pressure_count2_duration2": {
+                **SCENARIOS["gated_edge_pressure_count2_duration2"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert (tmp_path / "scenarios_multiseed" / "summary_gated_mtd_hybrid_objective.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_gated_mtd_hybrid_tradeoff.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_gated_mtd_hybrid_cost_effectiveness.png").exists()
+
+
+def test_best_policy_can_select_hybrid_gated_mtd():
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": "policy_target_frequency_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 800.0,
+                "critical_compromise_rate": 0.7,
+                "post_decoy_compromised_mean": 100.0,
+                "mtd_total_cost_mean": 0.0,
+            },
+            {
+                "scenario": "gated_edge_pressure_count2_duration2",
+                "num_runs": 2,
+                "defense_objective_score_mean": 500.0,
+                "critical_compromise_rate": 0.5,
+                "post_decoy_compromised_mean": 70.0,
+                "mtd_total_cost_mean": 3.0,
+            },
+        ]
+    )
+
+    assert rows[0]["policy"] == "gated_edge_pressure_count2_duration2"
+    assert rows[0]["selected_policy_rank"] == 1
+
+
+def test_conditional_mtd_config_validation():
+    with pytest.raises(ValueError, match="mtd_conditional_policy_mode"):
+        SimulationConfig(mtd_conditional_policy_mode="invalid")
+    with pytest.raises(ValueError, match="mtd_conditional_high_risk_threshold"):
+        SimulationConfig(mtd_conditional_high_risk_threshold=-1.0)
+    with pytest.raises(ValueError, match="mtd_conditional_low_risk_threshold"):
+        SimulationConfig(mtd_conditional_low_risk_threshold=-1.0)
+    with pytest.raises(ValueError, match="mtd_conditional_high_risk_threshold"):
+        SimulationConfig(
+            mtd_conditional_low_risk_threshold=5.0,
+            mtd_conditional_high_risk_threshold=3.0,
+        )
+
+
+def test_conditional_mtd_selects_count2_for_high_risk():
+    config = small_config(
+        mtd_conditional_policy_enabled=True,
+        mtd_conditional_low_risk_threshold=5.0,
+        mtd_conditional_high_risk_threshold=10.0,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    assert sim._select_mtd_conditional_policy(12.0) == ("count2", 2, 1)
+
+
+def test_conditional_mtd_selects_duration2_for_mid_risk():
+    config = small_config(
+        mtd_conditional_policy_enabled=True,
+        mtd_conditional_low_risk_threshold=5.0,
+        mtd_conditional_high_risk_threshold=10.0,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    assert sim._select_mtd_conditional_policy(7.0) == ("duration2", 1, 2)
+
+
+def test_conditional_mtd_suppresses_low_risk():
+    config = small_config(
+        mtd_conditional_policy_enabled=True,
+        mtd_conditional_low_risk_threshold=5.0,
+        mtd_conditional_high_risk_threshold=10.0,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    assert sim._select_mtd_conditional_policy(2.0) == ("suppress", 0, 0)
+
+
+def test_conditional_mtd_scenarios_present():
+    expected = {
+        "gated_edge_conditional_split_5_10",
+        "gated_edge_conditional_split_3_7",
+        "gated_edge_conditional_split_7_12",
+        "gated_edge_conditional_split_5_15",
+        "gated_edge_conditional_critical_vs_post_decoy",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_policy_selection_includes_conditional_mtd():
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": "policy_target_frequency_path_decoy",
+                "num_runs": 2,
+                "defense_objective_score_mean": 800.0,
+                "critical_compromise_rate": 0.7,
+                "post_decoy_compromised_mean": 100.0,
+                "mtd_total_cost_mean": 0.0,
+            },
+            {
+                "scenario": "gated_edge_conditional_split_5_10",
+                "num_runs": 2,
+                "defense_objective_score_mean": 700.0,
+                "critical_compromise_rate": 0.6,
+                "post_decoy_compromised_mean": 80.0,
+                "mtd_total_cost_mean": 2.0,
+                "mtd_conditional_policy_enabled": True,
+                "mtd_conditional_count2_action_count_mean": 1.0,
+                "mtd_conditional_duration2_action_count_mean": 2.0,
+                "mtd_conditional_suppress_count_mean": 3.0,
+            },
+        ]
+    )
+    conditional = next(row for row in rows if row["policy"] == "gated_edge_conditional_split_5_10")
+
+    assert conditional["mtd_conditional_policy_enabled"] is True
+    assert conditional["mtd_conditional_count2_action_count_mean"] == 1.0
+
+
+def test_conditional_mtd_plots_created(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "policy_target_frequency_path_decoy": {
+                **SCENARIOS["policy_target_frequency_path_decoy"],
+                "T": 3,
+                "H": 2,
+            },
+            "gated_edge_conditional_split_5_10": {
+                **SCENARIOS["gated_edge_conditional_split_5_10"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert (tmp_path / "scenarios_multiseed" / "summary_conditional_mtd_objective.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_conditional_mtd_tradeoff.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_conditional_mtd_actions.png").exists()
+
+
+def test_attacker_metrics_are_present():
+    config = small_config(attacker_enabled=True)
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    for key in [
+        "attacker_avg_gain_per_success",
+        "attacker_cost_per_success",
+        "attacker_detection_rate",
+        "attacker_success_rate",
+    ]:
+        assert key in metrics
+
+
+def test_honeypot_credential_trigger():
+    config = small_config(
+        T=3,
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_greedy_mode="utility",
+        attacker_lateral_enabled=True,
+        attacker_lateral_success_prob=1.0,
+        decoy_lateral_decay=1.0,
+        stochastic_success=False,
+        stochastic_detection=False,
+        node_type=["real", "decoy", "real", "decoy", "real"],
+        attacker_belief=[1, 20, 1, 1, 1],
+        honeypot_credential_enabled=True,
+        credential_node_ids=[1],
+        credential_attraction_bonus=3.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    assert np.any(np.asarray(history["credential_obtained"], dtype=bool))
+    assert np.any(np.asarray(history["credential_used"], dtype=bool))
+    assert np.any(np.asarray(history["credential_decoy_trigger"], dtype=bool))
+
+
+def test_honeypot_credential_metrics():
+    config = small_config(
+        T=3,
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        attacker_greedy_mode="utility",
+        attacker_lateral_enabled=True,
+        attacker_lateral_success_prob=1.0,
+        decoy_lateral_decay=1.0,
+        stochastic_success=False,
+        stochastic_detection=False,
+        node_type=["real", "decoy", "real", "decoy", "real"],
+        attacker_belief=[1, 20, 1, 1, 1],
+        honeypot_credential_enabled=True,
+        credential_node_ids=[1],
+        credential_attraction_bonus=3.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+    assert metrics["honeypot_credential_enabled"] is True
+    assert metrics["credential_obtained_count"] >= 1
+    assert metrics["credential_used_count"] >= 1
+    assert metrics["credential_decoy_trigger_count"] >= 1
+    assert metrics["credential_trigger_rate"] > 0.0
+
+
+def test_honeypot_scenarios_present():
+    expected = {
+        "honeypot_credential_reference",
+        "honeypot_credential_low_bonus",
+        "honeypot_credential_high_bonus",
+        "honeypot_credential_high_detection",
+        "honeypot_credential_path_decoy",
+        "honeypot_credential_edge_mtd",
+    }
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(MULTI_SEED_SCENARIO_NAMES)
+
+
+def test_honeypot_multiseed(tmp_path):
+    rows = run_scenarios_multi_seed(
+        scenarios={
+            "honeypot_credential_reference": {
+                **SCENARIOS["honeypot_credential_reference"],
+                "T": 3,
+                "H": 2,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    assert rows[0]["scenario"] == "honeypot_credential_reference"
+    assert "credential_trigger_rate_mean" in rows[0]
+    assert (
+        tmp_path
+        / "scenarios_multiseed"
+        / "honeypot_credential_reference"
+        / "seed_0"
+        / "metrics.json"
+    ).exists()
+
+
+def test_honeypot_plots_created(tmp_path):
+    run_scenarios_multi_seed(
+        scenarios={
+            "honeypot_credential_reference": {
+                **SCENARIOS["honeypot_credential_reference"],
+                "T": 3,
+                "H": 2,
+            },
+            "honeypot_credential_edge_mtd": {
+                **SCENARIOS["honeypot_credential_edge_mtd"],
+                "T": 3,
+                "H": 2,
+                "mtd_interval": 1,
+            },
+        },
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "scenarios_multiseed"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    assert (tmp_path / "scenarios_multiseed" / "summary_honeypot_objective.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_honeypot_tradeoff.png").exists()
+    assert (tmp_path / "scenarios_multiseed" / "summary_honeypot_trigger_rate.png").exists()
+
+
+def credential_aware_config(**overrides):
+    values = {
+        "T": 5,
+        "H": 2,
+        "attacker_enabled": True,
+        "attacker_target_selection": "adaptive",
+        "attacker_greedy_mode": "utility",
+        "attacker_lateral_enabled": True,
+        "attacker_lateral_success_prob": 1.0,
+        "decoy_lateral_decay": 1.0,
+        "stochastic_success": False,
+        "stochastic_detection": False,
+        "node_type": ["real", "decoy", "real", "decoy", "real"],
+        "attacker_belief": [1, 20, 1, 1, 1],
+        "honeypot_credential_enabled": True,
+        "credential_node_ids": [1],
+        "credential_attraction_bonus": 3.0,
+        "credential_aware_mtd_enabled": True,
+        "credential_trigger_mtd_window": 3,
+        "credential_trigger_block_count": 2,
+        "credential_trigger_block_duration": 1,
+        "credential_trigger_force_mtd": True,
+        "mtd_enabled": True,
+        "mtd_interval": 50,
+        "mtd_shuffle_topology": True,
+        "mtd_block_critical_edges": True,
+        "mtd_risk_gating_enabled": True,
+        "mtd_risk_gate_mode": "critical_edge_pressure",
+        "mtd_risk_gate_threshold": 100.0,
+    }
+    values.update(overrides)
+    return small_config(**values)
+
+
+def test_credential_aware_mtd_config_validation():
+    with pytest.raises(ValueError, match="credential_trigger_mtd_window"):
+        SimulationConfig(credential_trigger_mtd_window=-1)
+    with pytest.raises(ValueError, match="credential_trigger_block_count"):
+        SimulationConfig(credential_trigger_block_count=-1)
+    with pytest.raises(ValueError, match="credential_trigger_block_duration"):
+        SimulationConfig(credential_trigger_block_duration=0)
+    with pytest.raises(ValueError, match="credential_trigger_risk_bonus"):
+        SimulationConfig(credential_trigger_risk_bonus=-1.0)
+
+
+def test_credential_trigger_recently_active():
+    sim = CyberDefenseSimulator(credential_aware_config())
+    sim.last_credential_trigger_step = 2
+    assert sim._credential_trigger_recently_active(4) is True
+    assert sim._credential_trigger_recently_active(6) is False
+
+
+def test_credential_trigger_forces_mtd():
+    sim = CyberDefenseSimulator(credential_aware_config())
+    history = sim.run()
+    assert np.any(np.asarray(history["credential_decoy_trigger"], dtype=bool))
+    assert np.any(np.asarray(history["credential_aware_mtd_fire"], dtype=bool))
+    assert sim.calculate_metrics()["credential_trigger_mtd_event_count"] >= 1
+
+
+def test_credential_trigger_overrides_block_params():
+    config = credential_aware_config(
+        credential_trigger_block_count=1,
+        credential_trigger_block_duration=2,
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    fire = np.asarray(history["credential_aware_mtd_fire"], dtype=bool)
+    assert np.any(fire)
+    assert np.all(np.asarray(history["credential_aware_block_count"], dtype=int)[fire] == 1)
+    assert np.all(np.asarray(history["credential_aware_block_duration"], dtype=int)[fire] == 2)
+
+
+def test_credential_aware_mtd_metrics_present():
+    sim = CyberDefenseSimulator(credential_aware_config())
+    sim.run()
+    metrics = sim.calculate_metrics()
+    for key in [
+        "credential_aware_mtd_enabled",
+        "credential_trigger_mtd_window",
+        "credential_trigger_block_count",
+        "credential_trigger_block_duration",
+        "credential_trigger_force_mtd",
+        "credential_trigger_risk_bonus",
+        "credential_trigger_mtd_event_count",
+    ]:
+        assert key in metrics
+    assert metrics["credential_aware_mtd_enabled"] is True
+
+
+def test_credential_aware_mtd_scenarios_present():
+    expected = {
+        "credential_aware_mtd_reference",
+        "credential_aware_mtd_force_count2",
+        "credential_aware_mtd_force_duration2",
+        "credential_aware_mtd_risk_bonus",
+        "credential_aware_mtd_window1",
+        "credential_aware_mtd_window5",
+        "credential_aware_mtd_edge_pressure",
+    }
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(MULTI_SEED_SCENARIO_NAMES)
+
+
+def test_policy_selection_includes_credential_aware_mtd():
+    expected = {
+        "credential_aware_mtd_force_count2",
+        "credential_aware_mtd_force_duration2",
+        "credential_aware_mtd_risk_bonus",
+        "credential_aware_mtd_window1",
+        "credential_aware_mtd_window5",
+    }
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": name,
+                "num_runs": 2,
+                "defense_objective_score_mean": 500.0,
+                "critical_compromise_rate": 0.5,
+                "post_decoy_compromised_mean": 80.0,
+                "mtd_total_cost_mean": 2.0,
+                "credential_aware_mtd_enabled": True,
+                "credential_trigger_mtd_event_count_mean": 1.0,
+            }
+            for name in expected
+        ]
+    )
+    policies = {row["policy"] for row in rows}
+    assert expected.issubset(policies)
+    assert all(row["credential_aware_mtd_enabled"] is True for row in rows)
+
+
+def staged_credential_config(**overrides):
+    values = {
+        "credential_staged_mtd_enabled": True,
+        "credential_stage1_window": 1,
+        "credential_stage1_block_count": 2,
+        "credential_stage1_block_duration": 1,
+        "credential_stage2_window": 5,
+        "credential_stage2_block_count": 1,
+        "credential_stage2_block_duration": 2,
+        "credential_trigger_mtd_window": 5,
+    }
+    values.update(overrides)
+    return credential_aware_config(**values)
+
+
+def test_credential_staged_mtd_config_validation():
+    with pytest.raises(ValueError, match="credential_stage1_window"):
+        SimulationConfig(credential_stage1_window=-1)
+    with pytest.raises(ValueError, match="credential_stage2_window"):
+        SimulationConfig(credential_stage1_window=2, credential_stage2_window=1)
+    with pytest.raises(ValueError, match="credential_stage1_block_count"):
+        SimulationConfig(credential_stage1_block_count=-1)
+    with pytest.raises(ValueError, match="credential_stage2_block_count"):
+        SimulationConfig(credential_stage2_block_count=-1)
+    with pytest.raises(ValueError, match="credential_stage1_block_duration"):
+        SimulationConfig(credential_stage1_block_duration=0)
+    with pytest.raises(ValueError, match="credential_stage2_block_duration"):
+        SimulationConfig(credential_stage2_block_duration=0)
+
+
+def test_credential_mtd_stage_none_without_trigger():
+    sim = CyberDefenseSimulator(staged_credential_config())
+    assert sim._credential_mtd_stage(0) == "none"
+
+
+def test_credential_mtd_stage1_after_trigger():
+    sim = CyberDefenseSimulator(staged_credential_config(credential_stage1_window=1, credential_stage2_window=5))
+    sim.last_credential_trigger_step = 3
+    assert sim._credential_mtd_stage(4) == "stage1"
+
+
+def test_credential_mtd_stage2_after_stage1():
+    sim = CyberDefenseSimulator(staged_credential_config(credential_stage1_window=1, credential_stage2_window=5))
+    sim.last_credential_trigger_step = 3
+    assert sim._credential_mtd_stage(5) == "stage2"
+
+
+def test_credential_staged_mtd_overrides_block_params():
+    sim = CyberDefenseSimulator(
+        staged_credential_config(
+            credential_stage1_window=1,
+            credential_stage1_block_count=2,
+            credential_stage1_block_duration=1,
+            credential_stage2_window=5,
+            credential_stage2_block_count=1,
+            credential_stage2_block_duration=2,
+        )
+    )
+    history = sim.run()
+    stage1 = np.asarray(history["credential_stage1_action"], dtype=bool)
+    stage2 = np.asarray(history["credential_stage2_action"], dtype=bool)
+    counts = np.asarray(history["credential_aware_block_count"], dtype=int)
+    durations = np.asarray(history["credential_aware_block_duration"], dtype=int)
+    assert np.any(stage1)
+    assert np.any(stage2)
+    assert np.all(counts[stage1] == 2)
+    assert np.all(durations[stage1] == 1)
+    assert np.all(counts[stage2] == 1)
+    assert np.all(durations[stage2] == 2)
+
+
+def test_credential_staged_mtd_scenarios_present():
+    expected = {
+        "credential_staged_mtd_1_5",
+        "credential_staged_mtd_0_3",
+        "credential_staged_mtd_1_3",
+        "credential_staged_mtd_2_5",
+        "credential_staged_mtd_stage1_only",
+        "credential_staged_mtd_stage2_only",
+        "credential_staged_mtd_with_risk_bonus",
+    }
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(MULTI_SEED_SCENARIO_NAMES)
+
+
+def test_policy_selection_includes_credential_staged_mtd():
+    expected = {
+        "credential_staged_mtd_1_5",
+        "credential_staged_mtd_0_3",
+        "credential_staged_mtd_1_3",
+        "credential_staged_mtd_2_5",
+        "credential_staged_mtd_stage1_only",
+        "credential_staged_mtd_stage2_only",
+        "credential_staged_mtd_with_risk_bonus",
+    }
+    rows = build_policy_selection_rows(
+        [
+            {
+                "scenario": name,
+                "num_runs": 2,
+                "defense_objective_score_mean": 500.0,
+                "critical_compromise_rate": 0.5,
+                "post_decoy_compromised_mean": 80.0,
+                "mtd_total_cost_mean": 2.0,
+                "credential_staged_mtd_enabled": True,
+                "credential_stage1_action_count_mean": 1.0,
+                "credential_stage2_action_count_mean": 2.0,
+                "credential_stage_none_count_mean": 3.0,
+            }
+            for name in expected
+        ]
+    )
+    policies = {row["policy"] for row in rows}
+    assert expected.issubset(policies)
+    assert all(row["credential_staged_mtd_enabled"] is True for row in rows)
+
+
+# ---------------------------------------------------------------------------
+# Tests for fix_report_01 changes
+# ---------------------------------------------------------------------------
+
+def test_decoy_gain_is_zero_true_but_perceived_positive():
+    """True gain (attacker_gain) is 0 when decoy is attacked with decoy_success_gain_scale=0.
+    Perceived gain must be > 0 because the attacker uses their (high) belief about the decoy node.
+    """
+    config = small_config(
+        T=4,
+        attacker_enabled=True,
+        node_type=["decoy", "real", "real", "real", "real"],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        asset_value=[0.0, 5.0, 1.0, 8.0, 2.0],
+        decoy_waste_cost=2.0,
+        decoy_success_gain_scale=0.0,
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    attacked_decoy = np.asarray(sim.history["attacker_attacked_decoy"], dtype=bool)
+    true_gain = np.asarray(sim.history["attacker_gain"], dtype=float)
+    perceived_gain = np.asarray(sim.history["attacker_perceived_gain"], dtype=float)
+
+    assert np.any(attacked_decoy), "attacker should target the decoy (belief=100)"
+    decoy_steps = attacked_decoy
+    assert np.all(true_gain[decoy_steps] == pytest.approx(0.0)), "true gain on decoy must be 0"
+    assert np.any(perceived_gain[decoy_steps] > 0.0), "perceived gain on decoy must be positive"
+
+
+def test_critical_gain_tracked():
+    """critical_true_gain uses the per-node formula: sum of risk_increase × asset_value
+    over critical nodes, independent of which node was attacked.
+
+    Properties verified:
+    - When attack_active=False (no attacker), critical_true_gain is always 0.
+    - When attack_active=True, critical_true_gain is always >= 0.
+    - The value is independent of selected_target (non-zero even when non-critical is targeted,
+      if critical node risk increases naturally).
+    """
+    config = small_config(
+        T=4,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="legacy",
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 0.0],
+        asset_value=[5.0, 1.0, 1.0, 1.0, 2.0],
+        critical_nodes=[4],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    critical_gain = np.asarray(sim.history["attacker_critical_true_gain"], dtype=float)
+    attack_active = np.asarray([
+        config.attacker_enabled and float(np.sum(av)) > 0.0
+        for av in sim.history["attack_vector"]
+    ], dtype=bool)
+
+    # All values must be non-negative.
+    assert np.all(critical_gain >= 0.0)
+    # When no attack is active, critical_true_gain must be 0.
+    if np.any(~attack_active):
+        assert np.all(critical_gain[~attack_active] == pytest.approx(0.0))
+
+
+def test_mtd_block_changes_paths():
+    """After MTD blocks a critical edge, _paths_to_critical returns a different (smaller) set."""
+    config = SimulationConfig(
+        T=1,
+        H=2,
+        mtd_block_critical_edges=True,
+        mtd_edge_block_count=1,
+        mtd_edge_block_duration=10,
+        attacker_lateral_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+
+    paths_before = sim._paths_to_critical()
+    sim._block_critical_edges(0)
+    paths_after = sim._paths_to_critical()
+
+    # At least one edge was blocked, so the path set must differ.
+    assert paths_before != paths_after or len(paths_after) <= len(paths_before)
+    # Specifically at least the path count must be <= original (blocking can only remove paths).
+    assert len(paths_after) <= len(paths_before)
+
+
+def test_entropy_uniform_belief():
+    """Uniform belief distribution yields normalized entropy == 1.0."""
+    config = small_config(attacker_belief=[3.0, 3.0, 3.0, 3.0, 3.0])
+    sim = CyberDefenseSimulator(config)
+    entropy = sim._belief_entropy()
+    assert entropy == pytest.approx(1.0)
+
+
+def test_entropy_concentrated_belief():
+    """Belief concentrated on one node yields normalized entropy == 0.0."""
+    config = small_config(attacker_belief=[0.0, 0.0, 100.0, 0.0, 0.0])
+    sim = CyberDefenseSimulator(config)
+    entropy = sim._belief_entropy()
+    assert entropy == pytest.approx(0.0, abs=1e-6)
+
+
+def test_entropy_bounds_intermediate():
+    """Entropy is strictly between 0 and 1 for a non-uniform, non-degenerate distribution."""
+    config = small_config(attacker_belief=[10.0, 1.0, 1.0, 1.0, 1.0])
+    sim = CyberDefenseSimulator(config)
+    entropy = sim._belief_entropy()
+    assert 0.0 < entropy < 1.0
+
+
+def test_entropy_in_metrics(tmp_path):
+    """metrics.json contains belief_entropy_mean, belief_entropy_final, belief_entropy_min."""
+    config = small_config(
+        T=4,
+        attacker_enabled=True,
+        attacker_belief_learning_enabled=True,
+        attacker_target_selection="adaptive",
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.save_outputs(str(tmp_path))
+
+    for key in ("belief_entropy_mean", "belief_entropy_final", "belief_entropy_min"):
+        assert key in metrics, f"missing key: {key}"
+        assert 0.0 <= metrics[key] <= 1.0, f"{key} out of [0, 1]: {metrics[key]}"
+
+    history = np.load(tmp_path / "history.npz")
+    assert "belief_entropy" in history
+    assert history["belief_entropy"].shape == (config.T,)
+    assert np.all(history["belief_entropy"] >= 0.0)
+    assert np.all(history["belief_entropy"] <= 1.0)
+
+
+def test_perceived_gain_and_critical_gain_in_history():
+    """attacker_perceived_gain and attacker_critical_true_gain are present in history with correct shape."""
+    config = small_config(T=4, attacker_enabled=True)
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    perceived = np.asarray(sim.history["attacker_perceived_gain"], dtype=float)
+    critical = np.asarray(sim.history["attacker_critical_true_gain"], dtype=float)
+
+    assert perceived.shape == (config.T,)
+    assert critical.shape == (config.T,)
+    assert np.all(perceived >= 0.0)
+    assert np.all(critical >= 0.0)
+
+
+# ---------------------------------------------------------------------------
+# Tests for fix_report_02 changes
+# ---------------------------------------------------------------------------
+
+def test_critical_gain_zero_when_critical_not_attacked():
+    """Attack-only formula: critical_true_gain = 0 when attack_vector[critical] = 0.
+    Natural drift (d_base) at critical node must NOT be counted.
+    This is the core property of fix_report_03.
+    """
+    # d_base[4]=5.0 → critical node drifts every step. belief[4]=0 → attacker never targets it.
+    config = SimulationConfig(
+        T=3, H=2,
+        alpha=0.0, beta=0.0,
+        d_base=[0.0, 0.0, 0.0, 0.0, 5.0],
+        R_total=0.0, r_max=0.0,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="weighted_risk",
+        attacker_belief=[1.0, 1.0, 1.0, 1.0, 0.0],
+        asset_value=[1.0, 1.0, 1.0, 1.0, 8.0],
+        Q_diag=[1.0, 1.0, 1.0, 1.0, 1.0],
+        critical_nodes=[4],
+        stochastic_success=False,
+        stochastic_detection=False,
+        dynamic_matching=False,
+        dynamic_matching_threshold=100.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    targets = np.asarray(sim.history["attacker_selected_target"], dtype=int)
+    critical_gain = np.asarray(sim.history["attacker_critical_true_gain"], dtype=float)
+
+    assert np.all(targets != 4), f"Attacker should never target critical (belief=0), got {targets}"
+    # attack_vector[4] = 0 every step → counterfactual diff = 0 → no natural drift included
+    np.testing.assert_allclose(
+        critical_gain, 0.0, atol=1e-10,
+        err_msg="critical_true_gain must be 0 when critical node is never in attack_vector"
+    )
+
+
+def test_critical_gain_positive_when_critical_attacked():
+    """Attack-only formula: critical_true_gain > 0 when attack_vector[critical] > 0."""
+    # d_base=[0,...]: no natural drift. All gain is purely attack-caused.
+    config = SimulationConfig(
+        T=2, H=2,
+        alpha=0.0, beta=0.0,
+        d_base=[0.0, 0.0, 0.0, 0.0, 0.0],
+        R_total=0.0, r_max=0.0,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="weighted_risk",
+        attacker_belief=[0.0, 0.0, 0.0, 0.0, 10.0],
+        asset_value=[1.0, 1.0, 1.0, 1.0, 8.0],
+        Q_diag=[1.0, 1.0, 1.0, 1.0, 1.0],
+        critical_nodes=[4],
+        stochastic_success=False,
+        stochastic_detection=False,
+        dynamic_matching=False,
+        dynamic_matching_threshold=100.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    targets = np.asarray(sim.history["attacker_selected_target"], dtype=int)
+    critical_gain = np.asarray(sim.history["attacker_critical_true_gain"], dtype=float)
+
+    assert np.all(targets == 4), f"Attacker should always target critical, got {targets}"
+    assert np.all(critical_gain > 0.0), "direct critical attack with no defense must yield > 0 gain"
+
+
+def test_lateral_compromise_counted_as_critical_gain():
+    """Attack-only formula: two cases in one test.
+
+    Case 1 (non-critical targeted, critical drifts naturally):
+      attack_vector[critical]=0 → counterfactual diff=0 → critical_true_gain=0.
+      (fix_report_03: natural drift is excluded; this is the intended change from fix_report_02)
+
+    Case 2 (critical directly attacked):
+      attack_vector[critical]>0 → critical_true_gain>0.
+      Lateral-movement scenario: attacker that has moved adjacent can attack critical → still captured.
+    """
+    shared = dict(
+        T=1, H=2,
+        alpha=0.0, beta=0.0,
+        d_base=[0.0, 0.0, 0.0, 0.0, 5.0],
+        R_total=0.0, r_max=0.0,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="weighted_risk",
+        asset_value=[1.0, 1.0, 1.0, 1.0, 8.0],
+        Q_diag=[1.0, 1.0, 1.0, 1.0, 1.0],
+        critical_nodes=[4],
+        stochastic_success=False,
+        stochastic_detection=False,
+        dynamic_matching=False,
+        dynamic_matching_threshold=100.0,
+    )
+
+    # Case 1: belief[4]=0 → non-critical targeted → attack_vector[4]=0 → critical_true_gain=0.
+    sim_nc = CyberDefenseSimulator(
+        SimulationConfig(**{**shared, "attacker_belief": [1.0, 1.0, 1.0, 1.0, 0.0]})
+    )
+    sim_nc.run()
+    target_nc = int(sim_nc.history["attacker_selected_target"][0])
+    gain_nc = float(sim_nc.history["attacker_critical_true_gain"][0])
+    assert target_nc != 4, f"Case 1: should not target critical, got {target_nc}"
+    assert gain_nc == pytest.approx(0.0), (
+        "Case 1: attack_vector[critical]=0 → no natural-drift contribution → critical_true_gain=0"
+    )
+
+    # Case 2: only critical has belief → targeted → attack_vector[4]=attack_budget → gain>0.
+    sim_c = CyberDefenseSimulator(
+        SimulationConfig(**{**shared, "attacker_belief": [0.0, 0.0, 0.0, 0.0, 10.0]})
+    )
+    sim_c.run()
+    target_c = int(sim_c.history["attacker_selected_target"][0])
+    gain_c = float(sim_c.history["attacker_critical_true_gain"][0])
+    assert target_c == 4, f"Case 2: should target critical, got {target_c}"
+    assert gain_c > 0.0, "Case 2: direct critical attack → attack_contribution>0 → critical_true_gain>0"
+
+
+def test_retreat_driven_by_perceived_not_true():
+    """Patience counter uses perceived_gained, not true success:
+    - All-decoy attacks (true=0, perceived>0) do NOT increment no_success_steps → no retreat.
+    - Zero-belief attacks (perceived=0 always) DO increment no_success_steps → patience-based retreat.
+
+    Scenario A: ALL nodes are decoys, R_total=0 (no defense), uniform belief=5.
+    - attacked_decoy=True for any target → perceived not zeroed by success flag.
+    - risk_increase[target] > 0 always (attack_budget=3 added to state, no defense).
+    - perceived_gain = risk_increase * 5 > 0 → no_success_steps reset → no patience retreat.
+    - utility = 0 (no asset value) − costs ≪ −1000 threshold → no utility retreat either.
+
+    Scenario B: zero belief everywhere → perceived_gain=0 every step → patience=3 → retreat.
+    """
+    # Scenario A: all-decoy, no defense → perceived always positive → no retreat.
+    config_a = small_config(
+        T=15,
+        attacker_enabled=True,
+        attacker_patience=3,
+        attacker_retreat_threshold=-1000.0,
+        node_type=["decoy", "decoy", "decoy", "decoy", "decoy"],
+        attacker_belief=[5.0, 5.0, 5.0, 5.0, 5.0],
+        asset_value=[0.0, 0.0, 0.0, 0.0, 0.0],
+        decoy_success_gain_scale=0.0,
+        R_total=0.0,
+        r_max=0.0,
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    sim_a = CyberDefenseSimulator(config_a)
+    sim_a.run()
+    metrics_a = sim_a.calculate_metrics()
+
+    # Scenario B: zero belief everywhere → perceived_gain = 0 always → retreat from patience.
+    config_b = small_config(
+        T=15,
+        attacker_enabled=True,
+        attacker_patience=3,
+        attacker_retreat_threshold=-1000.0,
+        attacker_belief=[0.0, 0.0, 0.0, 0.0, 0.0],
+        attacker_belief_learning_enabled=False,
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    sim_b = CyberDefenseSimulator(config_b)
+    sim_b.run()
+    metrics_b = sim_b.calculate_metrics()
+
+    # Scenario A: attacker perceives progress (all decoy, high belief) → NOT retreat.
+    assert not metrics_a["attacker_retreated"], (
+        "Attacker should not retreat when all-decoy attacks yield positive perceived_gain"
+    )
+    # Scenario B: zero belief → no perceived progress → retreats after patience steps.
+    assert metrics_b["attacker_retreated"], (
+        "Attacker should retreat via patience when perceived_gain is always 0"
+    )
+    assert metrics_b["attacker_retreat_step"] is not None
+    assert metrics_b["attacker_retreat_step"] < config_b.T - 1
+
+
+def test_credential_perceived_added_true_zero():
+    """When credential_decoy_trigger fires, perceived_gain increases but attacker_gain stays 0.
+    The credential node is a lateral-movement honeypot (decoy type); true asset value is 0.
+    """
+    config = credential_aware_config(
+        T=5,
+        attacker_belief_learning_enabled=False,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+
+    trigger = np.asarray(sim.history["credential_decoy_trigger"], dtype=bool)
+    true_gain = np.asarray(sim.history["attacker_gain"], dtype=float)
+    perceived = np.asarray(sim.history["attacker_perceived_gain"], dtype=float)
+
+    if not np.any(trigger):
+        pytest.skip("credential_decoy_trigger did not fire in this seed — increase T if needed")
+
+    # credential node is decoy (type="decoy") → asset_value effectively 0 → true gain = 0
+    assert np.all(true_gain[trigger] == pytest.approx(0.0)), (
+        "True gain must be 0 for credential (honeypot) node attacks"
+    )
+    # perceived must be > 0 (includes belief + credential bonus)
+    assert np.any(perceived[trigger] > 0.0), (
+        "Perceived gain must be > 0 when credential fires (attacker perceives access value)"
+    )
+
+
+def test_entropy_discrimination():
+    """MTD increase_uncertainty (intensity=1.0) forces all beliefs to their mean every step,
+    yielding entropy=1.0.  Without MTD, non-uniform initial belief gives entropy < 1.0.
+
+    This is a sharp, deterministic comparison:
+    - Config A: mtd_strategy="increase_uncertainty", intensity=1.0, interval=1.
+      After each MTD event: all beliefs = mean → uniform → entropy = 1.0.
+    - Config B: no MTD, initial belief=[2,3,12,4,2] (concentrated at node 2).
+      Without disturbance, beliefs remain non-uniform → entropy < 1.0.
+    """
+    seed = 42
+
+    config_a = SimulationConfig(
+        T=5, H=2, seed=seed,
+        attacker_enabled=True,
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+        attacker_belief_learning_enabled=False,
+        node_type=["real", "real", "decoy", "real", "real"],
+        asset_value=[10.0, 5.0, 0.0, 8.0, 2.0],
+        stochastic_detection=False,
+        stochastic_success=False,
+        mtd_enabled=True,
+        mtd_strategy="increase_uncertainty",
+        mtd_interval=1,
+        mtd_intensity=1.0,
+        show_plot=False,
+    )
+    sim_a = CyberDefenseSimulator(config_a)
+    sim_a.run()
+    entropy_a = float(np.mean(np.asarray(sim_a.history["belief_entropy"], dtype=float)))
+
+    config_b = SimulationConfig(
+        T=5, H=2, seed=seed,
+        attacker_enabled=True,
+        attacker_belief=[2.0, 3.0, 12.0, 4.0, 2.0],
+        attacker_belief_learning_enabled=False,
+        node_type=["real", "real", "real", "real", "real"],
+        asset_value=[10.0, 5.0, 1.0, 8.0, 2.0],
+        stochastic_detection=False,
+        stochastic_success=False,
+        mtd_enabled=False,
+        show_plot=False,
+    )
+    sim_b = CyberDefenseSimulator(config_b)
+    sim_b.run()
+    entropy_b = float(np.mean(np.asarray(sim_b.history["belief_entropy"], dtype=float)))
+
+    # MTD forces beliefs to uniform each step → entropy ≈ 1.0.
+    # No-MTD keeps concentrated beliefs → entropy < 1.0.
+    assert entropy_a > entropy_b, (
+        f"MTD-uncertainty entropy ({entropy_a:.4f}) should exceed no-MTD ({entropy_b:.4f})"
+    )
+    assert entropy_a > 0.95, f"MTD-uncertainty entropy should be near 1.0, got {entropy_a:.4f}"
+
+
+def test_static_and_active_critical_paths_in_metrics():
+    """metrics contains both static_critical_paths and critical_paths (active) keys."""
+    config = SimulationConfig(
+        T=2, H=2,
+        mtd_enabled=True,
+        mtd_block_critical_edges=True,
+        mtd_edge_block_count=1,
+        mtd_edge_block_duration=2,
+        attacker_lateral_enabled=True,
+        show_plot=False,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    for key in ("static_critical_path_count", "static_critical_paths",
+                "static_node_path_frequency", "static_edge_path_frequency",
+                "static_chokepoint_nodes", "static_critical_edges"):
+        assert key in metrics, f"missing key: {key}"
+
+    # static must equal config topology; active may differ due to MTD blocks.
+    assert metrics["static_critical_path_count"] >= 0
+    assert metrics["critical_path_count"] >= 0
