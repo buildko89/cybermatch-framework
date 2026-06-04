@@ -85,6 +85,14 @@ PHASE2_FRUSTRATION_SCENARIO_NAMES = [
     "phase2_frustration_high_detection",
     "phase2_frustration_path_change",
 ]
+PHASE2_AI_COST_SCENARIO_NAMES = [
+    "phase2_ai_cost_reference",
+    "phase2_ai_high_uncertainty",
+    "phase2_ai_high_trust_degradation",
+    "phase2_ai_high_operational_risk",
+    "phase2_ai_low_replanning_cost",
+    "phase2_ai_balanced",
+]
 POLICY_SELECTION_SCENARIO_NAMES = [
     "policy_target_frequency_path_decoy",
     "policy_bayesian_default_path_decoy",
@@ -228,6 +236,7 @@ MULTI_SEED_SCENARIO_NAMES = [
     *[name for name in CREDENTIAL_STAGED_MTD_SCENARIO_NAMES if name not in POLICY_SELECTION_SCENARIO_NAMES],
     *PHASE2_PERCEIVED_UTILITY_SCENARIO_NAMES,
     *PHASE2_FRUSTRATION_SCENARIO_NAMES,
+    *PHASE2_AI_COST_SCENARIO_NAMES,
 ]
 
 SCENARIOS: Dict[str, Dict[str, object]] = {
@@ -1596,6 +1605,67 @@ SCENARIOS.update(
             "frustration_no_progress": 1.0,
             "frustration_retreat_threshold": 5.0,
         },
+        "phase2_ai_cost_reference": {
+            **PHASE2_FRUSTRATION_BASE,
+            "node_type": ["real", "real", "real", "real", "real"],
+            "honeypot_credential_enabled": False,
+            "frustration_retreat_threshold": 30.0,
+        },
+        "phase2_ai_high_uncertainty": {
+            **PHASE2_FRUSTRATION_BASE,
+            "frustration_retreat_threshold": 6.0,
+            "ai_uncertainty_weight": 3.0,
+        },
+        "phase2_ai_high_trust_degradation": {
+            **PHASE2_FRUSTRATION_BASE,
+            "node_type": ["real", "real", "real", "decoy", "real"],
+            "asset_value": [10, 5, 1, 0, 2],
+            "attacker_belief": [2, 4, 1, 14, 2],
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [3],
+            "credential_attraction_bonus": 5.0,
+            "frustration_credential_trap": 4.0,
+            "frustration_retreat_threshold": 7.0,
+            "ai_trust_degradation_weight": 3.5,
+        },
+        "phase2_ai_high_operational_risk": {
+            **PHASE2_FRUSTRATION_BASE,
+            "stochastic_detection": True,
+            "base_detection_prob": 0.8,
+            "defense_detection_scale": 0.2,
+            "decoy_detection_prob": 1.0,
+            "frustration_detection": 3.0,
+            "frustration_retreat_threshold": 6.0,
+            "ai_operational_risk_weight": 2.5,
+        },
+        "phase2_ai_low_replanning_cost": {
+            **PHASE2_FRUSTRATION_BASE,
+            "attacker_lateral_enabled": True,
+            "mtd_enabled": True,
+            "mtd_interval": 1,
+            "mtd_block_critical_edges": True,
+            "mtd_edge_block_count": 1,
+            "mtd_edge_block_duration": 1,
+            "frustration_path_change": 2.0,
+            "frustration_no_progress": 1.0,
+            "frustration_retreat_threshold": 5.0,
+            "ai_replanning_weight": 0.25,
+        },
+        "phase2_ai_balanced": {
+            **PHASE2_FRUSTRATION_BASE,
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [1, 3],
+            "credential_attraction_bonus": 5.0,
+            "credential_detection_bonus": 5.0,
+            "frustration_decoy_hit": 3.5,
+            "frustration_credential_trap": 3.0,
+            "frustration_retreat_threshold": 7.0,
+            "ai_uncertainty_weight": 1.0,
+            "ai_replanning_weight": 1.0,
+            "ai_search_weight": 1.0,
+            "ai_operational_risk_weight": 1.0,
+            "ai_trust_degradation_weight": 1.0,
+        },
     }
 )
 
@@ -1618,6 +1688,26 @@ SUMMARY_COLUMNS = [
     "frustration_max",
     "frustration_retreats",
     "frustration_enabled",
+    "ai_uncertainty_cost",
+    "ai_replanning_cost",
+    "ai_search_cost",
+    "ai_operational_risk_cost",
+    "ai_trust_degradation_cost",
+    "ai_total_decision_cost",
+    "ai_weighted_cost",
+    "human_vs_ai_cost_ratio",
+    "ai_uncertainty_weight",
+    "ai_replanning_weight",
+    "ai_search_weight",
+    "ai_operational_risk_weight",
+    "ai_trust_degradation_weight",
+    "cognitive_neutralization_score",
+    "cognitive_human_score",
+    "cognitive_ai_score",
+    "cns_objective_score",
+    "cns_human_contribution",
+    "cns_ai_contribution",
+    "cns_protection_contribution",
     "retreat_based_on",
     "perceived_utility_enabled",
     "attacker_total_cost",
@@ -1652,6 +1742,12 @@ SUMMARY_COLUMNS = [
     "decoy_on_critical_path",
     "critical_compromise",
     "critical_compromise_step",
+    "neutralization_score",
+    "critical_protection_score",
+    "utility_suppression_score",
+    "deception_waste_score",
+    "friction_score",
+    "retreat_score",
     "attacker_most_targeted_node",
     "attacker_target_counts",
     "node_type",
@@ -1790,6 +1886,12 @@ MULTI_SEED_RUN_COLUMNS = [
     "critical_edges",
     "critical_compromise",
     "critical_compromise_step",
+    "neutralization_score",
+    "critical_protection_score",
+    "utility_suppression_score",
+    "deception_waste_score",
+    "friction_score",
+    "retreat_score",
     "attacker_utility_final",
     "actual_utility_final",
     "perceived_utility_final",
@@ -1803,6 +1905,26 @@ MULTI_SEED_RUN_COLUMNS = [
     "frustration_max",
     "frustration_retreats",
     "frustration_enabled",
+    "ai_uncertainty_cost",
+    "ai_replanning_cost",
+    "ai_search_cost",
+    "ai_operational_risk_cost",
+    "ai_trust_degradation_cost",
+    "ai_total_decision_cost",
+    "ai_weighted_cost",
+    "human_vs_ai_cost_ratio",
+    "ai_uncertainty_weight",
+    "ai_replanning_weight",
+    "ai_search_weight",
+    "ai_operational_risk_weight",
+    "ai_trust_degradation_weight",
+    "cognitive_neutralization_score",
+    "cognitive_human_score",
+    "cognitive_ai_score",
+    "cns_objective_score",
+    "cns_human_contribution",
+    "cns_ai_contribution",
+    "cns_protection_contribution",
     "retreat_based_on",
     "perceived_utility_enabled",
     "attacker_total_cost",
@@ -1980,6 +2102,53 @@ MULTI_SEED_STATS_COLUMNS = [
     "frustration_max_std",
     "frustration_retreats_mean",
     "frustration_retreats_std",
+    "ai_uncertainty_cost_mean",
+    "ai_uncertainty_cost_std",
+    "ai_replanning_cost_mean",
+    "ai_replanning_cost_std",
+    "ai_search_cost_mean",
+    "ai_search_cost_std",
+    "ai_operational_risk_cost_mean",
+    "ai_operational_risk_cost_std",
+    "ai_trust_degradation_cost_mean",
+    "ai_trust_degradation_cost_std",
+    "ai_total_decision_cost",
+    "ai_total_decision_cost_std",
+    "ai_weighted_cost",
+    "ai_weighted_cost_std",
+    "human_vs_ai_cost_ratio_mean",
+    "human_vs_ai_cost_ratio_std",
+    "ai_uncertainty_weight",
+    "ai_replanning_weight",
+    "ai_search_weight",
+    "ai_operational_risk_weight",
+    "ai_trust_degradation_weight",
+    "neutralization_score_mean",
+    "neutralization_score_std",
+    "cognitive_neutralization_score_mean",
+    "cognitive_neutralization_score_std",
+    "cognitive_human_score_mean",
+    "cognitive_human_score_std",
+    "cognitive_ai_score_mean",
+    "cognitive_ai_score_std",
+    "cns_objective_score_mean",
+    "cns_objective_score_std",
+    "cns_human_contribution_mean",
+    "cns_human_contribution_std",
+    "cns_ai_contribution_mean",
+    "cns_ai_contribution_std",
+    "cns_protection_contribution_mean",
+    "cns_protection_contribution_std",
+    "critical_protection_score_mean",
+    "critical_protection_score_std",
+    "utility_suppression_score_mean",
+    "utility_suppression_score_std",
+    "deception_waste_score_mean",
+    "deception_waste_score_std",
+    "friction_score_mean",
+    "friction_score_std",
+    "retreat_score_mean",
+    "retreat_score_std",
     "retreat_based_on",
     "perceived_utility_enabled",
     "frustration_enabled",
@@ -2883,6 +3052,11 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "mtd_conditional_policy_mode": rows[0].get("mtd_conditional_policy_mode") if rows else None,
         "mtd_conditional_high_risk_threshold": rows[0].get("mtd_conditional_high_risk_threshold") if rows else None,
         "mtd_conditional_low_risk_threshold": rows[0].get("mtd_conditional_low_risk_threshold") if rows else None,
+        "ai_uncertainty_weight": rows[0].get("ai_uncertainty_weight") if rows else None,
+        "ai_replanning_weight": rows[0].get("ai_replanning_weight") if rows else None,
+        "ai_search_weight": rows[0].get("ai_search_weight") if rows else None,
+        "ai_operational_risk_weight": rows[0].get("ai_operational_risk_weight") if rows else None,
+        "ai_trust_degradation_weight": rows[0].get("ai_trust_degradation_weight") if rows else None,
         "retreat_based_on": rows[0].get("retreat_based_on") if rows else None,
         "perceived_utility_enabled": rows[0].get("perceived_utility_enabled") if rows else None,
         "frustration_enabled": rows[0].get("frustration_enabled") if rows else None,
@@ -2904,6 +3078,27 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "frustration_mean",
         "frustration_max",
         "frustration_retreats",
+        "ai_uncertainty_cost",
+        "ai_replanning_cost",
+        "ai_search_cost",
+        "ai_operational_risk_cost",
+        "ai_trust_degradation_cost",
+        "ai_total_decision_cost",
+        "ai_weighted_cost",
+        "human_vs_ai_cost_ratio",
+        "cognitive_neutralization_score",
+        "cognitive_human_score",
+        "cognitive_ai_score",
+        "cns_objective_score",
+        "cns_human_contribution",
+        "cns_ai_contribution",
+        "cns_protection_contribution",
+        "neutralization_score",
+        "critical_protection_score",
+        "utility_suppression_score",
+        "deception_waste_score",
+        "friction_score",
+        "retreat_score",
         "attacker_total_cost",
         "attacker_compromised_value",
         "attacker_success_count",
@@ -2955,6 +3150,8 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
     result["frustration_std"] = result.get("frustration_mean_std")
     result["frustration_max"] = result.get("frustration_max_mean")
     result["frustration_max_std"] = result.get("frustration_max_std")
+    result["ai_total_decision_cost"] = result.get("ai_total_decision_cost_mean")
+    result["ai_weighted_cost"] = result.get("ai_weighted_cost_mean")
     result["mtd_risk_gate_score_mean"] = _mean_or_none(
         [_to_float(row.get("mtd_risk_gate_score_mean")) for row in rows]
     )
@@ -3542,6 +3739,992 @@ def _plot_phase2_frustration_vs_perceived_utility(rows: List[Dict[str, object]],
     fig.tight_layout()
     plt.savefig(save_path)
     plt.close(fig)
+
+
+PHASE2_AI_COST_SUMMARY_COLUMNS = [
+    "scenario",
+    "num_runs",
+    "frustration_mean",
+    "ai_total_decision_cost",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "ai_uncertainty_cost_mean",
+    "ai_replanning_cost_mean",
+    "ai_search_cost_mean",
+    "ai_operational_risk_cost_mean",
+    "ai_trust_degradation_cost_mean",
+]
+
+
+def run_phase2_ai_cost_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase2_ai_cost"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios = {name: SCENARIOS[name] for name in PHASE2_FRUSTRATION_SCENARIO_NAMES}
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [
+        {column: row.get(column) for column in PHASE2_AI_COST_SUMMARY_COLUMNS}
+        for row in _phase2_frustration_rows(stats_rows)
+    ]
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase2_ai_cost_summary(summary_rows, output_dir)
+    _plot_phase2_ai_cost_vs_frustration(
+        summary_rows,
+        save_path=os.path.join(output_dir, "ai_cost_vs_frustration.png"),
+    )
+    _plot_phase2_ai_cost_vs_retreat_rate(
+        summary_rows,
+        save_path=os.path.join(output_dir, "ai_cost_vs_retreat_rate.png"),
+    )
+    return summary_rows
+
+
+def _write_phase2_ai_cost_summary(rows: List[Dict[str, object]], output_dir: str) -> None:
+    csv_path = os.path.join(output_dir, "ai_cost_summary.csv")
+    json_path = os.path.join(output_dir, "ai_cost_summary.json")
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE2_AI_COST_SUMMARY_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(rows, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase2_ai_cost_vs_frustration(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = _phase2_frustration_labels(rows)
+    frustration = np.array([float(row.get("frustration_mean") or 0.0) for row in rows])
+    ai_cost = np.array([float(row.get("ai_total_decision_cost") or 0.0) for row in rows])
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.scatter(frustration, ai_cost, s=80, color="#4c78a8")
+    for label, x_value, y_value in zip(labels, frustration, ai_cost):
+        ax.annotate(label, (x_value, y_value), textcoords="offset points", xytext=(5, 5), fontsize=8)
+    max_value = max(float(np.max(frustration)), float(np.max(ai_cost)), 1.0)
+    ax.plot([0.0, max_value], [0.0, max_value], color="#333333", linewidth=1, linestyle="--")
+    ax.set_xlabel("Frustration Mean")
+    ax.set_ylabel("AI Total Decision Cost")
+    ax.set_title("Phase2.3 AI Decision Cost vs Human Frustration")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase2_ai_cost_vs_retreat_rate(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = _phase2_frustration_labels(rows)
+    ai_cost = np.array([float(row.get("ai_total_decision_cost") or 0.0) for row in rows])
+    retreat_rate = np.array([float(row.get("retreat_rate") or 0.0) for row in rows])
+    critical_rate = np.array([float(row.get("critical_compromise_rate") or 0.0) for row in rows])
+    fig, ax = plt.subplots(figsize=(10, 6))
+    scatter = ax.scatter(ai_cost, retreat_rate, s=90 + 180 * critical_rate, c=critical_rate, cmap="plasma", vmin=0.0, vmax=1.0)
+    for label, x_value, y_value in zip(labels, ai_cost, retreat_rate):
+        ax.annotate(label, (x_value, y_value), textcoords="offset points", xytext=(5, 5), fontsize=8)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xlabel("AI Total Decision Cost")
+    ax.set_ylabel("Retreat Rate")
+    ax.set_title("Phase2.3 AI Decision Cost vs Retreat Rate")
+    fig.colorbar(scatter, ax=ax, label="Critical Compromise Rate")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+PHASE2_AI_WEIGHT_SWEEP_COLUMNS = [
+    "scenario",
+    "num_runs",
+    "human_cost",
+    "ai_weighted_cost",
+    "human_minus_ai_cost",
+    "human_vs_ai_cost_ratio",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "neutralization_score",
+    "ai_uncertainty_cost_mean",
+    "ai_replanning_cost_mean",
+    "ai_search_cost_mean",
+    "ai_operational_risk_cost_mean",
+    "ai_trust_degradation_cost_mean",
+    "ai_uncertainty_weight",
+    "ai_replanning_weight",
+    "ai_search_weight",
+    "ai_operational_risk_weight",
+    "ai_trust_degradation_weight",
+]
+
+
+def run_phase2_ai_weight_sweep_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase2_ai_weight_sweep"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios = {name: SCENARIOS[name] for name in PHASE2_AI_COST_SCENARIO_NAMES}
+    scenarios["gated_edge_pressure_count_2"] = {
+        **PHASE2_FRUSTRATION_BASE,
+        **GATED_EDGE_PRESSURE_SWEEP_BASE,
+        "mtd_edge_block_count": 2,
+    }
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase2_ai_weight_row(row) for row in stats_rows]
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase2_ai_weight_sweep(summary_rows)
+    _write_phase2_ai_weight_sweep_summary(summary_rows, analysis, output_dir)
+    _plot_human_vs_ai_cost(summary_rows, os.path.join(output_dir, "human_vs_ai_cost.png"))
+    _plot_human_vs_ai_retreat(summary_rows, os.path.join(output_dir, "human_vs_ai_retreat.png"))
+    _plot_human_vs_ai_neutralization(summary_rows, os.path.join(output_dir, "human_vs_ai_neutralization.png"))
+    return summary_rows
+
+
+def _build_phase2_ai_weight_row(row: Dict[str, object]) -> Dict[str, object]:
+    human_cost = _to_float(row.get("frustration_mean"))
+    ai_cost = _to_float(row.get("ai_weighted_cost"))
+    return {
+        "scenario": row.get("scenario"),
+        "num_runs": row.get("num_runs"),
+        "human_cost": human_cost,
+        "ai_weighted_cost": ai_cost,
+        "human_minus_ai_cost": float(human_cost - ai_cost),
+        "human_vs_ai_cost_ratio": row.get("human_vs_ai_cost_ratio_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "neutralization_score": row.get("neutralization_score_mean"),
+        "ai_uncertainty_cost_mean": row.get("ai_uncertainty_cost_mean"),
+        "ai_replanning_cost_mean": row.get("ai_replanning_cost_mean"),
+        "ai_search_cost_mean": row.get("ai_search_cost_mean"),
+        "ai_operational_risk_cost_mean": row.get("ai_operational_risk_cost_mean"),
+        "ai_trust_degradation_cost_mean": row.get("ai_trust_degradation_cost_mean"),
+        "ai_uncertainty_weight": row.get("ai_uncertainty_weight"),
+        "ai_replanning_weight": row.get("ai_replanning_weight"),
+        "ai_search_weight": row.get("ai_search_weight"),
+        "ai_operational_risk_weight": row.get("ai_operational_risk_weight"),
+        "ai_trust_degradation_weight": row.get("ai_trust_degradation_weight"),
+    }
+
+
+def _analyze_phase2_ai_weight_sweep(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    if not rows:
+        return {}
+    best_human = max(rows, key=lambda row: _to_float(row.get("human_cost")))
+    best_ai = max(rows, key=lambda row: _to_float(row.get("ai_weighted_cost")))
+    best_neutralization = max(rows, key=lambda row: _to_float(row.get("neutralization_score")))
+    credential = next((row for row in rows if row.get("scenario") == "phase2_ai_high_trust_degradation"), {})
+    decoy = next((row for row in rows if row.get("scenario") == "phase2_ai_high_uncertainty"), {})
+    current_policy = "gated_edge_pressure_count_2"
+    return {
+        "q1_best_defense_changed": best_human.get("scenario") != best_ai.get("scenario"),
+        "q1_best_human_defense": best_human.get("scenario"),
+        "q1_best_ai_defense": best_ai.get("scenario"),
+        "q2_credential_trap_more_effective_against": (
+            "ai" if _to_float(credential.get("ai_weighted_cost")) > _to_float(credential.get("human_cost")) else "human"
+        ),
+        "q3_decoy_more_effective_against": (
+            "ai" if _to_float(decoy.get("ai_weighted_cost")) > _to_float(decoy.get("human_cost")) else "human"
+        ),
+        "q4_current_best_policy": current_policy,
+        "q4_current_best_policy_is_ai_best": best_ai.get("scenario") == current_policy,
+        "best_neutralization_scenario": best_neutralization.get("scenario"),
+        "best_neutralization_score": best_neutralization.get("neutralization_score"),
+        "ai_attacker_most_affected_defense": best_ai.get("scenario"),
+    }
+
+
+def _write_phase2_ai_weight_sweep_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    csv_path = os.path.join(output_dir, "ai_weight_sweep_summary.csv")
+    json_path = os.path.join(output_dir, "ai_weight_sweep_summary.json")
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE2_AI_WEIGHT_SWEEP_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_human_vs_ai_cost(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["scenario"]).replace("phase2_ai_", "") for row in rows]
+    human = np.array([_to_float(row.get("human_cost")) for row in rows], dtype=float)
+    ai = np.array([_to_float(row.get("ai_weighted_cost")) for row in rows], dtype=float)
+    x = np.arange(len(labels))
+    width = 0.4
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.bar(x - width / 2, human, width=width, color="#4c78a8", label="Human frustration")
+    ax.bar(x + width / 2, ai, width=width, color="#f58518", label="AI weighted cost")
+    ax.set_ylabel("Cost")
+    ax.set_title("Phase2.3 Human Cost vs AI Weighted Cost")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_human_vs_ai_retreat(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["scenario"]).replace("phase2_ai_", "") for row in rows]
+    ai_cost = np.array([_to_float(row.get("ai_weighted_cost")) for row in rows], dtype=float)
+    retreat = np.array([_to_float(row.get("retreat_rate")) for row in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.scatter(ai_cost, retreat, s=90, color="#e45756")
+    for label, x_value, y_value in zip(labels, ai_cost, retreat):
+        ax.annotate(label, (x_value, y_value), textcoords="offset points", xytext=(5, 5), fontsize=8)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xlabel("AI Weighted Cost")
+    ax.set_ylabel("Human Retreat Rate")
+    ax.set_title("Phase2.3 AI Cost vs Human Retreat")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_human_vs_ai_neutralization(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["scenario"]).replace("phase2_ai_", "") for row in rows]
+    human = np.array([_to_float(row.get("human_cost")) for row in rows], dtype=float)
+    ai = np.array([_to_float(row.get("ai_weighted_cost")) for row in rows], dtype=float)
+    neutralization = np.array([_to_float(row.get("neutralization_score")) for row in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    scatter = ax.scatter(human, ai, s=90 + 180 * neutralization, c=neutralization, cmap="viridis", vmin=0.0, vmax=1.0)
+    for label, x_value, y_value in zip(labels, human, ai):
+        ax.annotate(label, (x_value, y_value), textcoords="offset points", xytext=(5, 5), fontsize=8)
+    ax.set_xlabel("Human Frustration Cost")
+    ax.set_ylabel("AI Weighted Cost")
+    ax.set_title("Phase2.3 Human vs AI Cost and Neutralization")
+    fig.colorbar(scatter, ax=ax, label="Neutralization Score")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+PHASE2_COGNITIVE_SCENARIO_NAMES = [
+    "phase2_actual_utility_reference",
+    "phase2_perceived_decoy",
+    "phase2_perceived_credential",
+    "phase2_frustration_decoy",
+    "phase2_frustration_credential",
+    "phase2_ai_balanced",
+    "phase2_ai_high_trust_degradation",
+    "gated_edge_pressure_count_2",
+    "credential_aware_mtd_window5",
+]
+
+PHASE2_COGNITIVE_SUMMARY_COLUMNS = [
+    "scenario",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cognitive_human_score",
+    "cognitive_ai_score",
+    "neutralization_score",
+    "critical_protection_score",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "perceived_utility_mean",
+    "confidence_mean",
+    "frustration_mean",
+    "ai_weighted_cost",
+]
+
+
+def run_phase2_cognitive_neutralization_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase2_cognitive_neutralization"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios = {name: SCENARIOS[name] for name in PHASE2_COGNITIVE_SCENARIO_NAMES}
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase2_cognitive_row(row) for row in stats_rows]
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase2_cognitive_rows(summary_rows)
+    _write_phase2_cognitive_summary(summary_rows, analysis, output_dir)
+    _plot_cognitive_ranking(summary_rows, os.path.join(output_dir, "cognitive_ranking.png"))
+    _plot_cognitive_human_vs_ai(summary_rows, os.path.join(output_dir, "cognitive_human_vs_ai.png"))
+    _plot_cognitive_vs_phase1(summary_rows, os.path.join(output_dir, "cognitive_vs_phase1_neutralization.png"))
+    _write_phase2_cognitive_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase2_cognitive_row(row: Dict[str, object]) -> Dict[str, object]:
+    return {
+        "scenario": row.get("scenario"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cognitive_human_score": row.get("cognitive_human_score_mean"),
+        "cognitive_ai_score": row.get("cognitive_ai_score_mean"),
+        "neutralization_score": row.get("neutralization_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "perceived_utility_mean": row.get("perceived_utility_mean"),
+        "confidence_mean": row.get("confidence_mean"),
+        "frustration_mean": row.get("frustration_mean"),
+        "ai_weighted_cost": row.get("ai_weighted_cost"),
+    }
+
+
+def _analyze_phase2_cognitive_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    if not rows:
+        return {}
+    best_human = max(rows, key=lambda row: _to_float(row.get("cognitive_human_score")))
+    best_ai = max(rows, key=lambda row: _to_float(row.get("cognitive_ai_score")))
+    best_combined = max(rows, key=lambda row: _to_float(row.get("cognitive_neutralization_score")))
+    best_phase1 = max(rows, key=lambda row: _to_float(row.get("neutralization_score")))
+    current_policy = next((row for row in rows if row.get("scenario") == "gated_edge_pressure_count_2"), {})
+    return {
+        "best_human_neutralization": best_human.get("scenario"),
+        "best_ai_neutralization": best_ai.get("scenario"),
+        "best_combined_cognitive_neutralization": best_combined.get("scenario"),
+        "best_phase1_neutralization": best_phase1.get("scenario"),
+        "phase1_best_policy": "gated_edge_pressure_count_2",
+        "phase1_best_policy_cognitive_score": current_policy.get("cognitive_neutralization_score"),
+        "phase1_best_policy_is_cognitive_best": current_policy.get("scenario") == best_combined.get("scenario"),
+        "human_ai_score_gap_at_best_combined": float(
+            _to_float(best_combined.get("cognitive_human_score"))
+            - _to_float(best_combined.get("cognitive_ai_score"))
+        ),
+    }
+
+
+def _write_phase2_cognitive_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    csv_path = os.path.join(output_dir, "cognitive_summary.csv")
+    json_path = os.path.join(output_dir, "cognitive_summary.json")
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE2_COGNITIVE_SUMMARY_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_cognitive_ranking(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    ranked = sorted(rows, key=lambda row: _to_float(row.get("cognitive_neutralization_score")), reverse=True)
+    labels = [str(row["scenario"]).replace("phase2_", "") for row in ranked]
+    values = np.array([_to_float(row.get("cognitive_neutralization_score")) for row in ranked], dtype=float)
+    plt.figure(figsize=(14, 6))
+    plt.bar(labels, values, color="#4c78a8")
+    plt.ylim(0.0, 1.0)
+    plt.title("Phase2.4 Cognitive Neutralization Ranking")
+    plt.ylabel("Cognitive Neutralization Score")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def _plot_cognitive_human_vs_ai(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["scenario"]).replace("phase2_", "") for row in rows]
+    human = np.array([_to_float(row.get("cognitive_human_score")) for row in rows], dtype=float)
+    ai = np.array([_to_float(row.get("cognitive_ai_score")) for row in rows], dtype=float)
+    x = np.arange(len(labels))
+    width = 0.4
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.bar(x - width / 2, human, width=width, color="#59a14f", label="Human cognitive score")
+    ax.bar(x + width / 2, ai, width=width, color="#f58518", label="AI cognitive score")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel("Score")
+    ax.set_title("Phase2.4 Human vs AI Cognitive Neutralization")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_cognitive_vs_phase1(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["scenario"]).replace("phase2_", "") for row in rows]
+    phase1 = np.array([_to_float(row.get("neutralization_score")) for row in rows], dtype=float)
+    cognitive = np.array([_to_float(row.get("cognitive_neutralization_score")) for row in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.scatter(phase1, cognitive, s=90, color="#4c78a8")
+    for label, x_value, y_value in zip(labels, phase1, cognitive):
+        ax.annotate(label, (x_value, y_value), textcoords="offset points", xytext=(5, 5), fontsize=8)
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xlabel("Phase1 Neutralization Score")
+    ax.set_ylabel("Cognitive Neutralization Score")
+    ax.set_title("Phase2.4 Cognitive vs Phase1 Neutralization")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase2_cognitive_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    human_top = sorted(rows, key=lambda row: _to_float(row.get("cognitive_human_score")), reverse=True)[:3]
+    ai_top = sorted(rows, key=lambda row: _to_float(row.get("cognitive_ai_score")), reverse=True)[:3]
+    combined_top = sorted(rows, key=lambda row: _to_float(row.get("cognitive_neutralization_score")), reverse=True)[:3]
+    lines = [
+        "# Phase2.4 Cognitive Neutralization Report",
+        "",
+        "## Summary",
+        f"- Best Human neutralization: `{analysis.get('best_human_neutralization')}`",
+        f"- Best AI neutralization: `{analysis.get('best_ai_neutralization')}`",
+        f"- Best combined cognitive neutralization: `{analysis.get('best_combined_cognitive_neutralization')}`",
+        f"- Best Phase1 neutralization in this target set: `{analysis.get('best_phase1_neutralization')}`",
+        f"- Phase1 best policy `gated_edge_pressure_count_2` is cognitive best: `{analysis.get('phase1_best_policy_is_cognitive_best')}`",
+        "",
+        "## Human Top 3",
+        *[
+            f"- `{row.get('scenario')}`: { _to_float(row.get('cognitive_human_score')):.3f}"
+            for row in human_top
+        ],
+        "",
+        "## AI Top 3",
+        *[
+            f"- `{row.get('scenario')}`: { _to_float(row.get('cognitive_ai_score')):.3f}"
+            for row in ai_top
+        ],
+        "",
+        "## Combined Top 3",
+        *[
+            f"- `{row.get('scenario')}`: { _to_float(row.get('cognitive_neutralization_score')):.3f}"
+            for row in combined_top
+        ],
+        "",
+        "## Human vs AI",
+        "Human score emphasizes perceived utility collapse, confidence loss, frustration, and retreat.",
+        "AI score emphasizes weighted decision cost, confidence loss, perceived utility collapse, and retreat.",
+        "Scenarios with credential trust degradation tend to rank higher for AI than for Human when AI trust weight is high.",
+    ]
+    with open(os.path.join(output_dir, "PHASE2_COGNITIVE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE2_POLICY_SELECTION_SCENARIO_NAMES = [
+    "gated_edge_pressure_count_2",
+    "gated_edge_pressure_duration_2",
+    "credential_aware_mtd_window5",
+    "phase2_frustration_decoy",
+    "phase2_frustration_credential",
+    "phase2_ai_balanced",
+    "phase2_ai_high_trust_degradation",
+]
+
+PHASE2_POLICY_SELECTION_COLUMNS = [
+    "policy",
+    "num_runs",
+    "policy_effectiveness_score",
+    "phase1_neutralization_score",
+    "cognitive_neutralization_score",
+    "critical_protection_score",
+    "critical_compromise_rate",
+    "post_decoy_compromised_mean",
+    "retreat_rate",
+    "retreat_score",
+    "human_score",
+    "ai_score",
+]
+
+
+def run_phase2_policy_selection_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase2_policy_selection"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios = {name: SCENARIOS[name] for name in PHASE2_POLICY_SELECTION_SCENARIO_NAMES}
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase2_policy_selection_row(row) for row in stats_rows]
+    summary_rows.sort(key=lambda row: _to_float(row.get("policy_effectiveness_score")), reverse=True)
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase2_policy_selection(summary_rows)
+    _write_phase2_policy_selection_summary(summary_rows, analysis, output_dir)
+    _plot_phase2_policy_selection_ranking(summary_rows, os.path.join(output_dir, "policy_selection_ranking.png"))
+    _plot_phase2_policy_phase1_vs_cns(summary_rows, os.path.join(output_dir, "phase1_vs_cns.png"))
+    _plot_phase2_policy_human_vs_ai(summary_rows, os.path.join(output_dir, "human_vs_ai_policy.png"))
+    _write_phase2_best_policy_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase2_policy_selection_row(row: Dict[str, object]) -> Dict[str, object]:
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "policy": row.get("scenario"),
+        "num_runs": row.get("num_runs"),
+        "policy_effectiveness_score": effectiveness,
+        "phase1_neutralization_score": row.get("neutralization_score_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "post_decoy_compromised_mean": row.get("post_decoy_compromised_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "retreat_score": row.get("retreat_score_mean"),
+        "human_score": row.get("cognitive_human_score_mean"),
+        "ai_score": row.get("cognitive_ai_score_mean"),
+    }
+
+
+def _analyze_phase2_policy_selection(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    if not rows:
+        return {}
+    best_phase1 = max(rows, key=lambda row: _to_float(row.get("phase1_neutralization_score")))
+    best_cns = max(rows, key=lambda row: _to_float(row.get("cognitive_neutralization_score")))
+    best_effectiveness = max(rows, key=lambda row: _to_float(row.get("policy_effectiveness_score")))
+    best_human = max(rows, key=lambda row: _to_float(row.get("human_score")))
+    best_ai = max(rows, key=lambda row: _to_float(row.get("ai_score")))
+    critical_candidates = [row for row in rows if _to_float(row.get("critical_protection_score")) >= 0.9]
+    if not critical_candidates:
+        max_critical = max(_to_float(row.get("critical_protection_score")) for row in rows)
+        critical_candidates = [row for row in rows if _to_float(row.get("critical_protection_score")) >= max_critical]
+    best_critical_cns = max(critical_candidates, key=lambda row: _to_float(row.get("cognitive_neutralization_score")))
+    return {
+        "best_phase1_policy": best_phase1.get("policy"),
+        "best_cns_policy": best_cns.get("policy"),
+        "best_effectiveness_policy": best_effectiveness.get("policy"),
+        "best_human_policy": best_human.get("policy"),
+        "best_ai_policy": best_ai.get("policy"),
+        "best_critical_preserving_cns_policy": best_critical_cns.get("policy"),
+        "phase1_and_cns_match": best_phase1.get("policy") == best_cns.get("policy"),
+        "human_and_ai_match": best_human.get("policy") == best_ai.get("policy"),
+        "recommended_policy": best_effectiveness.get("policy"),
+    }
+
+
+def _write_phase2_policy_selection_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "policy_selection_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE2_POLICY_SELECTION_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "policy_selection_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase2_policy_selection_ranking(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["policy"]).replace("phase2_", "") for row in rows]
+    values = np.array([_to_float(row.get("policy_effectiveness_score")) for row in rows], dtype=float)
+    plt.figure(figsize=(14, 6))
+    plt.bar(labels, values, color="#4c78a8")
+    plt.ylim(0.0, 1.0)
+    plt.title("Phase2.5 CNS-Driven Policy Effectiveness")
+    plt.ylabel("Policy Effectiveness Score")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def _plot_phase2_policy_phase1_vs_cns(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["policy"]).replace("phase2_", "") for row in rows]
+    phase1 = np.array([_to_float(row.get("phase1_neutralization_score")) for row in rows], dtype=float)
+    cns = np.array([_to_float(row.get("cognitive_neutralization_score")) for row in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.scatter(phase1, cns, s=90, color="#59a14f")
+    for label, x_value, y_value in zip(labels, phase1, cns):
+        ax.annotate(label, (x_value, y_value), textcoords="offset points", xytext=(5, 5), fontsize=8)
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xlabel("Phase1 Neutralization Score")
+    ax.set_ylabel("Cognitive Neutralization Score")
+    ax.set_title("Phase2.5 Phase1 vs CNS Policy Selection")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase2_policy_human_vs_ai(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["policy"]).replace("phase2_", "") for row in rows]
+    human = np.array([_to_float(row.get("human_score")) for row in rows], dtype=float)
+    ai = np.array([_to_float(row.get("ai_score")) for row in rows], dtype=float)
+    x = np.arange(len(labels))
+    width = 0.4
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.bar(x - width / 2, human, width=width, color="#4c78a8", label="Human score")
+    ax.bar(x + width / 2, ai, width=width, color="#f58518", label="AI score")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel("Score")
+    ax.set_title("Phase2.5 Human vs AI Policy Score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase2_best_policy_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    best_effective = next((row for row in rows if row.get("policy") == analysis.get("best_effectiveness_policy")), {})
+    lines = [
+        "# Phase2.5 CNS Driven Policy Selection",
+        "",
+        "## Best Policy Analysis",
+        f"- best_phase1_policy: `{analysis.get('best_phase1_policy')}`",
+        f"- best_cns_policy: `{analysis.get('best_cns_policy')}`",
+        f"- best_effectiveness_policy: `{analysis.get('best_effectiveness_policy')}`",
+        f"- best_human_policy: `{analysis.get('best_human_policy')}`",
+        f"- best_ai_policy: `{analysis.get('best_ai_policy')}`",
+        f"- recommended_policy: `{analysis.get('recommended_policy')}`",
+        "",
+        "## Questions",
+        f"### Q1 Phase1 Best and CNS Best match: `{analysis.get('phase1_and_cns_match')}`",
+        f"### Q2 Human and AI best policies match: `{analysis.get('human_and_ai_match')}`",
+        f"### Q3 Critical-preserving CNS policy: `{analysis.get('best_critical_preserving_cns_policy')}`",
+        f"### Q4 Current CyberMatch recommendation: `{analysis.get('recommended_policy')}`",
+        "",
+        "## Definition",
+        "policy_effectiveness_score = clip(0.5 * cognitive_neutralization_score + 0.3 * critical_protection_score + 0.2 * retreat_score, 0, 1).",
+        "",
+        "## Recommended Policy Metrics",
+        f"- policy_effectiveness_score: `{_to_float(best_effective.get('policy_effectiveness_score')):.3f}`",
+        f"- cognitive_neutralization_score: `{_to_float(best_effective.get('cognitive_neutralization_score')):.3f}`",
+        f"- critical_protection_score: `{_to_float(best_effective.get('critical_protection_score')):.3f}`",
+    ]
+    with open(os.path.join(output_dir, "best_policy_report.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE2_CNS_OBJECTIVE_SCENARIO_NAMES = [
+    "phase2_frustration_decoy",
+    "phase2_frustration_credential",
+    "phase2_ai_balanced",
+    "phase2_ai_high_trust_degradation",
+    "gated_edge_pressure_count_2",
+    "gated_edge_pressure_duration_2",
+    "credential_aware_mtd_window5",
+]
+
+PHASE2_CNS_OBJECTIVE_COLUMNS = [
+    "policy",
+    "num_runs",
+    "phase1_neutralization_score",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "cns_human_contribution",
+    "cns_ai_contribution",
+    "cns_protection_contribution",
+    "cognitive_human_score",
+    "cognitive_ai_score",
+    "critical_protection_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase2_cns_objective_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase2_cns_objective"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios = {name: SCENARIOS[name] for name in PHASE2_CNS_OBJECTIVE_SCENARIO_NAMES}
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase2_cns_objective_row(row) for row in stats_rows]
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase2_cns_objective(summary_rows)
+    sensitivity_rows = _run_phase2_cns_weight_sensitivity(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=output_dir,
+        config_path=config_path,
+    )
+    _write_phase2_cns_objective_summary(summary_rows, analysis, sensitivity_rows, output_dir)
+    _plot_cns_objective_ranking(summary_rows, os.path.join(output_dir, "cns_objective_ranking.png"))
+    _plot_phase1_vs_cns_vs_objective(summary_rows, os.path.join(output_dir, "phase1_vs_cns_vs_objective.png"))
+    _plot_cns_contribution_breakdown(summary_rows, os.path.join(output_dir, "cns_contribution_breakdown.png"))
+    _plot_cns_weight_sensitivity(sensitivity_rows, os.path.join(output_dir, "cns_weight_sensitivity.png"))
+    _write_phase2_objective_report(summary_rows, analysis, sensitivity_rows, output_dir)
+    return summary_rows
+
+
+def _build_phase2_cns_objective_row(row: Dict[str, object]) -> Dict[str, object]:
+    return {
+        "policy": row.get("scenario"),
+        "num_runs": row.get("num_runs"),
+        "phase1_neutralization_score": row.get("neutralization_score_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "cns_human_contribution": row.get("cns_human_contribution_mean"),
+        "cns_ai_contribution": row.get("cns_ai_contribution_mean"),
+        "cns_protection_contribution": row.get("cns_protection_contribution_mean"),
+        "cognitive_human_score": row.get("cognitive_human_score_mean"),
+        "cognitive_ai_score": row.get("cognitive_ai_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase2_cns_objective(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    if not rows:
+        return {}
+    best_phase1 = max(rows, key=lambda row: _to_float(row.get("phase1_neutralization_score")))
+    best_cns = max(rows, key=lambda row: _to_float(row.get("cognitive_neutralization_score")))
+    best_objective = max(rows, key=lambda row: _to_float(row.get("cns_objective_score")))
+    best_human = max(rows, key=lambda row: _to_float(row.get("cns_human_contribution")))
+    best_ai = max(rows, key=lambda row: _to_float(row.get("cns_ai_contribution")))
+    protection_best = max(rows, key=lambda row: _to_float(row.get("critical_protection_score")))
+    return {
+        "best_phase1_policy": best_phase1.get("policy"),
+        "best_cns_policy": best_cns.get("policy"),
+        "best_cns_objective_policy": best_objective.get("policy"),
+        "best_human_contribution_policy": best_human.get("policy"),
+        "best_ai_contribution_policy": best_ai.get("policy"),
+        "best_protection_policy": protection_best.get("policy"),
+        "rankings_match": (
+            best_phase1.get("policy") == best_cns.get("policy") == best_objective.get("policy")
+        ),
+        "dominant_contribution": (
+            "human"
+            if sum(_to_float(row.get("cns_human_contribution")) for row in rows)
+            >= sum(_to_float(row.get("cns_ai_contribution")) for row in rows)
+            else "ai"
+        ),
+        "protection_best_is_objective_best": protection_best.get("policy") == best_objective.get("policy"),
+        "recommended_decision_neutralization_policy": best_objective.get("policy"),
+    }
+
+
+def _run_phase2_cns_weight_sensitivity(
+    scenarios: Dict[str, Dict[str, object]],
+    seeds: Optional[List[int]],
+    output_dir: str,
+    config_path: str,
+) -> List[Dict[str, object]]:
+    sensitivity_rows = []
+    sensitivity_seeds = list(seeds or MULTI_SEED_VALUES)[:3]
+    for human_weight in [0.2, 0.4, 0.6]:
+        for ai_weight in [0.2, 0.4, 0.6]:
+            protection_weight = max(0.0, 1.0 - human_weight - ai_weight)
+            weighted_scenarios = {
+                name: {
+                    **overrides,
+                    "cns_weight_human": human_weight,
+                    "cns_weight_ai": ai_weight,
+                    "cns_weight_protection": protection_weight,
+                }
+                for name, overrides in scenarios.items()
+            }
+            stats_rows = run_scenarios_multi_seed(
+                scenarios=weighted_scenarios,
+                seeds=sensitivity_seeds,
+                output_dir=os.path.join(output_dir, "sensitivity", f"h{human_weight:.1f}_a{ai_weight:.1f}"),
+                config_path=config_path,
+            )
+            rows = [_build_phase2_cns_objective_row(row) for row in stats_rows]
+            best = max(rows, key=lambda row: _to_float(row.get("cns_objective_score")))
+            sensitivity_rows.append(
+                {
+                    "human_weight": human_weight,
+                    "ai_weight": ai_weight,
+                    "protection_weight": protection_weight,
+                    "best_policy": best.get("policy"),
+                    "best_cns_objective_score": best.get("cns_objective_score"),
+                }
+            )
+    return sensitivity_rows
+
+
+def _write_phase2_cns_objective_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    sensitivity_rows: List[Dict[str, object]],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "cns_objective_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE2_CNS_OBJECTIVE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "cns_objective_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis, "sensitivity": sensitivity_rows}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_cns_objective_ranking(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    ranked = sorted(rows, key=lambda row: _to_float(row.get("cns_objective_score")), reverse=True)
+    labels = [str(row["policy"]).replace("phase2_", "") for row in ranked]
+    values = np.array([_to_float(row.get("cns_objective_score")) for row in ranked], dtype=float)
+    plt.figure(figsize=(14, 6))
+    plt.bar(labels, values, color="#4c78a8")
+    plt.ylim(0.0, 1.0)
+    plt.title("Phase2.6 CNS Objective Ranking")
+    plt.ylabel("CNS Objective Score")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def _plot_phase1_vs_cns_vs_objective(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["policy"]).replace("phase2_", "") for row in rows]
+    x = np.arange(len(labels))
+    width = 0.27
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.bar(x - width, [_to_float(row.get("phase1_neutralization_score")) for row in rows], width=width, label="Phase1")
+    ax.bar(x, [_to_float(row.get("cognitive_neutralization_score")) for row in rows], width=width, label="CNS")
+    ax.bar(x + width, [_to_float(row.get("cns_objective_score")) for row in rows], width=width, label="CNS objective")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel("Score")
+    ax.set_title("Phase2.6 Phase1 vs CNS vs CNS Objective")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_cns_contribution_breakdown(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    labels = [str(row["policy"]).replace("phase2_", "") for row in rows]
+    human = np.array([_to_float(row.get("cns_human_contribution")) for row in rows], dtype=float)
+    ai = np.array([_to_float(row.get("cns_ai_contribution")) for row in rows], dtype=float)
+    protection = np.array([_to_float(row.get("cns_protection_contribution")) for row in rows], dtype=float)
+    x = np.arange(len(labels))
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.bar(x, human, color="#4c78a8", label="Human")
+    ax.bar(x, ai, bottom=human, color="#f58518", label="AI")
+    ax.bar(x, protection, bottom=human + ai, color="#59a14f", label="Protection")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel("Contribution")
+    ax.set_title("Phase2.6 CNS Objective Contribution Breakdown")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_cns_weight_sensitivity(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    human_values = sorted({float(row["human_weight"]) for row in rows})
+    ai_values = sorted({float(row["ai_weight"]) for row in rows})
+    grid = np.zeros((len(human_values), len(ai_values)), dtype=float)
+    for row in rows:
+        i = human_values.index(float(row["human_weight"]))
+        j = ai_values.index(float(row["ai_weight"]))
+        grid[i, j] = _to_float(row.get("best_cns_objective_score"))
+    fig, ax = plt.subplots(figsize=(8, 6))
+    image = ax.imshow(grid, cmap="viridis", vmin=0.0, vmax=1.0)
+    ax.set_xticks(np.arange(len(ai_values)))
+    ax.set_xticklabels([f"{value:.1f}" for value in ai_values])
+    ax.set_yticks(np.arange(len(human_values)))
+    ax.set_yticklabels([f"{value:.1f}" for value in human_values])
+    ax.set_xlabel("AI Weight")
+    ax.set_ylabel("Human Weight")
+    ax.set_title("Phase2.6 CNS Weight Sensitivity")
+    for i, human_weight in enumerate(human_values):
+        for j, ai_weight in enumerate(ai_values):
+            match = next(
+                row
+                for row in rows
+                if float(row["human_weight"]) == human_weight and float(row["ai_weight"]) == ai_weight
+            )
+            ax.text(j, i, str(match.get("best_policy", "")).replace("phase2_", "")[:10], ha="center", va="center", color="white", fontsize=8)
+    fig.colorbar(image, ax=ax, label="Best CNS Objective Score")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase2_objective_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    sensitivity_rows: List[Dict[str, object]],
+    output_dir: str,
+) -> None:
+    human_top = sorted(rows, key=lambda row: _to_float(row.get("cns_human_contribution")), reverse=True)[:3]
+    ai_top = sorted(rows, key=lambda row: _to_float(row.get("cns_ai_contribution")), reverse=True)[:3]
+    sensitivity_best_counts: Dict[str, int] = {}
+    for row in sensitivity_rows:
+        policy = str(row.get("best_policy"))
+        sensitivity_best_counts[policy] = sensitivity_best_counts.get(policy, 0) + 1
+    stable_best = max(sensitivity_best_counts, key=sensitivity_best_counts.get) if sensitivity_best_counts else None
+    lines = [
+        "# Phase2.6 CNS Driven Defense Objective",
+        "",
+        "## Definition",
+        "cns_objective_score = clip(cns_weight_human * cognitive_human_score + cns_weight_ai * cognitive_ai_score + cns_weight_protection * critical_protection_score, 0, 1).",
+        "",
+        "## Best Policies",
+        f"- Phase1 Best: `{analysis.get('best_phase1_policy')}`",
+        f"- CNS Best: `{analysis.get('best_cns_policy')}`",
+        f"- CNS Objective Best: `{analysis.get('best_cns_objective_policy')}`",
+        f"- Decision Neutralization Policy: `{analysis.get('recommended_decision_neutralization_policy')}`",
+        "",
+        "## Questions",
+        f"- Q1 rankings all match: `{analysis.get('rankings_match')}`",
+        f"- Q2 dominant contribution: `{analysis.get('dominant_contribution')}`",
+        f"- Q3 protection best is objective best: `{analysis.get('protection_best_is_objective_best')}`",
+        f"- Q4 recommended policy: `{analysis.get('recommended_decision_neutralization_policy')}`",
+        "",
+        "## Human Contribution Top 3",
+        *[f"- `{row.get('policy')}`: {_to_float(row.get('cns_human_contribution')):.3f}" for row in human_top],
+        "",
+        "## AI Contribution Top 3",
+        *[f"- `{row.get('policy')}`: {_to_float(row.get('cns_ai_contribution')):.3f}" for row in ai_top],
+        "",
+        "## Sensitivity",
+        f"- Most frequent best policy across sweep: `{stable_best}` ({sensitivity_best_counts.get(stable_best, 0) if stable_best else 0}/{len(sensitivity_rows)})",
+    ]
+    with open(os.path.join(output_dir, "PHASE2_OBJECTIVE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
 
 
 def _plot_visible_log_multiseed_summary(rows: List[Dict[str, object]], save_path: str) -> None:
@@ -4592,3 +5775,13 @@ if __name__ == "__main__":
     if RUN_MULTI_SEED:
         stats = run_scenarios_multi_seed(seeds=MULTI_SEED_VALUES)
         print(f"Completed multi-seed evaluation for {len(stats)} scenarios. Summary written to output/scenarios_multiseed.")
+        ai_cost_rows = run_phase2_ai_cost_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase2.3 AI cost evaluation for {len(ai_cost_rows)} scenarios. Summary written to output/phase2_ai_cost.")
+        ai_weight_rows = run_phase2_ai_weight_sweep_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase2.3 AI weight sweep for {len(ai_weight_rows)} scenarios. Summary written to output/phase2_ai_weight_sweep.")
+        cognitive_rows = run_phase2_cognitive_neutralization_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase2.4 cognitive neutralization for {len(cognitive_rows)} scenarios. Summary written to output/phase2_cognitive_neutralization.")
+        policy_rows = run_phase2_policy_selection_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase2.5 CNS-driven policy selection for {len(policy_rows)} policies. Summary written to output/phase2_policy_selection.")
+        objective_rows = run_phase2_cns_objective_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase2.6 CNS objective evaluation for {len(objective_rows)} policies. Summary written to output/phase2_cns_objective.")

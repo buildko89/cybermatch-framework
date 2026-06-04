@@ -1,106 +1,145 @@
 # CyberMatch Framework
 
-CyberMatch Framework is a source-available cyber-defense research framework for evaluating attacker neutralization.
+CyberMatch is a cyber-defense evaluation framework for both:
 
-It evaluates defense policies not only by detection rate or attack success rate, but by:
+- Defense Neutralization
+- Decision Neutralization
 
-- Critical asset protection
-- Attacker utility suppression
-- Deception and attacker waste
-- Attack progress friction
-- Retreat induction
-
-## License
-
-This project is licensed under the **PolyForm Noncommercial License 1.0.0**.
-
-CyberMatch Framework is source-available for research, education, evaluation, and other noncommercial purposes.
-
-Commercial use is not permitted without separate permission from the repository owner.
-
-See [LICENSE](./LICENSE) for details.
-
-## Phase1 Status
-
-Phase1 is completed.
-
-Main outcome:
-CyberMatch Phase1 defines and evaluates attack neutralization using a composite Neutralization Score.
-
-Best targeted neutralization policy:
-credential_aware_mtd
-
-Neutralization Score:
-0.742
-
-## Phase2 Direction
-
-Phase2 extends CyberMatch from defense-effect evaluation to attacker decision neutralization.
-
-Current Phase2 topics:
-
-- Perceived utility
-- Human frustration model
-- AI decision cost model
-- Cognitive neutralization score
-
-See [docs/PHASE2_ATTACKER_MODEL_ROADMAP.md](docs/PHASE2_ATTACKER_MODEL_ROADMAP.md).
-
-## Key Findings
-
-- Naive decoy alone is weak
-- Path-aware decoy improves attack delay
-- Edge-level MTD is useful when combined with path-aware defense
-- Belief estimation accuracy does not always correlate with defense performance
-- Credential-aware MTD achieved the highest targeted neutralization score
-- Retreat induction remains a Phase2 challenge
-
-## Repository Structure
-
-- cybermatch.py
-- run_scenarios.py
-- tests/
-- docs/
-- docs/images/
-- docs/data/
+It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost.
 
 ## Quick Start
 
+Install dependencies:
+
 ```bash
-python -m pytest
-python cybermatch.py
-python run_scenarios.py
+python -m pip install -r requirements.txt
 ```
 
-## Phase1 Report
+Run tests:
 
-See:
+```bash
+python -m pytest
+```
 
-docs/CYBERMATCH_PHASE1_FINAL_REPORT.md
+### Phase1
 
-## Neutralization Report
+Goal:
+Evaluate defense effectiveness.
 
-See:
+Metrics:
 
-docs/NEUTRALIZATION_REPORT.md
+- critical compromise
+- neutralization score
+- post-decoy compromise
+- defense objective score
+- MTD cost and actions
 
-## Phase2 Roadmap
+Run:
 
-- Perceived utility
-- Attacker frustration model
-- Dynamic retreat model
-- Multi-seed neutralization scoring
-- Defender-visible observation model
-- Online adaptive defense
+```bash
+python scripts/run_phase1.py
+```
 
-## Development Workflow
+### Phase2
 
-From Phase2 onward, this repository is the canonical development location.
+Goal:
+Evaluate attacker decision neutralization.
 
-See [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md).
+Metrics:
 
-## Commercial Use
+- perceived utility
+- confidence
+- frustration
+- AI decision cost
+- Cognitive Neutralization Score
+- CNS objective score
 
-Commercial use of this project requires separate permission from the repository owner.
+Run:
 
-If you are interested in commercial use, licensing, collaboration, or applied research based on CyberMatch Framework, please contact the repository owner.
+```bash
+python scripts/run_phase2.py
+```
+
+### All Evaluations
+
+Run:
+
+```bash
+python scripts/run_all.py
+```
+
+## Results
+
+### Phase1 Summary
+
+Phase1 introduces Defense Neutralization, using a composite Neutralization Score and related compromise, delay, deception, and retreat metrics.
+
+Main Phase1 policy finding:
+
+- `gated_edge_pressure_count_2`
+
+Phase1 comparison best used in Phase2 ranking:
+
+- `phase2_ai_balanced`
+
+### Phase2 Summary
+
+Phase2 introduces Decision Neutralization. It adds perceived utility, confidence, Human Frustration, AI Decision Cost, Cognitive Neutralization Score, and CNS Objective ranking.
+
+Main Phase2 policy finding:
+
+- `phase2_frustration_decoy`
+
+### Recommended Policies
+
+- Defense Neutralization: `gated_edge_pressure_count_2`
+- Decision Neutralization: `phase2_frustration_decoy`
+
+## Publications / Reports
+
+Phase1:
+
+- [Phase1 index](docs/phase1/README.md)
+- [Phase1 final report](docs/CYBERMATCH_PHASE1_FINAL_REPORT.md)
+- [Phase1 artifacts](docs/PHASE1_ARTIFACTS.md)
+
+Phase2:
+
+- [Phase2 index](docs/phase2/README.md)
+- [Phase2 final report](docs/CYBERMATCH_PHASE2_FINAL_REPORT.md)
+- [Phase2 artifacts](docs/PHASE2_ARTIFACTS.md)
+
+Release and reproducibility:
+
+- [GitHub release notes](docs/GITHUB_RELEASE_NOTES.md)
+- [GitHub release plan](docs/GITHUB_RELEASE_PLAN.md)
+- [Reproducibility](docs/REPRODUCIBILITY.md)
+
+## Repository Structure
+
+```text
+cybermatch-framework/
+  README.md
+  LICENSE
+  requirements.txt
+  cybermatch.py
+  run_scenarios.py
+  scripts/
+    run_phase1.py
+    run_phase2.py
+    run_all.py
+  tests/
+  docs/
+    phase1/
+    phase2/
+    images/
+    data/
+```
+
+## License
+
+This project is licensed under the PolyForm Noncommercial License 1.0.0.
+
+CyberMatch Framework is source-available for research, education, evaluation, and other noncommercial purposes. Commercial use is not permitted without separate permission from the repository owner.
+
+See [LICENSE](LICENSE) for details.

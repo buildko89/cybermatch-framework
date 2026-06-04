@@ -13,6 +13,11 @@ from run_scenarios import (
     build_multiseed_stats_rows,
     build_policy_selection_rows,
     run_neutralization_evaluation,
+    run_phase2_cognitive_neutralization_evaluation,
+    run_phase2_ai_cost_evaluation,
+    run_phase2_ai_weight_sweep_evaluation,
+    run_phase2_cns_objective_evaluation,
+    run_phase2_policy_selection_evaluation,
     run_scenarios,
     run_scenarios_multi_seed,
 )
@@ -214,6 +219,71 @@ def test_neutralization_scores_in_metrics():
         assert 0.0 <= metrics[key] <= 1.0
 
 
+def test_cognitive_score_metrics_exist():
+    config = small_config(
+        attacker_enabled=True,
+        perceived_utility_enabled=True,
+        frustration_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert "cognitive_neutralization_score" in metrics
+    assert "cognitive_human_score" in metrics
+    assert "cognitive_ai_score" in metrics
+
+
+def test_cognitive_score_range():
+    config = small_config(
+        attacker_enabled=True,
+        perceived_utility_enabled=True,
+        frustration_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    for key in [
+        "cognitive_neutralization_score",
+        "cognitive_human_score",
+        "cognitive_ai_score",
+    ]:
+        assert 0.0 <= metrics[key] <= 1.0
+
+
+def test_cns_contribution_metrics_exist():
+    config = small_config(
+        attacker_enabled=True,
+        perceived_utility_enabled=True,
+        frustration_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    for key in [
+        "cns_objective_score",
+        "cns_human_contribution",
+        "cns_ai_contribution",
+        "cns_protection_contribution",
+    ]:
+        assert key in metrics
+
+
+def test_cns_objective_score_range():
+    config = small_config(
+        attacker_enabled=True,
+        perceived_utility_enabled=True,
+        frustration_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.calculate_metrics()
+
+    assert 0.0 <= metrics["cns_objective_score"] <= 1.0
+
+
 def test_phase2_attacker_model_roadmap_exists():
     path = "docs/PHASE2_ATTACKER_MODEL_ROADMAP.md"
     with open(path, encoding="utf-8") as f:
@@ -222,6 +292,43 @@ def test_phase2_attacker_model_roadmap_exists():
     assert "# CyberMatch Phase2 Attacker Model Roadmap" in content
     assert "Human Frustration Model" in content
     assert "AI Decision Cost Model" in content
+
+
+def test_phase2_final_report_exists():
+    path = "docs/CYBERMATCH_PHASE2_FINAL_REPORT.md"
+    with open(path, encoding="utf-8") as f:
+        content = f.read()
+
+    assert "# CyberMatch Phase2 Final Report" in content
+    assert "Decision Neutralization" in content
+    assert "Phase1 Best = phase2_ai_balanced" in content
+    assert "CNS Best = phase2_frustration_decoy" in content
+    assert "Recommended Policy = phase2_frustration_decoy" in content
+
+
+def test_phase2_artifacts_exists():
+    required_paths = [
+        "docs/PHASE2_ARTIFACTS.md",
+        "docs/GITHUB_RELEASE_PLAN.md",
+        "docs/REPRODUCIBILITY.md",
+    ]
+
+    for path in required_paths:
+        with open(path, encoding="utf-8") as f:
+            content = f.read()
+        assert "Phase2" in content or "Reproducibility" in content
+
+
+def test_phase2_summary_json_exists():
+    path = "output/phase2_final_summary.json"
+    with open(path, encoding="utf-8") as f:
+        payload = json.load(f)
+
+    assert payload["phase"] == "Phase2"
+    assert payload["phase1_best_policy"] == "phase2_ai_balanced"
+    assert payload["cns_best_policy"] == "phase2_frustration_decoy"
+    assert payload["recommended_policy"] == "phase2_frustration_decoy"
+    assert payload["pytest_passed"] is True
 
 
 def test_human_frustration_alias_metrics_present():
@@ -233,9 +340,14 @@ def test_human_frustration_alias_metrics_present():
     assert metrics["human_frustration_final"] == pytest.approx(metrics["frustration_final"])
     assert metrics["human_frustration_mean"] == pytest.approx(metrics["frustration_mean"])
     assert metrics["human_frustration_max"] == pytest.approx(metrics["frustration_max"])
-    assert "ai_planning_cost_proxy" in metrics
-    assert "ai_uncertainty_cost_proxy" in metrics
-    assert "ai_search_cost_proxy" in metrics
+    assert "ai_uncertainty_cost" in metrics
+    assert "ai_replanning_cost" in metrics
+    assert "ai_search_cost" in metrics
+    assert "ai_operational_risk_cost" in metrics
+    assert "ai_trust_degradation_cost" in metrics
+    assert "ai_total_decision_cost" in metrics
+    assert "ai_weighted_cost" in metrics
+    assert "human_vs_ai_cost_ratio" in metrics
 
 
 def test_perceived_utility_separates_from_actual():
@@ -485,6 +597,69 @@ def test_frustration_retreat_can_override_positive_utility():
     assert metrics["retreat_based_on"] == "frustration"
 
 
+def test_ai_decision_cost_metrics_map_frustration_components():
+    decoy_config = small_config(
+        T=5,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="utility",
+        frustration_enabled=True,
+        retreat_based_on="actual",
+        frustration_decay=1.0,
+        frustration_decoy_hit=3.0,
+        frustration_credential_trap=2.0,
+        frustration_detection=1.0,
+        attacker_retreat_threshold=-999.0,
+        node_type=["decoy", "real", "real", "real", "real"],
+        asset_value=[0.0, 5.0, 1.0, 8.0, 2.0],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    decoy_sim = CyberDefenseSimulator(decoy_config)
+    decoy_sim.run()
+    decoy_metrics = decoy_sim.calculate_metrics()
+
+    for key in [
+        "ai_uncertainty_cost",
+        "ai_replanning_cost",
+        "ai_search_cost",
+        "ai_operational_risk_cost",
+        "ai_trust_degradation_cost",
+        "ai_total_decision_cost",
+    ]:
+        assert key in decoy_metrics
+    assert decoy_metrics["ai_uncertainty_cost"] > 0.0
+    assert decoy_metrics["ai_total_decision_cost"] == pytest.approx(decoy_metrics["ai_weighted_cost"])
+    assert decoy_metrics["ai_total_decision_cost"] > decoy_metrics["frustration_mean"]
+    assert decoy_metrics["human_vs_ai_cost_ratio"] < 1.0
+
+    credential_config = small_config(
+        T=3,
+        attacker_enabled=True,
+        attacker_target_selection="greedy",
+        attacker_greedy_mode="utility",
+        frustration_enabled=True,
+        retreat_based_on="actual",
+        frustration_decay=1.0,
+        frustration_credential_trap=2.0,
+        attacker_retreat_threshold=-999.0,
+        asset_value=[10.0, 5.0, 1.0, 8.0, 2.0],
+        attacker_belief=[100.0, 1.0, 1.0, 1.0, 1.0],
+        honeypot_credential_enabled=True,
+        credential_node_ids=[0],
+        stochastic_success=False,
+        stochastic_detection=False,
+    )
+    credential_sim = CyberDefenseSimulator(credential_config)
+    credential_sim.run()
+    credential_metrics = credential_sim.calculate_metrics()
+
+    assert credential_metrics["ai_trust_degradation_cost"] > 0.0
+    assert credential_metrics["ai_total_decision_cost"] == pytest.approx(credential_metrics["ai_weighted_cost"])
+    assert credential_metrics["ai_total_decision_cost"] > credential_metrics["frustration_mean"]
+
+
 def test_phase2_frustration_scenarios_present():
     expected = {
         "phase2_frustration_reference",
@@ -523,6 +698,153 @@ def test_phase2_frustration_multiseed_outputs(tmp_path):
     assert (tmp_path / "scenarios_multiseed" / "summary_frustration_retreat_rate.png").exists()
     assert (tmp_path / "scenarios_multiseed" / "summary_frustration_distribution.png").exists()
     assert (tmp_path / "scenarios_multiseed" / "summary_frustration_vs_perceived_utility.png").exists()
+
+
+def test_phase2_ai_cost_outputs(tmp_path):
+    rows = run_phase2_ai_cost_evaluation(
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "phase2_ai_cost"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows
+    assert "frustration_mean" in rows[0]
+    assert "ai_total_decision_cost" in rows[0]
+    assert rows[0]["ai_total_decision_cost"] != pytest.approx(rows[0]["frustration_mean"])
+    assert (tmp_path / "phase2_ai_cost" / "ai_cost_summary.csv").exists()
+    assert (tmp_path / "phase2_ai_cost" / "ai_cost_summary.json").exists()
+    assert (tmp_path / "phase2_ai_cost" / "ai_cost_vs_frustration.png").exists()
+    assert (tmp_path / "phase2_ai_cost" / "ai_cost_vs_retreat_rate.png").exists()
+
+
+def test_phase2_ai_weight_scenarios_present():
+    expected = {
+        "phase2_ai_cost_reference",
+        "phase2_ai_high_uncertainty",
+        "phase2_ai_high_trust_degradation",
+        "phase2_ai_high_operational_risk",
+        "phase2_ai_low_replanning_cost",
+        "phase2_ai_balanced",
+    }
+
+    assert expected.issubset(SCENARIOS)
+    assert expected.issubset(set(MULTI_SEED_SCENARIO_NAMES))
+
+
+def test_phase2_ai_weight_sweep_outputs(tmp_path):
+    rows = run_phase2_ai_weight_sweep_evaluation(
+        seeds=[0, 1],
+        output_dir=str(tmp_path / "phase2_ai_weight_sweep"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    payload = json.loads(
+        (tmp_path / "phase2_ai_weight_sweep" / "ai_weight_sweep_summary.json").read_text(encoding="utf-8")
+    )
+
+    assert rows
+    assert "human_cost" in rows[0]
+    assert "ai_weighted_cost" in rows[0]
+    assert "neutralization_score" in rows[0]
+    assert payload["analysis"]["q1_best_human_defense"]
+    assert payload["analysis"]["ai_attacker_most_affected_defense"]
+    assert (tmp_path / "phase2_ai_weight_sweep" / "ai_weight_sweep_summary.csv").exists()
+    assert (tmp_path / "phase2_ai_weight_sweep" / "human_vs_ai_cost.png").exists()
+    assert (tmp_path / "phase2_ai_weight_sweep" / "human_vs_ai_retreat.png").exists()
+    assert (tmp_path / "phase2_ai_weight_sweep" / "human_vs_ai_neutralization.png").exists()
+
+
+def test_phase2_cognitive_outputs_exist(tmp_path):
+    rows = run_phase2_cognitive_neutralization_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase2_cognitive_neutralization"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    payload = json.loads(
+        (tmp_path / "phase2_cognitive_neutralization" / "cognitive_summary.json").read_text(encoding="utf-8")
+    )
+
+    assert rows
+    assert "cognitive_neutralization_score" in rows[0]
+    assert "cognitive_human_score" in rows[0]
+    assert "cognitive_ai_score" in rows[0]
+    assert payload["analysis"]["best_combined_cognitive_neutralization"]
+    assert (tmp_path / "phase2_cognitive_neutralization" / "cognitive_summary.csv").exists()
+    assert (tmp_path / "phase2_cognitive_neutralization" / "cognitive_summary.json").exists()
+    assert (tmp_path / "phase2_cognitive_neutralization" / "cognitive_ranking.png").exists()
+    assert (tmp_path / "phase2_cognitive_neutralization" / "cognitive_human_vs_ai.png").exists()
+    assert (tmp_path / "phase2_cognitive_neutralization" / "cognitive_vs_phase1_neutralization.png").exists()
+    assert (tmp_path / "phase2_cognitive_neutralization" / "PHASE2_COGNITIVE_REPORT.md").exists()
+
+
+def test_policy_effectiveness_score_range(tmp_path):
+    rows = run_phase2_policy_selection_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase2_policy_selection"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert rows
+    assert all(0.0 <= row["policy_effectiveness_score"] <= 1.0 for row in rows)
+
+
+def test_phase2_policy_selection_outputs_exist(tmp_path):
+    run_phase2_policy_selection_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase2_policy_selection"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert (tmp_path / "phase2_policy_selection" / "policy_selection_summary.csv").exists()
+    assert (tmp_path / "phase2_policy_selection" / "policy_selection_summary.json").exists()
+    assert (tmp_path / "phase2_policy_selection" / "policy_selection_ranking.png").exists()
+    assert (tmp_path / "phase2_policy_selection" / "phase1_vs_cns.png").exists()
+    assert (tmp_path / "phase2_policy_selection" / "human_vs_ai_policy.png").exists()
+    assert (tmp_path / "phase2_policy_selection" / "best_policy_report.md").exists()
+
+
+def test_best_policy_fields_exist(tmp_path):
+    run_phase2_policy_selection_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase2_policy_selection"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    payload = json.loads(
+        (tmp_path / "phase2_policy_selection" / "policy_selection_summary.json").read_text(encoding="utf-8")
+    )
+
+    for key in [
+        "best_phase1_policy",
+        "best_cns_policy",
+        "best_effectiveness_policy",
+        "best_human_policy",
+        "best_ai_policy",
+        "recommended_policy",
+    ]:
+        assert key in payload["analysis"]
+        assert payload["analysis"][key]
+
+
+def test_cns_objective_outputs_exist(tmp_path):
+    rows = run_phase2_cns_objective_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase2_cns_objective"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+    payload = json.loads(
+        (tmp_path / "phase2_cns_objective" / "cns_objective_summary.json").read_text(encoding="utf-8")
+    )
+
+    assert rows
+    assert "cns_objective_score" in rows[0]
+    assert payload["analysis"]["best_cns_objective_policy"]
+    assert payload["sensitivity"]
+    assert (tmp_path / "phase2_cns_objective" / "cns_objective_summary.csv").exists()
+    assert (tmp_path / "phase2_cns_objective" / "cns_objective_summary.json").exists()
+    assert (tmp_path / "phase2_cns_objective" / "cns_objective_ranking.png").exists()
+    assert (tmp_path / "phase2_cns_objective" / "phase1_vs_cns_vs_objective.png").exists()
+    assert (tmp_path / "phase2_cns_objective" / "cns_contribution_breakdown.png").exists()
+    assert (tmp_path / "phase2_cns_objective" / "cns_weight_sensitivity.png").exists()
+    assert (tmp_path / "phase2_cns_objective" / "PHASE2_OBJECTIVE_REPORT.md").exists()
 
 
 def test_plot_does_not_block_when_show_plot_false(tmp_path, monkeypatch):

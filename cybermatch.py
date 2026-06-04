@@ -104,6 +104,22 @@ class SimulationConfig:
     frustration_no_progress: float = 0.5
     frustration_decay: float = 0.95
     frustration_retreat_threshold: float = 10.0
+    ai_uncertainty_weight: float = 2.0
+    ai_replanning_weight: float = 0.5
+    ai_search_weight: float = 1.0
+    ai_operational_risk_weight: float = 1.5
+    ai_trust_degradation_weight: float = 2.5
+    cognitive_score_enabled: bool = True
+    cognitive_weight_critical_protection: float = 0.30
+    cognitive_weight_perceived_utility: float = 0.20
+    cognitive_weight_confidence: float = 0.15
+    cognitive_weight_human_frustration: float = 0.15
+    cognitive_weight_ai_cost: float = 0.15
+    cognitive_weight_retreat: float = 0.05
+    cns_objective_enabled: bool = True
+    cns_weight_human: float = 0.4
+    cns_weight_ai: float = 0.4
+    cns_weight_protection: float = 0.2
     attacker_greedy_mode: str = "utility"
     attacker_defense_cost_rate: float = 1.0
     attacker_detection_sensitivity: float = 1.0
@@ -262,6 +278,34 @@ class SimulationConfig:
             errors.append("frustration_decay must be between 0 and 1")
         if self.frustration_retreat_threshold < 0:
             errors.append("frustration_retreat_threshold must be >= 0")
+        if self.ai_uncertainty_weight < 0:
+            errors.append("ai_uncertainty_weight must be >= 0")
+        if self.ai_replanning_weight < 0:
+            errors.append("ai_replanning_weight must be >= 0")
+        if self.ai_search_weight < 0:
+            errors.append("ai_search_weight must be >= 0")
+        if self.ai_operational_risk_weight < 0:
+            errors.append("ai_operational_risk_weight must be >= 0")
+        if self.ai_trust_degradation_weight < 0:
+            errors.append("ai_trust_degradation_weight must be >= 0")
+        if self.cognitive_weight_critical_protection < 0:
+            errors.append("cognitive_weight_critical_protection must be >= 0")
+        if self.cognitive_weight_perceived_utility < 0:
+            errors.append("cognitive_weight_perceived_utility must be >= 0")
+        if self.cognitive_weight_confidence < 0:
+            errors.append("cognitive_weight_confidence must be >= 0")
+        if self.cognitive_weight_human_frustration < 0:
+            errors.append("cognitive_weight_human_frustration must be >= 0")
+        if self.cognitive_weight_ai_cost < 0:
+            errors.append("cognitive_weight_ai_cost must be >= 0")
+        if self.cognitive_weight_retreat < 0:
+            errors.append("cognitive_weight_retreat must be >= 0")
+        if self.cns_weight_human < 0:
+            errors.append("cns_weight_human must be >= 0")
+        if self.cns_weight_ai < 0:
+            errors.append("cns_weight_ai must be >= 0")
+        if self.cns_weight_protection < 0:
+            errors.append("cns_weight_protection must be >= 0")
         if self.attacker_greedy_mode not in ("legacy", "weighted_risk", "utility"):
             errors.append("attacker_greedy_mode must be one of: legacy, weighted_risk, utility")
         if self.attacker_defense_cost_rate < 0:
@@ -526,6 +570,11 @@ class AttackerModel:
     frustration_sum: float = 0.0
     frustration_steps: int = 0
     frustration_retreats: int = 0
+    ai_uncertainty_cost: float = 0.0
+    ai_replanning_cost: float = 0.0
+    ai_search_cost: float = 0.0
+    ai_operational_risk_cost: float = 0.0
+    ai_trust_degradation_cost: float = 0.0
 
     effort_cost_rate: float = 0.3
     detection_penalty: float = 1.0
@@ -763,18 +812,33 @@ class AttackerModel:
 
         if self.frustration_enabled:
             self.frustration *= self.frustration_decay
+            self.ai_uncertainty_cost *= self.frustration_decay
+            self.ai_replanning_cost *= self.frustration_decay
+            self.ai_search_cost *= self.frustration_decay
+            self.ai_operational_risk_cost *= self.frustration_decay
+            self.ai_trust_degradation_cost *= self.frustration_decay
             if attacked_decoy:
                 self.frustration += self.frustration_decoy_hit
+                self.ai_uncertainty_cost += self.frustration_decoy_hit
             if credential_decoy_trigger:
                 self.frustration += self.frustration_credential_trap
+                self.ai_trust_degradation_cost += self.frustration_credential_trap
             if detected:
                 self.frustration += self.frustration_detection
+                self.ai_operational_risk_cost += self.frustration_detection
             if path_changed:
                 self.frustration += self.frustration_path_change
+                self.ai_replanning_cost += self.frustration_path_change
             if no_progress:
                 self.frustration += self.frustration_no_progress
+                self.ai_search_cost += self.frustration_no_progress
         else:
             self.frustration = 0.0
+            self.ai_uncertainty_cost = 0.0
+            self.ai_replanning_cost = 0.0
+            self.ai_search_cost = 0.0
+            self.ai_operational_risk_cost = 0.0
+            self.ai_trust_degradation_cost = 0.0
         self.max_frustration = max(float(self.max_frustration), float(self.frustration))
         self.frustration_sum += float(self.frustration)
         self.frustration_steps += 1
@@ -1027,6 +1091,12 @@ class CyberDefenseSimulator:
             'perceived_utility': [],
             'confidence': [],
             'frustration': [],
+            'ai_uncertainty_cost': [],
+            'ai_replanning_cost': [],
+            'ai_search_cost': [],
+            'ai_operational_risk_cost': [],
+            'ai_trust_degradation_cost': [],
+            'ai_total_decision_cost': [],
             'attacker_retreated': [],
             'attacker_detected': [],
             'attacker_success': [],
@@ -1373,6 +1443,19 @@ class CyberDefenseSimulator:
             self.history['perceived_utility'].append(float(self.attacker.perceived_utility))
             self.history['confidence'].append(float(self.attacker.confidence))
             self.history['frustration'].append(float(self.attacker.frustration))
+            ai_total_decision_cost = (
+                self.attacker.ai_uncertainty_cost * self.config.ai_uncertainty_weight
+                + self.attacker.ai_replanning_cost * self.config.ai_replanning_weight
+                + self.attacker.ai_search_cost * self.config.ai_search_weight
+                + self.attacker.ai_operational_risk_cost * self.config.ai_operational_risk_weight
+                + self.attacker.ai_trust_degradation_cost * self.config.ai_trust_degradation_weight
+            )
+            self.history['ai_uncertainty_cost'].append(float(self.attacker.ai_uncertainty_cost))
+            self.history['ai_replanning_cost'].append(float(self.attacker.ai_replanning_cost))
+            self.history['ai_search_cost'].append(float(self.attacker.ai_search_cost))
+            self.history['ai_operational_risk_cost'].append(float(self.attacker.ai_operational_risk_cost))
+            self.history['ai_trust_degradation_cost'].append(float(self.attacker.ai_trust_degradation_cost))
+            self.history['ai_total_decision_cost'].append(float(ai_total_decision_cost))
             self.history['attacker_retreated'].append(bool(self.attacker.retreated))
             self.history['attacker_detected'].append(bool(detected))
             self.history['attacker_success'].append(bool(success))
@@ -2285,6 +2368,129 @@ class CyberDefenseSimulator:
             'neutralization_score': neutralization_score,
         }
 
+    def _calculate_cognitive_scores(
+        self,
+        neutralization_scores: Dict[str, float],
+        perceived_utility_final: float,
+        confidence_final: float,
+        frustration_final: float,
+        ai_weighted_cost: float,
+    ) -> Dict[str, float]:
+        if not self.config.cognitive_score_enabled:
+            return {
+                'cognitive_neutralization_score': 0.0,
+                'cognitive_human_score': 0.0,
+                'cognitive_ai_score': 0.0,
+            }
+
+        utility_scale = max(
+            float(np.sum(self.config.asset_value)) + float(self.config.attacker_attack_budget * max(self.config.T, 1)),
+            1.0,
+        )
+        utility_component = (
+            1.0
+            if perceived_utility_final <= 0.0
+            else self._score01(1.0 - perceived_utility_final / utility_scale)
+        )
+        confidence_component = self._score01(1.0 - confidence_final)
+        frustration_scale = max(float(self.config.frustration_retreat_threshold), 1.0)
+        frustration_component = self._score01(frustration_final / (frustration_final + frustration_scale))
+        ai_cost_component = self._score01(ai_weighted_cost / (ai_weighted_cost + frustration_scale))
+        retreat_component = 1.0 if self.attacker.retreated else 0.0
+
+        human_weight_sum = max(
+            self.config.cognitive_weight_perceived_utility
+            + self.config.cognitive_weight_confidence
+            + self.config.cognitive_weight_human_frustration
+            + self.config.cognitive_weight_retreat,
+            1e-9,
+        )
+        cognitive_human_score = self._score01(
+            (
+                self.config.cognitive_weight_perceived_utility * utility_component
+                + self.config.cognitive_weight_confidence * confidence_component
+                + self.config.cognitive_weight_human_frustration * frustration_component
+                + self.config.cognitive_weight_retreat * retreat_component
+            )
+            / human_weight_sum
+        )
+
+        ai_weight_sum = max(
+            self.config.cognitive_weight_ai_cost
+            + self.config.cognitive_weight_confidence
+            + self.config.cognitive_weight_perceived_utility
+            + self.config.cognitive_weight_retreat,
+            1e-9,
+        )
+        cognitive_ai_score = self._score01(
+            (
+                self.config.cognitive_weight_ai_cost * ai_cost_component
+                + self.config.cognitive_weight_confidence * confidence_component
+                + self.config.cognitive_weight_perceived_utility * utility_component
+                + self.config.cognitive_weight_retreat * retreat_component
+            )
+            / ai_weight_sum
+        )
+
+        combined_human_weight = (
+            self.config.cognitive_weight_perceived_utility
+            + self.config.cognitive_weight_confidence
+            + self.config.cognitive_weight_human_frustration
+            + self.config.cognitive_weight_retreat
+        )
+        combined_ai_weight = (
+            self.config.cognitive_weight_ai_cost
+            + self.config.cognitive_weight_confidence
+            + self.config.cognitive_weight_perceived_utility
+            + self.config.cognitive_weight_retreat
+        )
+        combined_weight_sum = max(
+            self.config.cognitive_weight_critical_protection
+            + combined_human_weight
+            + combined_ai_weight,
+            1e-9,
+        )
+        cognitive_neutralization_score = self._score01(
+            (
+                self.config.cognitive_weight_critical_protection
+                * float(neutralization_scores.get('critical_protection_score', 0.0))
+                + combined_human_weight * cognitive_human_score
+                + combined_ai_weight * cognitive_ai_score
+            )
+            / combined_weight_sum
+        )
+
+        return {
+            'cognitive_neutralization_score': cognitive_neutralization_score,
+            'cognitive_human_score': cognitive_human_score,
+            'cognitive_ai_score': cognitive_ai_score,
+        }
+
+    def _calculate_cns_objective_scores(
+        self,
+        neutralization_scores: Dict[str, float],
+        cognitive_scores: Dict[str, float],
+    ) -> Dict[str, float]:
+        if not self.config.cns_objective_enabled:
+            return {
+                'cns_objective_score': 0.0,
+                'cns_human_contribution': 0.0,
+                'cns_ai_contribution': 0.0,
+                'cns_protection_contribution': 0.0,
+            }
+
+        human = self.config.cns_weight_human * float(cognitive_scores.get('cognitive_human_score', 0.0))
+        ai = self.config.cns_weight_ai * float(cognitive_scores.get('cognitive_ai_score', 0.0))
+        protection = self.config.cns_weight_protection * float(
+            neutralization_scores.get('critical_protection_score', 0.0)
+        )
+        return {
+            'cns_objective_score': self._score01(human + ai + protection),
+            'cns_human_contribution': float(human),
+            'cns_ai_contribution': float(ai),
+            'cns_protection_contribution': float(protection),
+        }
+
     def calculate_metrics(self) -> Dict[str, object]:
         hx = np.asarray(self.history['x'], dtype=float)
         hr = np.asarray(self.history['r'], dtype=float)
@@ -2322,6 +2528,33 @@ class CyberDefenseSimulator:
         perceived_utility_series = np.asarray(self.history.get('perceived_utility', []), dtype=float)
         confidence_series = np.asarray(self.history.get('confidence', []), dtype=float)
         frustration_series = np.asarray(self.history.get('frustration', []), dtype=float)
+        ai_uncertainty_cost_series = np.asarray(self.history.get('ai_uncertainty_cost', []), dtype=float)
+        ai_replanning_cost_series = np.asarray(self.history.get('ai_replanning_cost', []), dtype=float)
+        ai_search_cost_series = np.asarray(self.history.get('ai_search_cost', []), dtype=float)
+        ai_operational_risk_cost_series = np.asarray(self.history.get('ai_operational_risk_cost', []), dtype=float)
+        ai_trust_degradation_cost_series = np.asarray(self.history.get('ai_trust_degradation_cost', []), dtype=float)
+        ai_total_decision_cost_series = np.asarray(self.history.get('ai_total_decision_cost', []), dtype=float)
+        ai_weighted_cost = (
+            float(np.mean(ai_total_decision_cost_series))
+            if len(ai_total_decision_cost_series) > 0
+            else float(
+                self.attacker.ai_uncertainty_cost * self.config.ai_uncertainty_weight
+                + self.attacker.ai_replanning_cost * self.config.ai_replanning_weight
+                + self.attacker.ai_search_cost * self.config.ai_search_weight
+                + self.attacker.ai_operational_risk_cost * self.config.ai_operational_risk_weight
+                + self.attacker.ai_trust_degradation_cost * self.config.ai_trust_degradation_weight
+            )
+        )
+        human_frustration_mean = (
+            float(np.mean(frustration_series))
+            if len(frustration_series) > 0
+            else float(self.attacker.mean_frustration)
+        )
+        human_vs_ai_cost_ratio = (
+            float(human_frustration_mean / ai_weighted_cost)
+            if ai_weighted_cost > 0.0
+            else None
+        )
         initial_belief = self.config.attacker_belief.astype(float)
         final_belief = np.asarray(self.attacker.current_belief, dtype=float)
         defender_belief_error = self.defender_estimated_belief - final_belief
@@ -2435,6 +2668,17 @@ class CyberDefenseSimulator:
             static_critical_paths=static_critical_paths,
             critical_paths=critical_paths,
         )
+        cognitive_scores = self._calculate_cognitive_scores(
+            neutralization_scores=neutralization_scores,
+            perceived_utility_final=float(self.attacker.perceived_utility),
+            confidence_final=float(self.attacker.confidence),
+            frustration_final=float(self.attacker.frustration),
+            ai_weighted_cost=ai_weighted_cost,
+        )
+        cns_objective_scores = self._calculate_cns_objective_scores(
+            neutralization_scores=neutralization_scores,
+            cognitive_scores=cognitive_scores,
+        )
 
         return {
             'steps': int(len(hx)),
@@ -2474,7 +2718,7 @@ class CyberDefenseSimulator:
             'perceived_uncertainty_decay': float(self.config.perceived_uncertainty_decay),
             'frustration_enabled': bool(self.config.frustration_enabled),
             'frustration_final': float(self.attacker.frustration),
-            'frustration_mean': float(np.mean(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.mean_frustration),
+            'frustration_mean': human_frustration_mean,
             'frustration_max': float(np.max(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.max_frustration),
             'frustration_retreats': int(self.attacker.frustration_retreats),
             'frustration_decoy_hit': float(self.config.frustration_decoy_hit),
@@ -2485,11 +2729,34 @@ class CyberDefenseSimulator:
             'frustration_decay': float(self.config.frustration_decay),
             'frustration_retreat_threshold': float(self.config.frustration_retreat_threshold),
             'human_frustration_final': float(self.attacker.frustration),
-            'human_frustration_mean': float(np.mean(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.mean_frustration),
+            'human_frustration_mean': human_frustration_mean,
             'human_frustration_max': float(np.max(frustration_series)) if len(frustration_series) > 0 else float(self.attacker.max_frustration),
-            'ai_planning_cost_proxy': 0.0,
-            'ai_uncertainty_cost_proxy': 0.0,
-            'ai_search_cost_proxy': 0.0,
+            'ai_uncertainty_cost': float(np.mean(ai_uncertainty_cost_series)) if len(ai_uncertainty_cost_series) > 0 else float(self.attacker.ai_uncertainty_cost),
+            'ai_replanning_cost': float(np.mean(ai_replanning_cost_series)) if len(ai_replanning_cost_series) > 0 else float(self.attacker.ai_replanning_cost),
+            'ai_search_cost': float(np.mean(ai_search_cost_series)) if len(ai_search_cost_series) > 0 else float(self.attacker.ai_search_cost),
+            'ai_operational_risk_cost': float(np.mean(ai_operational_risk_cost_series)) if len(ai_operational_risk_cost_series) > 0 else float(self.attacker.ai_operational_risk_cost),
+            'ai_trust_degradation_cost': float(np.mean(ai_trust_degradation_cost_series)) if len(ai_trust_degradation_cost_series) > 0 else float(self.attacker.ai_trust_degradation_cost),
+            'ai_total_decision_cost': ai_weighted_cost,
+            'ai_weighted_cost': ai_weighted_cost,
+            'human_vs_ai_cost_ratio': human_vs_ai_cost_ratio,
+            'ai_uncertainty_weight': float(self.config.ai_uncertainty_weight),
+            'ai_replanning_weight': float(self.config.ai_replanning_weight),
+            'ai_search_weight': float(self.config.ai_search_weight),
+            'ai_operational_risk_weight': float(self.config.ai_operational_risk_weight),
+            'ai_trust_degradation_weight': float(self.config.ai_trust_degradation_weight),
+            'cognitive_score_enabled': bool(self.config.cognitive_score_enabled),
+            'cognitive_weight_critical_protection': float(self.config.cognitive_weight_critical_protection),
+            'cognitive_weight_perceived_utility': float(self.config.cognitive_weight_perceived_utility),
+            'cognitive_weight_confidence': float(self.config.cognitive_weight_confidence),
+            'cognitive_weight_human_frustration': float(self.config.cognitive_weight_human_frustration),
+            'cognitive_weight_ai_cost': float(self.config.cognitive_weight_ai_cost),
+            'cognitive_weight_retreat': float(self.config.cognitive_weight_retreat),
+            **cognitive_scores,
+            'cns_objective_enabled': bool(self.config.cns_objective_enabled),
+            'cns_weight_human': float(self.config.cns_weight_human),
+            'cns_weight_ai': float(self.config.cns_weight_ai),
+            'cns_weight_protection': float(self.config.cns_weight_protection),
+            **cns_objective_scores,
             'attacker_total_cost': float(self.attacker.total_cost),
             'attacker_compromised_value': float(self.attacker.compromised_value),
             'attacker_no_success_steps': int(self.attacker.no_success_steps),
@@ -2754,6 +3021,12 @@ class CyberDefenseSimulator:
                 perceived_utility=np.asarray(self.history['perceived_utility'], dtype=float),
                 confidence=np.asarray(self.history['confidence'], dtype=float),
                 frustration=np.asarray(self.history['frustration'], dtype=float),
+                ai_uncertainty_cost=np.asarray(self.history['ai_uncertainty_cost'], dtype=float),
+                ai_replanning_cost=np.asarray(self.history['ai_replanning_cost'], dtype=float),
+                ai_search_cost=np.asarray(self.history['ai_search_cost'], dtype=float),
+                ai_operational_risk_cost=np.asarray(self.history['ai_operational_risk_cost'], dtype=float),
+                ai_trust_degradation_cost=np.asarray(self.history['ai_trust_degradation_cost'], dtype=float),
+                ai_total_decision_cost=np.asarray(self.history['ai_total_decision_cost'], dtype=float),
                 attacker_retreated=np.asarray(self.history['attacker_retreated'], dtype=bool),
                 attacker_detected=np.asarray(self.history['attacker_detected'], dtype=bool),
                 attacker_success=np.asarray(self.history['attacker_success'], dtype=bool),
