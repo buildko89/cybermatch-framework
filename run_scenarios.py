@@ -1669,6 +1669,83 @@ SCENARIOS.update(
     }
 )
 
+SCENARIOS.update(
+    {
+        "phase3_adaptive_reference": {
+            **SCENARIOS["phase2_frustration_reference"],
+        },
+        "phase3_adaptive_frustration_decoy": {
+            **SCENARIOS["phase2_frustration_decoy"],
+        },
+        "phase3_adaptive_ai_balanced": {
+            **SCENARIOS["phase2_ai_balanced"],
+        },
+        "phase3_adaptive_gated_count2": {
+            **SCENARIOS["gated_edge_pressure_count_2"],
+            "perceived_utility_enabled": True,
+            "retreat_based_on": "frustration",
+            "attacker_retreat_threshold": -999.0,
+            "attacker_patience": 50,
+            "frustration_enabled": True,
+            "frustration_retreat_threshold": 8.0,
+        },
+        "phase3_preference_reference": {
+            **SCENARIOS["phase2_frustration_reference"],
+        },
+        "phase3_preference_frustration_decoy": {
+            **SCENARIOS["phase2_frustration_decoy"],
+        },
+        "phase3_preference_ai_balanced": {
+            **SCENARIOS["phase2_ai_balanced"],
+        },
+        "phase3_preference_gated_count2": {
+            **SCENARIOS["gated_edge_pressure_count_2"],
+            "perceived_utility_enabled": True,
+            "retreat_based_on": "frustration",
+            "attacker_retreat_threshold": -999.0,
+            "attacker_patience": 50,
+            "frustration_enabled": True,
+            "frustration_retreat_threshold": 8.0,
+        },
+        "phase3_path_reference": {
+            **SCENARIOS["phase2_frustration_reference"],
+        },
+        "phase3_path_frustration_decoy": {
+            **SCENARIOS["phase2_frustration_decoy"],
+        },
+        "phase3_path_ai_balanced": {
+            **SCENARIOS["phase2_ai_balanced"],
+        },
+        "phase3_path_gated_count2": {
+            **SCENARIOS["gated_edge_pressure_count_2"],
+            "perceived_utility_enabled": True,
+            "retreat_based_on": "frustration",
+            "attacker_retreat_threshold": -999.0,
+            "attacker_patience": 50,
+            "frustration_enabled": True,
+            "frustration_retreat_threshold": 8.0,
+        },
+        "phase3_planning_reference": {
+            **SCENARIOS["phase2_frustration_reference"],
+        },
+        "phase3_planning_frustration_decoy": {
+            **SCENARIOS["phase2_frustration_decoy"],
+        },
+        "phase3_planning_ai_balanced": {
+            **SCENARIOS["phase2_ai_balanced"],
+        },
+        "phase3_planning_gated_count2": {
+            **SCENARIOS["gated_edge_pressure_count_2"],
+            "perceived_utility_enabled": True,
+            "retreat_based_on": "frustration",
+            "attacker_retreat_threshold": -999.0,
+            "attacker_patience": 50,
+            "frustration_enabled": True,
+            "frustration_retreat_threshold": 8.0,
+        },
+    }
+)
+
 SUMMARY_COLUMNS = [
     "scenario",
     "steps",
@@ -1792,6 +1869,29 @@ SUMMARY_COLUMNS = [
     "mean_attack_detection_prob",
     "mean_target_defense_strength",
     "attacker_belief_learning_enabled",
+    "adaptive_attacker_enabled",
+    "adaptive_memory_success_mean",
+    "adaptive_memory_decoy_mean",
+    "adaptive_memory_detection_mean",
+    "adaptive_preference_enabled",
+    "preference_mean",
+    "preference_max",
+    "preferred_node_id",
+    "preferred_node_score",
+    "preferred_node_on_critical_path",
+    "adaptive_path_enabled",
+    "path_preference_mean",
+    "path_preference_max",
+    "preferred_path",
+    "preferred_path_score",
+    "preferred_path_is_critical",
+    "adaptive_planning_enabled",
+    "planning_depth",
+    "planning_score_mean",
+    "planning_score_max",
+    "planned_path",
+    "planned_path_score",
+    "planned_path_is_critical",
     "attacker_belief_change_l1",
     "attacker_belief_change_l2",
     "attacker_belief_decoy_reduction",
@@ -1962,6 +2062,29 @@ MULTI_SEED_RUN_COLUMNS = [
     "credential_stage_none_count",
     "mean_attack_success_prob",
     "mean_attack_detection_prob",
+    "adaptive_attacker_enabled",
+    "adaptive_memory_success_mean",
+    "adaptive_memory_decoy_mean",
+    "adaptive_memory_detection_mean",
+    "adaptive_preference_enabled",
+    "preference_mean",
+    "preference_max",
+    "preferred_node_id",
+    "preferred_node_score",
+    "preferred_node_on_critical_path",
+    "adaptive_path_enabled",
+    "path_preference_mean",
+    "path_preference_max",
+    "preferred_path",
+    "preferred_path_score",
+    "preferred_path_is_critical",
+    "adaptive_planning_enabled",
+    "planning_depth",
+    "planning_score_mean",
+    "planning_score_max",
+    "planned_path",
+    "planned_path_score",
+    "planned_path_is_critical",
     "weighted_cumulative_risk",
     "final_risk_sum",
     "attacker_belief_change_l1",
@@ -2152,6 +2275,11 @@ MULTI_SEED_STATS_COLUMNS = [
     "retreat_based_on",
     "perceived_utility_enabled",
     "frustration_enabled",
+    "adaptive_attacker_enabled",
+    "adaptive_preference_enabled",
+    "adaptive_path_enabled",
+    "adaptive_planning_enabled",
+    "planning_depth",
     "mtd_event_count_mean",
     "mtd_total_cost_mean",
     "mtd_compromised_delta_vs_reference",
@@ -2190,6 +2318,35 @@ MULTI_SEED_STATS_COLUMNS = [
     "credential_stage_none_count_std",
     "mean_attack_success_prob_mean",
     "mean_attack_detection_prob_mean",
+    "adaptive_memory_success_mean",
+    "adaptive_memory_success_std",
+    "adaptive_memory_decoy_mean",
+    "adaptive_memory_decoy_std",
+    "adaptive_memory_detection_mean",
+    "adaptive_memory_detection_std",
+    "preference_mean",
+    "preference_std",
+    "preference_max_mean",
+    "preference_max_std",
+    "preferred_node_score_mean",
+    "preferred_node_score_std",
+    "preferred_node_on_critical_path_rate",
+    "path_preference_mean",
+    "path_preference_std",
+    "path_preference_max_mean",
+    "path_preference_max_std",
+    "preferred_path",
+    "preferred_path_score_mean",
+    "preferred_path_score_std",
+    "preferred_path_is_critical_rate",
+    "planning_score_mean",
+    "planning_score_std",
+    "planning_score_max_mean",
+    "planning_score_max_std",
+    "planned_path",
+    "planned_path_score_mean",
+    "planned_path_score_std",
+    "planned_path_is_critical_rate",
     "weighted_cumulative_risk_mean",
     "weighted_cumulative_risk_std",
     "final_risk_sum_mean",
@@ -3060,6 +3217,11 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "retreat_based_on": rows[0].get("retreat_based_on") if rows else None,
         "perceived_utility_enabled": rows[0].get("perceived_utility_enabled") if rows else None,
         "frustration_enabled": rows[0].get("frustration_enabled") if rows else None,
+        "adaptive_attacker_enabled": rows[0].get("adaptive_attacker_enabled") if rows else None,
+        "adaptive_preference_enabled": rows[0].get("adaptive_preference_enabled") if rows else None,
+        "adaptive_path_enabled": rows[0].get("adaptive_path_enabled") if rows else None,
+        "adaptive_planning_enabled": rows[0].get("adaptive_planning_enabled") if rows else None,
+        "planning_depth": rows[0].get("planning_depth") if rows else None,
         "retreat_rate": float(np.mean(retreated)) if rows else 0.0,
         "retreat_step_mean": _mean_or_none(retreat_steps),
         "retreat_step_std": _std_or_none(retreat_steps),
@@ -3074,6 +3236,21 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "perceived_gain",
         "perceived_cost",
         "mean_confidence",
+        "adaptive_memory_success_mean",
+        "adaptive_memory_decoy_mean",
+        "adaptive_memory_detection_mean",
+        "preference_mean",
+        "preference_max",
+        "preferred_node_score",
+        "preferred_node_on_critical_path",
+        "path_preference_mean",
+        "path_preference_max",
+        "preferred_path_score",
+        "preferred_path_is_critical",
+        "planning_score_mean",
+        "planning_score_max",
+        "planned_path_score",
+        "planned_path_is_critical",
         "frustration_final",
         "frustration_mean",
         "frustration_max",
@@ -3152,6 +3329,47 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
     result["frustration_max_std"] = result.get("frustration_max_std")
     result["ai_total_decision_cost"] = result.get("ai_total_decision_cost_mean")
     result["ai_weighted_cost"] = result.get("ai_weighted_cost_mean")
+    result["adaptive_memory_success_mean"] = result.get("adaptive_memory_success_mean_mean")
+    result["adaptive_memory_success_std"] = result.get("adaptive_memory_success_mean_std")
+    result["adaptive_memory_decoy_mean"] = result.get("adaptive_memory_decoy_mean_mean")
+    result["adaptive_memory_decoy_std"] = result.get("adaptive_memory_decoy_mean_std")
+    result["adaptive_memory_detection_mean"] = result.get("adaptive_memory_detection_mean_mean")
+    result["adaptive_memory_detection_std"] = result.get("adaptive_memory_detection_mean_std")
+    result["preference_mean"] = result.get("preference_mean_mean")
+    result["preference_std"] = result.get("preference_mean_std")
+    result["preference_max_mean"] = result.get("preference_max_mean")
+    result["preference_max_std"] = result.get("preference_max_std")
+    result["preferred_node_score_mean"] = result.get("preferred_node_score_mean")
+    result["preferred_node_score_std"] = result.get("preferred_node_score_std")
+    result["preferred_node_on_critical_path_rate"] = result.get("preferred_node_on_critical_path_mean")
+    result["path_preference_mean"] = result.get("path_preference_mean_mean")
+    result["path_preference_std"] = result.get("path_preference_mean_std")
+    result["path_preference_max_mean"] = result.get("path_preference_max_mean")
+    result["path_preference_max_std"] = result.get("path_preference_max_std")
+    result["preferred_path_score_mean"] = result.get("preferred_path_score_mean")
+    result["preferred_path_score_std"] = result.get("preferred_path_score_std")
+    result["preferred_path_is_critical_rate"] = result.get("preferred_path_is_critical_mean")
+    result["planning_score_mean"] = result.get("planning_score_mean_mean")
+    result["planning_score_std"] = result.get("planning_score_mean_std")
+    result["planning_score_max_mean"] = result.get("planning_score_max_mean")
+    result["planning_score_max_std"] = result.get("planning_score_max_std")
+    result["planned_path_score_mean"] = result.get("planned_path_score_mean")
+    result["planned_path_score_std"] = result.get("planned_path_score_std")
+    result["planned_path_is_critical_rate"] = result.get("planned_path_is_critical_mean")
+    preferred_paths = [
+        str(row.get("preferred_path"))
+        for row in rows
+        if row.get("preferred_path") not in (None, "")
+    ]
+    if preferred_paths:
+        result["preferred_path"] = max(set(preferred_paths), key=preferred_paths.count)
+    planned_paths = [
+        str(row.get("planned_path"))
+        for row in rows
+        if row.get("planned_path") not in (None, "")
+    ]
+    if planned_paths:
+        result["planned_path"] = max(set(planned_paths), key=planned_paths.count)
     result["mtd_risk_gate_score_mean"] = _mean_or_none(
         [_to_float(row.get("mtd_risk_gate_score_mean")) for row in rows]
     )
@@ -4427,6 +4645,1026 @@ def _write_phase2_best_policy_report(
         f"- critical_protection_score: `{_to_float(best_effective.get('critical_protection_score')):.3f}`",
     ]
     with open(os.path.join(output_dir, "best_policy_report.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE3_ADAPTIVE_SCENARIO_NAMES = [
+    "phase3_adaptive_reference",
+    "phase3_adaptive_frustration_decoy",
+    "phase3_adaptive_ai_balanced",
+    "phase3_adaptive_gated_count2",
+]
+
+PHASE3_ADAPTIVE_COLUMNS = [
+    "scenario",
+    "attacker_mode",
+    "num_runs",
+    "policy_effectiveness_score",
+    "cognitive_neutralization_score",
+    "cns_delta_vs_static",
+    "retreat_rate",
+    "retreat_score",
+    "critical_protection_score",
+    "critical_compromise_rate",
+    "post_decoy_compromised_mean",
+    "adaptive_memory_success_mean",
+    "adaptive_memory_decoy_mean",
+    "adaptive_memory_detection_mean",
+]
+
+
+def run_phase3_adaptive_attacker_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase3_adaptive_attacker"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for name in PHASE3_ADAPTIVE_SCENARIO_NAMES:
+        base = SCENARIOS[name]
+        scenarios[f"{name}__static"] = {
+            **base,
+            "adaptive_attacker_enabled": False,
+            "attacker_target_selection": "greedy",
+        }
+        scenarios[f"{name}__adaptive"] = {
+            **base,
+            "adaptive_attacker_enabled": True,
+            "attacker_target_selection": "adaptive",
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+        }
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase3_adaptive_row(row) for row in stats_rows]
+    _add_phase3_cns_deltas(summary_rows)
+    summary_rows.sort(
+        key=lambda row: (str(row.get("scenario")), str(row.get("attacker_mode"))),
+    )
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase3_adaptive_rows(summary_rows)
+    _write_phase3_adaptive_summary(summary_rows, analysis, output_dir)
+    _plot_phase3_adaptive_metric(summary_rows, "retreat_rate", "Adaptive Attacker Retreat Rate", os.path.join(output_dir, "adaptive_retreat_rate.png"))
+    _plot_phase3_adaptive_metric(summary_rows, "cognitive_neutralization_score", "Adaptive Attacker CNS", os.path.join(output_dir, "adaptive_cns.png"))
+    _plot_phase3_adaptive_metric(summary_rows, "policy_effectiveness_score", "Adaptive Policy Effectiveness", os.path.join(output_dir, "adaptive_policy_effectiveness.png"))
+    _write_phase3_adaptive_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase3_adaptive_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    attacker_mode = "adaptive" if scenario_name.endswith("__adaptive") else "static"
+    base_scenario = scenario_name.replace("__static", "").replace("__adaptive", "")
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "scenario": base_scenario,
+        "attacker_mode": attacker_mode,
+        "num_runs": row.get("num_runs"),
+        "policy_effectiveness_score": effectiveness,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_delta_vs_static": 0.0,
+        "retreat_rate": row.get("retreat_rate"),
+        "retreat_score": row.get("retreat_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "post_decoy_compromised_mean": row.get("post_decoy_compromised_mean"),
+        "adaptive_memory_success_mean": row.get("adaptive_memory_success_mean"),
+        "adaptive_memory_decoy_mean": row.get("adaptive_memory_decoy_mean"),
+        "adaptive_memory_detection_mean": row.get("adaptive_memory_detection_mean"),
+    }
+
+
+def _add_phase3_cns_deltas(rows: List[Dict[str, object]]) -> None:
+    static_by_scenario = {
+        str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+        for row in rows
+        if row.get("attacker_mode") == "static"
+    }
+    for row in rows:
+        static_cns = static_by_scenario.get(str(row.get("scenario")), 0.0)
+        row["cns_delta_vs_static"] = _to_float(row.get("cognitive_neutralization_score")) - static_cns
+
+
+def _analyze_phase3_adaptive_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    adaptive_rows = [row for row in rows if row.get("attacker_mode") == "adaptive"]
+    static_rows = [row for row in rows if row.get("attacker_mode") == "static"]
+    mean_static_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in static_rows])) if static_rows else 0.0
+    mean_adaptive_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in adaptive_rows])) if adaptive_rows else 0.0
+    best_adaptive = max(adaptive_rows, key=lambda row: _to_float(row.get("policy_effectiveness_score"))) if adaptive_rows else {}
+    frustration = next((row for row in adaptive_rows if row.get("scenario") == "phase3_adaptive_frustration_decoy"), {})
+    best_cns = max(adaptive_rows, key=lambda row: _to_float(row.get("cognitive_neutralization_score"))) if adaptive_rows else {}
+    return {
+        "mean_static_cns": mean_static_cns,
+        "mean_adaptive_cns": mean_adaptive_cns,
+        "mean_cns_delta_adaptive_vs_static": mean_adaptive_cns - mean_static_cns,
+        "adaptive_retreat_occurs": any(_to_float(row.get("retreat_rate")) > 0.0 for row in adaptive_rows),
+        "max_adaptive_retreat_rate": max([_to_float(row.get("retreat_rate")) for row in adaptive_rows], default=0.0),
+        "best_adaptive_policy": best_adaptive.get("scenario"),
+        "best_adaptive_cns_policy": best_cns.get("scenario"),
+        "phase3_frustration_decoy_is_best": frustration.get("scenario") == best_adaptive.get("scenario"),
+    }
+
+
+def _write_phase3_adaptive_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "adaptive_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE3_ADAPTIVE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "adaptive_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase3_adaptive_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    x = np.arange(len(scenarios))
+    width = 0.38
+    static_values = []
+    adaptive_values = []
+    for scenario in scenarios:
+        static_row = next((row for row in rows if row.get("scenario") == scenario and row.get("attacker_mode") == "static"), {})
+        adaptive_row = next((row for row in rows if row.get("scenario") == scenario and row.get("attacker_mode") == "adaptive"), {})
+        static_values.append(_to_float(static_row.get(key)))
+        adaptive_values.append(_to_float(adaptive_row.get(key)))
+    labels = [scenario.replace("phase3_adaptive_", "") for scenario in scenarios]
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.bar(x - width / 2, static_values, width=width, color="#4c78a8", label="Static attacker")
+    ax.bar(x + width / 2, adaptive_values, width=width, color="#f58518", label="Adaptive attacker")
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase3_adaptive_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase3 Adaptive Attacker Report",
+        "",
+        "## Questions",
+        f"1. Adaptive attacker CNS delta vs static: `{_to_float(analysis.get('mean_cns_delta_adaptive_vs_static')):.3f}` (static `{_to_float(analysis.get('mean_static_cns')):.3f}`, adaptive `{_to_float(analysis.get('mean_adaptive_cns')):.3f}`).",
+        f"2. Adaptive attacker retreat occurs: `{analysis.get('adaptive_retreat_occurs')}` (max retreat_rate `{_to_float(analysis.get('max_adaptive_retreat_rate')):.3f}`).",
+        f"3. phase2_frustration_decoy lineage is still strongest: `{analysis.get('phase3_frustration_decoy_is_best')}`.",
+        f"4. Strongest adaptive policy: `{analysis.get('best_adaptive_policy')}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | CNS | retreat_rate | effectiveness | success_mem | decoy_mem | detection_mem |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('attacker_mode')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} | "
+            f"{_to_float(row.get('policy_effectiveness_score')):.3f} | "
+            f"{_to_float(row.get('adaptive_memory_success_mean')):.3f} | "
+            f"{_to_float(row.get('adaptive_memory_decoy_mean')):.3f} | "
+            f"{_to_float(row.get('adaptive_memory_detection_mean')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE3_ADAPTIVE_ATTACKER_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE3_PREFERENCE_SCENARIO_NAMES = [
+    "phase3_preference_reference",
+    "phase3_preference_frustration_decoy",
+    "phase3_preference_ai_balanced",
+    "phase3_preference_gated_count2",
+]
+
+PHASE3_PREFERENCE_COLUMNS = [
+    "scenario",
+    "attacker_mode",
+    "num_runs",
+    "policy_effectiveness_score",
+    "cognitive_neutralization_score",
+    "cns_delta_vs_static",
+    "cns_delta_vs_memory",
+    "retreat_rate",
+    "retreat_score",
+    "critical_protection_score",
+    "critical_compromise_rate",
+    "post_decoy_compromised_mean",
+    "adaptive_memory_success_mean",
+    "adaptive_memory_decoy_mean",
+    "adaptive_memory_detection_mean",
+    "preference_mean",
+    "preference_max",
+    "preferred_node_score",
+    "preferred_node_on_critical_path_rate",
+]
+
+
+def run_phase3_preference_attacker_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase3_preference_attacker"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for name in PHASE3_PREFERENCE_SCENARIO_NAMES:
+        base = SCENARIOS[name]
+        scenarios[f"{name}__static"] = {
+            **base,
+            "adaptive_attacker_enabled": False,
+            "adaptive_preference_enabled": False,
+            "attacker_target_selection": "greedy",
+        }
+        scenarios[f"{name}__memory"] = {
+            **base,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": False,
+            "attacker_target_selection": "adaptive",
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+        }
+        scenarios[f"{name}__preference"] = {
+            **base,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "attacker_target_selection": "adaptive",
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+            "adaptive_preference_weight": 2.0,
+            "adaptive_success_reward": 1.0,
+            "adaptive_critical_reward": 3.0,
+            "adaptive_decoy_penalty": 2.0,
+            "adaptive_detection_penalty": 1.5,
+        }
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase3_preference_row(row) for row in stats_rows]
+    _add_phase3_preference_deltas(summary_rows)
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("attacker_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase3_preference_rows(summary_rows)
+    _write_phase3_preference_summary(summary_rows, analysis, output_dir)
+    _plot_phase3_preference_metric(summary_rows, "cognitive_neutralization_score", "Preference Attacker CNS", os.path.join(output_dir, "preference_cns.png"))
+    _plot_phase3_preference_metric(summary_rows, "retreat_rate", "Preference Attacker Retreat Rate", os.path.join(output_dir, "preference_retreat_rate.png"))
+    _plot_phase3_preference_metric(summary_rows, "preferred_node_on_critical_path_rate", "Preference Critical Path Bias", os.path.join(output_dir, "preference_path_bias.png"))
+    _write_phase3_preference_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase3_preference_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    if scenario_name.endswith("__preference"):
+        attacker_mode = "adaptive_preference"
+    elif scenario_name.endswith("__memory"):
+        attacker_mode = "adaptive_memory"
+    else:
+        attacker_mode = "static"
+    base_scenario = (
+        scenario_name
+        .replace("__static", "")
+        .replace("__memory", "")
+        .replace("__preference", "")
+    )
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "scenario": base_scenario,
+        "attacker_mode": attacker_mode,
+        "num_runs": row.get("num_runs"),
+        "policy_effectiveness_score": effectiveness,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_delta_vs_static": 0.0,
+        "cns_delta_vs_memory": 0.0,
+        "retreat_rate": row.get("retreat_rate"),
+        "retreat_score": row.get("retreat_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "post_decoy_compromised_mean": row.get("post_decoy_compromised_mean"),
+        "adaptive_memory_success_mean": row.get("adaptive_memory_success_mean"),
+        "adaptive_memory_decoy_mean": row.get("adaptive_memory_decoy_mean"),
+        "adaptive_memory_detection_mean": row.get("adaptive_memory_detection_mean"),
+        "preference_mean": row.get("preference_mean"),
+        "preference_max": row.get("preference_max_mean"),
+        "preferred_node_score": row.get("preferred_node_score_mean"),
+        "preferred_node_on_critical_path_rate": row.get("preferred_node_on_critical_path_rate"),
+    }
+
+
+def _add_phase3_preference_deltas(rows: List[Dict[str, object]]) -> None:
+    static_by_scenario = {
+        str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+        for row in rows
+        if row.get("attacker_mode") == "static"
+    }
+    memory_by_scenario = {
+        str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+        for row in rows
+        if row.get("attacker_mode") == "adaptive_memory"
+    }
+    for row in rows:
+        scenario = str(row.get("scenario"))
+        row["cns_delta_vs_static"] = _to_float(row.get("cognitive_neutralization_score")) - static_by_scenario.get(scenario, 0.0)
+        row["cns_delta_vs_memory"] = _to_float(row.get("cognitive_neutralization_score")) - memory_by_scenario.get(scenario, 0.0)
+
+
+def _analyze_phase3_preference_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    preference_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_preference"]
+    memory_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_memory"]
+    static_rows = [row for row in rows if row.get("attacker_mode") == "static"]
+    mean_static_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in static_rows])) if static_rows else 0.0
+    mean_memory_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in memory_rows])) if memory_rows else 0.0
+    mean_preference_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in preference_rows])) if preference_rows else 0.0
+    best_preference = max(preference_rows, key=lambda row: _to_float(row.get("policy_effectiveness_score"))) if preference_rows else {}
+    frustration = next((row for row in preference_rows if row.get("scenario") == "phase3_preference_frustration_decoy"), {})
+    preference_max_values = [_to_float(row.get("preference_max")) for row in preference_rows]
+    critical_path_rates = [_to_float(row.get("preferred_node_on_critical_path_rate")) for row in preference_rows]
+    return {
+        "mean_static_cns": mean_static_cns,
+        "mean_memory_cns": mean_memory_cns,
+        "mean_preference_cns": mean_preference_cns,
+        "mean_cns_delta_preference_vs_static": mean_preference_cns - mean_static_cns,
+        "mean_cns_delta_preference_vs_memory": mean_preference_cns - mean_memory_cns,
+        "preference_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in preference_rows])) if preference_rows else 0.0,
+        "memory_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in memory_rows])) if memory_rows else 0.0,
+        "phase3_frustration_decoy_is_best": frustration.get("scenario") == best_preference.get("scenario"),
+        "best_preference_policy": best_preference.get("scenario"),
+        "preferred_path_formed": any(value > 0.0 for value in preference_max_values),
+        "preferred_node_critical_path_rate_mean": float(np.mean(critical_path_rates)) if critical_path_rates else 0.0,
+    }
+
+
+def _write_phase3_preference_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "preference_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE3_PREFERENCE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "preference_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase3_preference_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["static", "adaptive_memory", "adaptive_preference"]
+    colors = {"static": "#4c78a8", "adaptive_memory": "#f58518", "adaptive_preference": "#59a14f"}
+    x = np.arange(len(scenarios))
+    width = 0.25
+    fig, ax = plt.subplots(figsize=(13, 6))
+    for offset, mode in zip([-width, 0.0, width], modes):
+        values = []
+        for scenario in scenarios:
+            row = next((candidate for candidate in rows if candidate.get("scenario") == scenario and candidate.get("attacker_mode") == mode), {})
+            values.append(_to_float(row.get(key)))
+        ax.bar(x + offset, values, width=width, color=colors[mode], label=mode)
+    labels = [scenario.replace("phase3_preference_", "") for scenario in scenarios]
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase3_preference_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase3 Preference Attacker Report",
+        "",
+        "## Questions",
+        f"1. Success reinforcement CNS delta vs memory attacker: `{_to_float(analysis.get('mean_cns_delta_preference_vs_memory')):.3f}` (memory `{_to_float(analysis.get('mean_memory_cns')):.3f}`, preference `{_to_float(analysis.get('mean_preference_cns')):.3f}`).",
+        f"2. retreat_rate maintained: `{_to_float(analysis.get('preference_retreat_rate_mean')):.3f}` vs memory `{_to_float(analysis.get('memory_retreat_rate_mean')):.3f}`.",
+        f"3. phase2_frustration_decoy lineage is still strongest: `{analysis.get('phase3_frustration_decoy_is_best')}`.",
+        f"4. Preferred path formed: `{analysis.get('preferred_path_formed')}`.",
+        f"5. Preferred node critical-path concentration: `{_to_float(analysis.get('preferred_node_critical_path_rate_mean')):.3f}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | CNS | retreat_rate | effectiveness | preference_max | preferred_critical_path_rate |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('attacker_mode')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} | "
+            f"{_to_float(row.get('policy_effectiveness_score')):.3f} | "
+            f"{_to_float(row.get('preference_max')):.3f} | "
+            f"{_to_float(row.get('preferred_node_on_critical_path_rate')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE3_PREFERENCE_ATTACKER_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE3_PATH_SCENARIO_NAMES = [
+    "phase3_path_reference",
+    "phase3_path_frustration_decoy",
+    "phase3_path_ai_balanced",
+    "phase3_path_gated_count2",
+]
+
+PHASE3_PATH_COLUMNS = [
+    "scenario",
+    "attacker_mode",
+    "num_runs",
+    "policy_effectiveness_score",
+    "cognitive_neutralization_score",
+    "cns_delta_vs_static",
+    "cns_delta_vs_memory",
+    "cns_delta_vs_preference",
+    "retreat_rate",
+    "retreat_score",
+    "critical_protection_score",
+    "critical_compromise_rate",
+    "post_decoy_compromised_mean",
+    "preference_max",
+    "preferred_node_on_critical_path_rate",
+    "path_preference_mean",
+    "path_preference_max",
+    "preferred_path",
+    "preferred_path_score",
+    "preferred_path_is_critical_rate",
+]
+
+
+def run_phase3_path_attacker_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase3_path_attacker"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for name in PHASE3_PATH_SCENARIO_NAMES:
+        base = SCENARIOS[name]
+        scenarios[f"{name}__static"] = {
+            **base,
+            "adaptive_attacker_enabled": False,
+            "adaptive_preference_enabled": False,
+            "adaptive_path_enabled": False,
+            "attacker_target_selection": "greedy",
+        }
+        scenarios[f"{name}__memory"] = {
+            **base,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": False,
+            "adaptive_path_enabled": False,
+            "attacker_target_selection": "adaptive",
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+        }
+        scenarios[f"{name}__preference"] = {
+            **base,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": False,
+            "attacker_target_selection": "adaptive",
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+            "adaptive_preference_weight": 2.0,
+            "adaptive_success_reward": 1.0,
+            "adaptive_critical_reward": 3.0,
+            "adaptive_decoy_penalty": 2.0,
+            "adaptive_detection_penalty": 1.5,
+        }
+        scenarios[f"{name}__path"] = {
+            **base,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": True,
+            "attacker_target_selection": "adaptive",
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+            "adaptive_preference_weight": 2.0,
+            "adaptive_success_reward": 1.0,
+            "adaptive_critical_reward": 3.0,
+            "adaptive_decoy_penalty": 2.0,
+            "adaptive_detection_penalty": 1.5,
+            "path_preference_weight": 3.0,
+            "path_success_reward": 1.0,
+            "path_critical_reward": 5.0,
+            "path_decoy_penalty": 2.0,
+            "path_detection_penalty": 1.5,
+        }
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase3_path_row(row) for row in stats_rows]
+    _add_phase3_path_deltas(summary_rows)
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("attacker_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase3_path_rows(summary_rows)
+    _write_phase3_path_summary(summary_rows, analysis, output_dir)
+    _plot_phase3_path_metric(summary_rows, "cognitive_neutralization_score", "Path Preference Attacker CNS", os.path.join(output_dir, "path_cns.png"))
+    _plot_phase3_path_metric(summary_rows, "retreat_rate", "Path Preference Attacker Retreat Rate", os.path.join(output_dir, "path_retreat_rate.png"))
+    _plot_phase3_path_metric(summary_rows, "path_preference_max", "Path Preference Strength", os.path.join(output_dir, "path_preference.png"))
+    _write_phase3_path_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase3_path_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    if scenario_name.endswith("__path"):
+        attacker_mode = "adaptive_path_preference"
+    elif scenario_name.endswith("__preference"):
+        attacker_mode = "adaptive_preference"
+    elif scenario_name.endswith("__memory"):
+        attacker_mode = "adaptive_memory"
+    else:
+        attacker_mode = "static"
+    base_scenario = (
+        scenario_name
+        .replace("__static", "")
+        .replace("__memory", "")
+        .replace("__preference", "")
+        .replace("__path", "")
+    )
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "scenario": base_scenario,
+        "attacker_mode": attacker_mode,
+        "num_runs": row.get("num_runs"),
+        "policy_effectiveness_score": effectiveness,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_delta_vs_static": 0.0,
+        "cns_delta_vs_memory": 0.0,
+        "cns_delta_vs_preference": 0.0,
+        "retreat_rate": row.get("retreat_rate"),
+        "retreat_score": row.get("retreat_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "post_decoy_compromised_mean": row.get("post_decoy_compromised_mean"),
+        "preference_max": row.get("preference_max_mean"),
+        "preferred_node_on_critical_path_rate": row.get("preferred_node_on_critical_path_rate"),
+        "path_preference_mean": row.get("path_preference_mean"),
+        "path_preference_max": row.get("path_preference_max_mean"),
+        "preferred_path": row.get("preferred_path"),
+        "preferred_path_score": row.get("preferred_path_score_mean"),
+        "preferred_path_is_critical_rate": row.get("preferred_path_is_critical_rate"),
+    }
+
+
+def _add_phase3_path_deltas(rows: List[Dict[str, object]]) -> None:
+    static_by_scenario = {
+        str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+        for row in rows
+        if row.get("attacker_mode") == "static"
+    }
+    memory_by_scenario = {
+        str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+        for row in rows
+        if row.get("attacker_mode") == "adaptive_memory"
+    }
+    preference_by_scenario = {
+        str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+        for row in rows
+        if row.get("attacker_mode") == "adaptive_preference"
+    }
+    for row in rows:
+        scenario = str(row.get("scenario"))
+        cns = _to_float(row.get("cognitive_neutralization_score"))
+        row["cns_delta_vs_static"] = cns - static_by_scenario.get(scenario, 0.0)
+        row["cns_delta_vs_memory"] = cns - memory_by_scenario.get(scenario, 0.0)
+        row["cns_delta_vs_preference"] = cns - preference_by_scenario.get(scenario, 0.0)
+
+
+def _analyze_phase3_path_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    path_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_path_preference"]
+    preference_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_preference"]
+    memory_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_memory"]
+    mean_path_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in path_rows])) if path_rows else 0.0
+    mean_preference_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in preference_rows])) if preference_rows else 0.0
+    mean_memory_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in memory_rows])) if memory_rows else 0.0
+    best_path = max(path_rows, key=lambda row: _to_float(row.get("policy_effectiveness_score"))) if path_rows else {}
+    frustration = next((row for row in path_rows if row.get("scenario") == "phase3_path_frustration_decoy"), {})
+    path_preference_max_values = [_to_float(row.get("path_preference_max")) for row in path_rows]
+    critical_path_rates = [_to_float(row.get("preferred_path_is_critical_rate")) for row in path_rows]
+    return {
+        "mean_memory_cns": mean_memory_cns,
+        "mean_preference_cns": mean_preference_cns,
+        "mean_path_cns": mean_path_cns,
+        "mean_cns_delta_path_vs_preference": mean_path_cns - mean_preference_cns,
+        "path_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in path_rows])) if path_rows else 0.0,
+        "preference_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in preference_rows])) if preference_rows else 0.0,
+        "phase3_frustration_decoy_is_best": frustration.get("scenario") == best_path.get("scenario"),
+        "best_path_policy": best_path.get("scenario"),
+        "preferred_path_formed": any(value > 0.0 for value in path_preference_max_values),
+        "preferred_path_critical_rate_mean": float(np.mean(critical_path_rates)) if critical_path_rates else 0.0,
+        "path_aware_decoy_effective": (
+            _to_float(frustration.get("critical_compromise_rate")) <= 0.0
+            and _to_float(frustration.get("retreat_rate")) >= 1.0
+        ),
+    }
+
+
+def _write_phase3_path_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "path_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE3_PATH_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "path_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase3_path_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["static", "adaptive_memory", "adaptive_preference", "adaptive_path_preference"]
+    colors = {
+        "static": "#4c78a8",
+        "adaptive_memory": "#f58518",
+        "adaptive_preference": "#59a14f",
+        "adaptive_path_preference": "#e45756",
+    }
+    x = np.arange(len(scenarios))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(14, 6))
+    for idx, mode in enumerate(modes):
+        values = []
+        for scenario in scenarios:
+            row = next((candidate for candidate in rows if candidate.get("scenario") == scenario and candidate.get("attacker_mode") == mode), {})
+            values.append(_to_float(row.get(key)))
+        ax.bar(x + (idx - 1.5) * width, values, width=width, color=colors[mode], label=mode)
+    labels = [scenario.replace("phase3_path_", "") for scenario in scenarios]
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase3_path_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase3 Path Preference Attacker Report",
+        "",
+        "## Questions",
+        f"1. Path learning CNS delta vs node preference attacker: `{_to_float(analysis.get('mean_cns_delta_path_vs_preference')):.3f}` (preference `{_to_float(analysis.get('mean_preference_cns')):.3f}`, path `{_to_float(analysis.get('mean_path_cns')):.3f}`).",
+        f"2. retreat_rate maintained: `{_to_float(analysis.get('path_retreat_rate_mean')):.3f}` vs preference `{_to_float(analysis.get('preference_retreat_rate_mean')):.3f}`.",
+        f"3. phase2_frustration_decoy lineage is still strongest: `{analysis.get('phase3_frustration_decoy_is_best')}`.",
+        f"4. Preferred path formed: `{analysis.get('preferred_path_formed')}`.",
+        f"5. Preferred path critical concentration: `{_to_float(analysis.get('preferred_path_critical_rate_mean')):.3f}`.",
+        f"6. Path-aware decoy effective against path learner: `{analysis.get('path_aware_decoy_effective')}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | CNS | retreat_rate | effectiveness | path_pref_max | preferred_path | path_critical_rate |",
+        "|---|---:|---:|---:|---:|---:|---|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('attacker_mode')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} | "
+            f"{_to_float(row.get('policy_effectiveness_score')):.3f} | "
+            f"{_to_float(row.get('path_preference_max')):.3f} | "
+            f"{row.get('preferred_path') or ''} | "
+            f"{_to_float(row.get('preferred_path_is_critical_rate')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE3_PATH_ATTACKER_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE3_PLANNING_SCENARIO_NAMES = [
+    "phase3_planning_reference",
+    "phase3_planning_frustration_decoy",
+    "phase3_planning_ai_balanced",
+    "phase3_planning_gated_count2",
+]
+
+PHASE3_PLANNING_COLUMNS = [
+    "scenario",
+    "attacker_mode",
+    "num_runs",
+    "policy_effectiveness_score",
+    "cognitive_neutralization_score",
+    "cns_delta_vs_static",
+    "cns_delta_vs_memory",
+    "cns_delta_vs_preference",
+    "cns_delta_vs_path",
+    "retreat_rate",
+    "retreat_score",
+    "critical_protection_score",
+    "critical_compromise_rate",
+    "post_decoy_compromised_mean",
+    "path_preference_max",
+    "planning_depth",
+    "planning_score_mean",
+    "planning_score_max",
+    "planned_path",
+    "planned_path_score",
+    "planned_path_is_critical_rate",
+]
+
+
+def run_phase3_planning_attacker_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase3_planning_attacker"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for name in PHASE3_PLANNING_SCENARIO_NAMES:
+        base = SCENARIOS[name]
+        shared_adaptive = {
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+            "adaptive_preference_weight": 2.0,
+            "adaptive_success_reward": 1.0,
+            "adaptive_critical_reward": 3.0,
+            "adaptive_decoy_penalty": 2.0,
+            "adaptive_detection_penalty": 1.5,
+            "path_preference_weight": 3.0,
+            "path_success_reward": 1.0,
+            "path_critical_reward": 5.0,
+            "path_decoy_penalty": 2.0,
+            "path_detection_penalty": 1.5,
+            "planning_depth": 2,
+            "planning_success_weight": 1.0,
+            "planning_critical_weight": 5.0,
+            "planning_decoy_penalty": 2.0,
+            "planning_detection_penalty": 1.5,
+        }
+        scenarios[f"{name}__static"] = {
+            **base,
+            "adaptive_attacker_enabled": False,
+            "adaptive_preference_enabled": False,
+            "adaptive_path_enabled": False,
+            "adaptive_planning_enabled": False,
+            "attacker_target_selection": "greedy",
+        }
+        scenarios[f"{name}__memory"] = {
+            **base,
+            **shared_adaptive,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": False,
+            "adaptive_path_enabled": False,
+            "adaptive_planning_enabled": False,
+            "attacker_target_selection": "adaptive",
+        }
+        scenarios[f"{name}__preference"] = {
+            **base,
+            **shared_adaptive,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": False,
+            "adaptive_planning_enabled": False,
+            "attacker_target_selection": "adaptive",
+        }
+        scenarios[f"{name}__path"] = {
+            **base,
+            **shared_adaptive,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": True,
+            "adaptive_planning_enabled": False,
+            "attacker_target_selection": "adaptive",
+        }
+        scenarios[f"{name}__planning"] = {
+            **base,
+            **shared_adaptive,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": True,
+            "adaptive_planning_enabled": True,
+            "attacker_target_selection": "adaptive",
+        }
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase3_planning_row(row) for row in stats_rows]
+    _add_phase3_planning_deltas(summary_rows)
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("attacker_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase3_planning_rows(summary_rows)
+    _write_phase3_planning_summary(summary_rows, analysis, output_dir)
+    _plot_phase3_planning_metric(summary_rows, "cognitive_neutralization_score", "Planning Attacker CNS", os.path.join(output_dir, "planning_cns.png"))
+    _plot_phase3_planning_metric(summary_rows, "retreat_rate", "Planning Attacker Retreat Rate", os.path.join(output_dir, "planning_retreat_rate.png"))
+    _plot_phase3_planning_metric(summary_rows, "planned_path_is_critical_rate", "Planning Critical Path Bias", os.path.join(output_dir, "planning_path_bias.png"))
+    _write_phase3_planning_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase3_planning_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    if scenario_name.endswith("__planning"):
+        attacker_mode = "adaptive_planning"
+    elif scenario_name.endswith("__path"):
+        attacker_mode = "adaptive_path_preference"
+    elif scenario_name.endswith("__preference"):
+        attacker_mode = "adaptive_preference"
+    elif scenario_name.endswith("__memory"):
+        attacker_mode = "adaptive_memory"
+    else:
+        attacker_mode = "static"
+    base_scenario = (
+        scenario_name
+        .replace("__static", "")
+        .replace("__memory", "")
+        .replace("__preference", "")
+        .replace("__path", "")
+        .replace("__planning", "")
+    )
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "scenario": base_scenario,
+        "attacker_mode": attacker_mode,
+        "num_runs": row.get("num_runs"),
+        "policy_effectiveness_score": effectiveness,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_delta_vs_static": 0.0,
+        "cns_delta_vs_memory": 0.0,
+        "cns_delta_vs_preference": 0.0,
+        "cns_delta_vs_path": 0.0,
+        "retreat_rate": row.get("retreat_rate"),
+        "retreat_score": row.get("retreat_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "post_decoy_compromised_mean": row.get("post_decoy_compromised_mean"),
+        "path_preference_max": row.get("path_preference_max_mean"),
+        "planning_depth": row.get("planning_depth"),
+        "planning_score_mean": row.get("planning_score_mean"),
+        "planning_score_max": row.get("planning_score_max_mean"),
+        "planned_path": row.get("planned_path"),
+        "planned_path_score": row.get("planned_path_score_mean"),
+        "planned_path_is_critical_rate": row.get("planned_path_is_critical_rate"),
+    }
+
+
+def _add_phase3_planning_deltas(rows: List[Dict[str, object]]) -> None:
+    by_mode: Dict[str, Dict[str, float]] = {}
+    for mode in ["static", "adaptive_memory", "adaptive_preference", "adaptive_path_preference"]:
+        by_mode[mode] = {
+            str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+            for row in rows
+            if row.get("attacker_mode") == mode
+        }
+    for row in rows:
+        scenario = str(row.get("scenario"))
+        cns = _to_float(row.get("cognitive_neutralization_score"))
+        row["cns_delta_vs_static"] = cns - by_mode["static"].get(scenario, 0.0)
+        row["cns_delta_vs_memory"] = cns - by_mode["adaptive_memory"].get(scenario, 0.0)
+        row["cns_delta_vs_preference"] = cns - by_mode["adaptive_preference"].get(scenario, 0.0)
+        row["cns_delta_vs_path"] = cns - by_mode["adaptive_path_preference"].get(scenario, 0.0)
+
+
+def _analyze_phase3_planning_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    planning_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_planning"]
+    path_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_path_preference"]
+    mean_planning_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in planning_rows])) if planning_rows else 0.0
+    mean_path_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in path_rows])) if path_rows else 0.0
+    best_planning = max(planning_rows, key=lambda row: _to_float(row.get("policy_effectiveness_score"))) if planning_rows else {}
+    frustration = next((row for row in planning_rows if row.get("scenario") == "phase3_planning_frustration_decoy"), {})
+    return {
+        "mean_path_cns": mean_path_cns,
+        "mean_planning_cns": mean_planning_cns,
+        "mean_cns_delta_planning_vs_path": mean_planning_cns - mean_path_cns,
+        "mean_cns_reduction_planning_vs_path": mean_path_cns - mean_planning_cns,
+        "planning_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in planning_rows])) if planning_rows else 0.0,
+        "path_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in path_rows])) if path_rows else 0.0,
+        "phase3_frustration_decoy_is_best": frustration.get("scenario") == best_planning.get("scenario"),
+        "best_planning_policy": best_planning.get("scenario"),
+        "planning_critical_path_rate_mean": float(np.mean([_to_float(row.get("planned_path_is_critical_rate")) for row in planning_rows])) if planning_rows else 0.0,
+        "planning_attacker_stronger_than_path_learner": mean_planning_cns < mean_path_cns,
+        "path_aware_decoy_effective": (
+            _to_float(frustration.get("critical_compromise_rate")) <= 0.0
+            and _to_float(frustration.get("retreat_rate")) >= 1.0
+        ),
+    }
+
+
+def _write_phase3_planning_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "planning_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE3_PLANNING_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "planning_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase3_planning_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["static", "adaptive_memory", "adaptive_preference", "adaptive_path_preference", "adaptive_planning"]
+    colors = {
+        "static": "#4c78a8",
+        "adaptive_memory": "#f58518",
+        "adaptive_preference": "#59a14f",
+        "adaptive_path_preference": "#e45756",
+        "adaptive_planning": "#7f3c8d",
+    }
+    x = np.arange(len(scenarios))
+    width = 0.16
+    fig, ax = plt.subplots(figsize=(15, 6))
+    for idx, mode in enumerate(modes):
+        values = []
+        for scenario in scenarios:
+            row = next((candidate for candidate in rows if candidate.get("scenario") == scenario and candidate.get("attacker_mode") == mode), {})
+            values.append(_to_float(row.get(key)))
+        ax.bar(x + (idx - 2.0) * width, values, width=width, color=colors[mode], label=mode)
+    labels = [scenario.replace("phase3_planning_", "") for scenario in scenarios]
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase3_planning_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase3 Planning Attacker Report",
+        "",
+        "## Questions",
+        f"1. Planning attacker CNS reduction vs path learner: `{_to_float(analysis.get('mean_cns_reduction_planning_vs_path')):.3f}` (path `{_to_float(analysis.get('mean_path_cns')):.3f}`, planning `{_to_float(analysis.get('mean_planning_cns')):.3f}`).",
+        f"2. retreat_rate maintained: planning `{_to_float(analysis.get('planning_retreat_rate_mean')):.3f}` vs path `{_to_float(analysis.get('path_retreat_rate_mean')):.3f}`.",
+        f"3. phase2_frustration_decoy lineage is still strongest: `{analysis.get('phase3_frustration_decoy_is_best')}`.",
+        f"4. Planning critical path concentration: `{_to_float(analysis.get('planning_critical_path_rate_mean')):.3f}`.",
+        f"5. Planning attacker stronger than path learner: `{analysis.get('planning_attacker_stronger_than_path_learner')}`.",
+        f"6. Path-aware decoy effective against planning attacker: `{analysis.get('path_aware_decoy_effective')}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | CNS | retreat_rate | effectiveness | planning_score_max | planned_path | planned_critical_rate |",
+        "|---|---:|---:|---:|---:|---:|---|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('attacker_mode')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} | "
+            f"{_to_float(row.get('policy_effectiveness_score')):.3f} | "
+            f"{_to_float(row.get('planning_score_max')):.3f} | "
+            f"{row.get('planned_path') or ''} | "
+            f"{_to_float(row.get('planned_path_is_critical_rate')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE3_PLANNING_ATTACKER_REPORT.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 
@@ -5785,3 +7023,11 @@ if __name__ == "__main__":
         print(f"Completed Phase2.5 CNS-driven policy selection for {len(policy_rows)} policies. Summary written to output/phase2_policy_selection.")
         objective_rows = run_phase2_cns_objective_evaluation(seeds=MULTI_SEED_VALUES)
         print(f"Completed Phase2.6 CNS objective evaluation for {len(objective_rows)} policies. Summary written to output/phase2_cns_objective.")
+        adaptive_rows = run_phase3_adaptive_attacker_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase3.1 adaptive attacker evaluation for {len(adaptive_rows)} rows. Summary written to output/phase3_adaptive_attacker.")
+        preference_rows = run_phase3_preference_attacker_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase3.2 preference attacker evaluation for {len(preference_rows)} rows. Summary written to output/phase3_preference_attacker.")
+        path_rows = run_phase3_path_attacker_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase3.3 path preference attacker evaluation for {len(path_rows)} rows. Summary written to output/phase3_path_attacker.")
+        planning_rows = run_phase3_planning_attacker_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase3.4 planning attacker evaluation for {len(planning_rows)} rows. Summary written to output/phase3_planning_attacker.")

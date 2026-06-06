@@ -5,7 +5,7 @@ CyberMatch is a cyber-defense evaluation framework for both:
 - Defense Neutralization
 - Decision Neutralization
 
-It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost.
+It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost. Phase3 validates Decision Neutralization against adaptive attackers.
 
 ## Quick Start
 
@@ -60,6 +60,28 @@ Run:
 python scripts/run_phase2.py
 ```
 
+### Phase3 - Adaptive Attacker Validation
+
+Goal:
+Evaluate whether Decision Neutralization remains effective against adaptive attackers.
+
+Implemented attacker models:
+
+- Memory attacker
+- Node preference attacker
+- Path preference attacker
+- Path planning attacker
+
+Current finding:
+
+- Decision Neutralization remains effective under all evaluated adaptive attacker models.
+
+Run:
+
+```bash
+python scripts/run_phase3.py
+```
+
 ### All Evaluations
 
 Run:
@@ -90,6 +112,14 @@ Main Phase2 policy finding:
 
 - `phase2_frustration_decoy`
 
+### Phase3 Summary
+
+Phase3-A introduces Adaptive Attacker Validation. It evaluates memory, node preference, path preference, and path planning attackers without introducing RL/DQN/PPO.
+
+Main Phase3-A finding:
+
+- Decision Neutralization remains stable through Memory -> Preference -> Path Preference -> Planning.
+
 ### Recommended Policies
 
 - Defense Neutralization: `gated_edge_pressure_count_2`
@@ -109,6 +139,11 @@ Phase2:
 - [Phase2 final report](docs/CYBERMATCH_PHASE2_FINAL_REPORT.md)
 - [Phase2 artifacts](docs/PHASE2_ARTIFACTS.md)
 
+Phase3-A:
+
+- [Phase3-A final report](docs/CYBERMATCH_PHASE3A_FINAL_REPORT.md)
+- [Phase3-A artifacts](docs/PHASE3A_ARTIFACTS.md)
+
 Release and reproducibility:
 
 - [GitHub release notes](docs/GITHUB_RELEASE_NOTES.md)
@@ -127,6 +162,7 @@ cybermatch-framework/
   scripts/
     run_phase1.py
     run_phase2.py
+    run_phase3.py
     run_all.py
   tests/
   docs/

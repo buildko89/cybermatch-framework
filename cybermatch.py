@@ -5,7 +5,7 @@ import logging
 import json
 import os
 from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 # ロギング設定
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -132,6 +132,28 @@ class SimulationConfig:
     attacker_belief_decoy_decay: float = 0.1
     attacker_belief_min: float = 0.0
     attacker_belief_max: float = 20.0
+    adaptive_attacker_enabled: bool = False
+    adaptive_success_weight: float = 1.0
+    adaptive_decoy_weight: float = 2.0
+    adaptive_detection_weight: float = 1.5
+    adaptive_preference_enabled: bool = False
+    adaptive_preference_weight: float = 2.0
+    adaptive_success_reward: float = 1.0
+    adaptive_critical_reward: float = 3.0
+    adaptive_decoy_penalty: float = 2.0
+    adaptive_detection_penalty: float = 1.5
+    adaptive_path_enabled: bool = False
+    path_preference_weight: float = 3.0
+    path_success_reward: float = 1.0
+    path_critical_reward: float = 5.0
+    path_decoy_penalty: float = 2.0
+    path_detection_penalty: float = 1.5
+    adaptive_planning_enabled: bool = False
+    planning_depth: int = 2
+    planning_success_weight: float = 1.0
+    planning_critical_weight: float = 5.0
+    planning_decoy_penalty: float = 2.0
+    planning_detection_penalty: float = 1.5
     attacker_lateral_enabled: bool = False
     attacker_lateral_success_prob: float = 0.8
     attacker_lateral_detection_prob: float = 0.2
@@ -328,6 +350,42 @@ class SimulationConfig:
             errors.append("attacker_belief_min must be >= 0")
         if self.attacker_belief_max < self.attacker_belief_min:
             errors.append("attacker_belief_max must be >= attacker_belief_min")
+        if self.adaptive_success_weight < 0:
+            errors.append("adaptive_success_weight must be >= 0")
+        if self.adaptive_decoy_weight < 0:
+            errors.append("adaptive_decoy_weight must be >= 0")
+        if self.adaptive_detection_weight < 0:
+            errors.append("adaptive_detection_weight must be >= 0")
+        if self.adaptive_preference_weight < 0:
+            errors.append("adaptive_preference_weight must be >= 0")
+        if self.adaptive_success_reward < 0:
+            errors.append("adaptive_success_reward must be >= 0")
+        if self.adaptive_critical_reward < 0:
+            errors.append("adaptive_critical_reward must be >= 0")
+        if self.adaptive_decoy_penalty < 0:
+            errors.append("adaptive_decoy_penalty must be >= 0")
+        if self.adaptive_detection_penalty < 0:
+            errors.append("adaptive_detection_penalty must be >= 0")
+        if self.path_preference_weight < 0:
+            errors.append("path_preference_weight must be >= 0")
+        if self.path_success_reward < 0:
+            errors.append("path_success_reward must be >= 0")
+        if self.path_critical_reward < 0:
+            errors.append("path_critical_reward must be >= 0")
+        if self.path_decoy_penalty < 0:
+            errors.append("path_decoy_penalty must be >= 0")
+        if self.path_detection_penalty < 0:
+            errors.append("path_detection_penalty must be >= 0")
+        if self.planning_depth < 0:
+            errors.append("planning_depth must be >= 0")
+        if self.planning_success_weight < 0:
+            errors.append("planning_success_weight must be >= 0")
+        if self.planning_critical_weight < 0:
+            errors.append("planning_critical_weight must be >= 0")
+        if self.planning_decoy_penalty < 0:
+            errors.append("planning_decoy_penalty must be >= 0")
+        if self.planning_detection_penalty < 0:
+            errors.append("planning_detection_penalty must be >= 0")
         if not 0 <= self.attacker_lateral_success_prob <= 1:
             errors.append("attacker_lateral_success_prob must be between 0 and 1")
         if not 0 <= self.attacker_lateral_detection_prob <= 1:
@@ -590,11 +648,35 @@ class AttackerModel:
     belief_decoy_decay: float = 0.1
     belief_min: float = 0.0
     belief_max: float = 20.0
+    adaptive_attacker_enabled: bool = False
+    adaptive_success_weight: float = 1.0
+    adaptive_decoy_weight: float = 2.0
+    adaptive_detection_weight: float = 1.5
+    adaptive_preference_enabled: bool = False
+    adaptive_preference_weight: float = 2.0
+    adaptive_success_reward: float = 1.0
+    adaptive_critical_reward: float = 3.0
+    adaptive_decoy_penalty: float = 2.0
+    adaptive_detection_penalty: float = 1.5
+    adaptive_path_enabled: bool = False
+    path_preference_weight: float = 3.0
+    path_success_reward: float = 1.0
+    path_critical_reward: float = 5.0
+    path_decoy_penalty: float = 2.0
+    path_detection_penalty: float = 1.5
+    adaptive_planning_enabled: bool = False
+    planning_depth: int = 2
+    planning_success_weight: float = 1.0
+    planning_critical_weight: float = 5.0
+    planning_decoy_penalty: float = 2.0
+    planning_detection_penalty: float = 1.5
     lateral_enabled: bool = False
     lateral_success_prob: float = 0.8
     lateral_detection_prob: float = 0.2
     adjacency_matrix: Optional[np.ndarray] = None
     entry_nodes: Optional[List[int]] = None
+    node_type: Optional[List[str]] = None
+    critical_nodes: Optional[List[int]] = None
 
     # 撤退条件
     retreat_threshold: float = -2.0
@@ -624,6 +706,18 @@ class AttackerModel:
     current_node: int = 0
     visited_nodes: Optional[set] = None
     compromised_nodes: Optional[set] = None
+    node_success_memory: Optional[Dict[int, float]] = None
+    node_decoy_memory: Optional[Dict[int, float]] = None
+    node_detection_memory: Optional[Dict[int, float]] = None
+    node_preference_score: Optional[Dict[int, float]] = None
+    path_success_memory: Optional[Dict[str, float]] = None
+    path_decoy_memory: Optional[Dict[str, float]] = None
+    path_detection_memory: Optional[Dict[str, float]] = None
+    path_preference_score: Optional[Dict[str, float]] = None
+    current_attack_path: Optional[List[int]] = None
+    last_planning_score: Optional[np.ndarray] = None
+    last_planned_path: Optional[List[int]] = None
+    last_planned_path_score: float = 0.0
 
     def __post_init__(self):
         if self.attacker_belief is None:
@@ -640,6 +734,19 @@ class AttackerModel:
         self.compromised_nodes = {int(self.current_node)}
         if self.adjacency_matrix is not None:
             self.adjacency_matrix = np.asarray(self.adjacency_matrix, dtype=int)
+        n_nodes = int(len(self.current_belief)) if self.current_belief is not None else 0
+        self.node_success_memory = {node_id: 0.0 for node_id in range(n_nodes)}
+        self.node_decoy_memory = {node_id: 0.0 for node_id in range(n_nodes)}
+        self.node_detection_memory = {node_id: 0.0 for node_id in range(n_nodes)}
+        self.node_preference_score = {node_id: 0.0 for node_id in range(n_nodes)}
+        self.path_success_memory = {}
+        self.path_decoy_memory = {}
+        self.path_detection_memory = {}
+        self.path_preference_score = {}
+        self.current_attack_path = [int(self.current_node)]
+        self.last_planning_score = np.zeros(n_nodes, dtype=float)
+        self.last_planned_path = []
+        self.last_planned_path_score = 0.0
 
     @property
     def utility(self) -> float:
@@ -675,7 +782,7 @@ class AttackerModel:
             candidates = self.reachable_nodes(len(x_current))
             target_idx = int(np.random.choice(candidates))
         elif self.target_selection == "adaptive":
-            score = self._reachable_score(self.calculate_greedy_score(x_current, M_current))
+            score = self._reachable_score(self.calculate_adaptive_score(x_current, M_current))
             target_idx = int(np.argmax(score))
         else:
             raise ValueError(f"Unsupported target_selection: {self.target_selection}")
@@ -710,6 +817,10 @@ class AttackerModel:
         if success:
             self.current_node = int(target_idx)
             self.compromised_nodes.add(int(target_idx))
+            if self.current_attack_path is None:
+                self.current_attack_path = [int(target_idx)]
+            elif not self.current_attack_path or self.current_attack_path[-1] != int(target_idx):
+                self.current_attack_path.append(int(target_idx))
         self.visited_nodes.add(int(target_idx))
 
     def calculate_greedy_score(self, x_current: np.ndarray, M_current: np.ndarray) -> np.ndarray:
@@ -733,6 +844,232 @@ class AttackerModel:
             )
             return expected_gain - expected_cost
         raise ValueError(f"Unsupported greedy_mode: {self.greedy_mode}")
+
+    def calculate_adaptive_score(self, x_current: np.ndarray, M_current: np.ndarray) -> np.ndarray:
+        score = self.calculate_greedy_score(x_current, M_current)
+        if not self.adaptive_attacker_enabled:
+            return score
+        n_nodes = len(score)
+        success_memory = self._memory_array(self.node_success_memory, n_nodes)
+        decoy_memory = self._memory_array(self.node_decoy_memory, n_nodes)
+        detection_memory = self._memory_array(self.node_detection_memory, n_nodes)
+        preference_score = self._memory_array(self.node_preference_score, n_nodes)
+        preference_weight = self.adaptive_preference_weight if self.adaptive_preference_enabled else 0.0
+        path_score = self._path_candidate_score(n_nodes)
+        path_weight = self.path_preference_weight if self.adaptive_path_enabled else 0.0
+        planning_score = self._planning_candidate_score(x_current, M_current)
+        return (
+            score
+            + self.adaptive_success_weight * success_memory
+            + preference_weight * preference_score
+            + path_weight * path_score
+            + planning_score
+            - self.adaptive_decoy_weight * decoy_memory
+            - self.adaptive_detection_weight * detection_memory
+        )
+
+    def _memory_array(self, memory: Optional[Dict[int, float]], n_nodes: int) -> np.ndarray:
+        if memory is None:
+            return np.zeros(n_nodes, dtype=float)
+        return np.array([float(memory.get(node_id, 0.0)) for node_id in range(n_nodes)], dtype=float)
+
+    def memory_vector(self, memory_name: str, n_nodes: int) -> np.ndarray:
+        memory = getattr(self, memory_name)
+        return self._memory_array(memory, n_nodes)
+
+    def _path_key(self, nodes: List[int]) -> str:
+        return "->".join(str(int(node)) for node in nodes)
+
+    def path_key_for_target(self, target_idx: int) -> str:
+        path = list(self.current_attack_path or [int(self.current_node)])
+        target = int(target_idx)
+        if not path or path[-1] != target:
+            path.append(target)
+        return self._path_key(path)
+
+    def _path_candidate_score(self, n_nodes: int) -> np.ndarray:
+        if not self.adaptive_path_enabled or self.path_preference_score is None:
+            return np.zeros(n_nodes, dtype=float)
+        return np.array(
+            [float(self.path_preference_score.get(self.path_key_for_target(node_id), 0.0)) for node_id in range(n_nodes)],
+            dtype=float,
+        )
+
+    def path_preference_vector(self) -> np.ndarray:
+        if not self.path_preference_score:
+            return np.zeros(0, dtype=float)
+        return np.asarray(list(self.path_preference_score.values()), dtype=float)
+
+    def _planning_candidate_score(self, x_current: np.ndarray, M_current: np.ndarray) -> np.ndarray:
+        n_nodes = len(x_current)
+        if not self.adaptive_planning_enabled or self.planning_depth <= 0:
+            self.last_planning_score = np.zeros(n_nodes, dtype=float)
+            self.last_planned_path = []
+            self.last_planned_path_score = 0.0
+            return self.last_planning_score
+
+        planning_score = np.full(n_nodes, -1.0e12, dtype=float)
+        best_path: List[int] = []
+        best_score = -1.0e12
+        current_node = int(self.current_node)
+        for target in self.reachable_nodes(n_nodes):
+            target = int(target)
+            value, path = self._plan_path_value(
+                current_node=target,
+                depth=int(self.planning_depth) - 1,
+                x_current=x_current,
+                M_current=M_current,
+                path=[current_node, target] if current_node != target else [target],
+                visited={current_node, target},
+            )
+            immediate = self._planning_node_value(target, M_current)
+            score = immediate + value
+            planning_score[target] = score
+            if score > best_score:
+                best_score = float(score)
+                best_path = path if path else ([current_node, target] if current_node != target else [target])
+
+        self.last_planning_score = planning_score
+        self.last_planned_path = [int(node) for node in best_path]
+        self.last_planned_path_score = float(best_score if best_score > -1.0e11 else 0.0)
+        return planning_score
+
+    def _plan_path_value(
+        self,
+        current_node: int,
+        depth: int,
+        x_current: np.ndarray,
+        M_current: np.ndarray,
+        path: List[int],
+        visited: set,
+    ) -> Tuple[float, List[int]]:
+        if depth <= 0:
+            return 0.0, list(path)
+
+        best_value = 0.0
+        best_path = list(path)
+        for neighbor in self._planning_neighbors(int(current_node), len(x_current)):
+            neighbor = int(neighbor)
+            if neighbor in visited and len(visited) < len(x_current):
+                continue
+            immediate = self._planning_node_value(neighbor, M_current)
+            future, future_path = self._plan_path_value(
+                current_node=neighbor,
+                depth=depth - 1,
+                x_current=x_current,
+                M_current=M_current,
+                path=path + [neighbor],
+                visited=visited | {neighbor},
+            )
+            total = immediate + future
+            if total > best_value:
+                best_value = float(total)
+                best_path = future_path
+        return best_value, best_path
+
+    def _planning_neighbors(self, node_idx: int, n_nodes: int) -> List[int]:
+        if self.lateral_enabled and self.adjacency_matrix is not None:
+            neighbors = np.flatnonzero(self.adjacency_matrix[int(node_idx)] > 0).astype(int).tolist()
+            return neighbors or [int(node_idx)]
+        return list(range(n_nodes))
+
+    def _planning_node_value(self, node_idx: int, M_current: np.ndarray) -> float:
+        defense_strength = float(M_current[int(node_idx)].sum())
+        success_prob = float(np.clip(
+            self.success_base_rate * np.exp(-self.success_defense_decay * defense_strength),
+            0.0,
+            1.0,
+        ))
+        detection_prob = float(np.clip(
+            self.detection_sensitivity * defense_strength / max(defense_strength + 1.0, 1.0),
+            0.0,
+            1.0,
+        ))
+        node_type = self.node_type[int(node_idx)] if self.node_type and int(node_idx) < len(self.node_type) else "real"
+        critical_nodes = set(int(node) for node in (self.critical_nodes or []))
+        success_reward = self.planning_success_weight * success_prob
+        critical_reward = self.planning_critical_weight * success_prob if int(node_idx) in critical_nodes else 0.0
+        decoy_penalty = self.planning_decoy_penalty if node_type == "decoy" else 0.0
+        detection_penalty = self.planning_detection_penalty * detection_prob
+        return float(success_reward + critical_reward - decoy_penalty - detection_penalty)
+
+    def serialized_path_preference(self) -> str:
+        if not self.path_preference_score:
+            return ""
+        parts = [
+            f"{key}:{float(value):.6g}"
+            for key, value in sorted(self.path_preference_score.items())
+            if abs(float(value)) > 0.0
+        ]
+        return "|".join(parts)
+
+    def update_memory(
+        self,
+        target_idx: int,
+        success: bool,
+        detected: bool,
+        attacked_decoy: bool,
+        critical_reached: bool = False,
+        path_key: Optional[str] = None,
+    ) -> None:
+        if target_idx < 0:
+            return
+        if self.node_success_memory is None:
+            self.node_success_memory = {}
+        if self.node_decoy_memory is None:
+            self.node_decoy_memory = {}
+        if self.node_detection_memory is None:
+            self.node_detection_memory = {}
+        if self.node_preference_score is None:
+            self.node_preference_score = {}
+        if self.path_success_memory is None:
+            self.path_success_memory = {}
+        if self.path_decoy_memory is None:
+            self.path_decoy_memory = {}
+        if self.path_detection_memory is None:
+            self.path_detection_memory = {}
+        if self.path_preference_score is None:
+            self.path_preference_score = {}
+        target = int(target_idx)
+        self.node_success_memory.setdefault(target, 0.0)
+        self.node_decoy_memory.setdefault(target, 0.0)
+        self.node_detection_memory.setdefault(target, 0.0)
+        self.node_preference_score.setdefault(target, 0.0)
+        if success:
+            self.node_success_memory[target] += 1.0
+        if attacked_decoy:
+            self.node_decoy_memory[target] += 1.0
+        if detected:
+            self.node_detection_memory[target] += 1.0
+        if self.adaptive_preference_enabled:
+            if success:
+                self.node_preference_score[target] += self.adaptive_success_reward
+            if critical_reached:
+                self.node_preference_score[target] += self.adaptive_critical_reward
+            if attacked_decoy:
+                self.node_preference_score[target] -= self.adaptive_decoy_penalty
+            if detected:
+                self.node_preference_score[target] -= self.adaptive_detection_penalty
+        if self.adaptive_path_enabled:
+            key = path_key or self.path_key_for_target(target)
+            self.path_success_memory.setdefault(key, 0.0)
+            self.path_decoy_memory.setdefault(key, 0.0)
+            self.path_detection_memory.setdefault(key, 0.0)
+            self.path_preference_score.setdefault(key, 0.0)
+            if critical_reached:
+                self.path_success_memory[key] += 1.0
+            if attacked_decoy:
+                self.path_decoy_memory[key] += 1.0
+            if detected:
+                self.path_detection_memory[key] += 1.0
+            if success:
+                self.path_preference_score[key] += self.path_success_reward
+            if critical_reached:
+                self.path_preference_score[key] += self.path_critical_reward
+            if attacked_decoy:
+                self.path_preference_score[key] -= self.path_decoy_penalty
+            if detected:
+                self.path_preference_score[key] -= self.path_detection_penalty
 
     def _attacker_belief_or_default(self, n_nodes: int) -> np.ndarray:
         if self.current_belief is None:
@@ -1118,6 +1455,12 @@ class CyberDefenseSimulator:
             'attack_detection_prob': [],
             'target_defense_strength': [],
             'attacker_current_belief': [],
+            'success_memory': [],
+            'decoy_memory': [],
+            'detection_memory': [],
+            'preference_score': [],
+            'path_preference_score': [],
+            'planning_score': [],
             'defender_observed_belief': [],
             'defender_estimated_belief': [],
             'defender_target_counts': [],
@@ -1174,11 +1517,35 @@ class CyberDefenseSimulator:
             belief_decoy_decay=self.config.attacker_belief_decoy_decay,
             belief_min=self.config.attacker_belief_min,
             belief_max=self.config.attacker_belief_max,
+            adaptive_attacker_enabled=self.config.adaptive_attacker_enabled,
+            adaptive_success_weight=self.config.adaptive_success_weight,
+            adaptive_decoy_weight=self.config.adaptive_decoy_weight,
+            adaptive_detection_weight=self.config.adaptive_detection_weight,
+            adaptive_preference_enabled=self.config.adaptive_preference_enabled,
+            adaptive_preference_weight=self.config.adaptive_preference_weight,
+            adaptive_success_reward=self.config.adaptive_success_reward,
+            adaptive_critical_reward=self.config.adaptive_critical_reward,
+            adaptive_decoy_penalty=self.config.adaptive_decoy_penalty,
+            adaptive_detection_penalty=self.config.adaptive_detection_penalty,
+            adaptive_path_enabled=self.config.adaptive_path_enabled,
+            path_preference_weight=self.config.path_preference_weight,
+            path_success_reward=self.config.path_success_reward,
+            path_critical_reward=self.config.path_critical_reward,
+            path_decoy_penalty=self.config.path_decoy_penalty,
+            path_detection_penalty=self.config.path_detection_penalty,
+            adaptive_planning_enabled=self.config.adaptive_planning_enabled,
+            planning_depth=self.config.planning_depth,
+            planning_success_weight=self.config.planning_success_weight,
+            planning_critical_weight=self.config.planning_critical_weight,
+            planning_decoy_penalty=self.config.planning_decoy_penalty,
+            planning_detection_penalty=self.config.planning_detection_penalty,
             lateral_enabled=self.config.attacker_lateral_enabled,
             lateral_success_prob=self.config.attacker_lateral_success_prob,
             lateral_detection_prob=self.config.attacker_lateral_detection_prob,
             adjacency_matrix=self.active_adjacency_matrix.copy(),
             entry_nodes=list(self.config.entry_nodes),
+            node_type=list(self.config.node_type),
+            critical_nodes=list(self.config.critical_nodes),
             perceived_no_progress_threshold=self.config.attacker_perceived_no_progress_threshold,
             perceived_utility_enabled=self.config.perceived_utility_enabled,
             perceived_success_confidence=self.config.perceived_success_confidence,
@@ -1396,12 +1763,24 @@ class CyberDefenseSimulator:
                 detected=detected,
                 attacked_decoy=attacked_decoy,
             )
-            belief_entropy_step = self._belief_entropy()
-            self.attacker.record_lateral_result(selected_target, success)
-            if (
+            critical_reached = bool(
                 attack_active
                 and success
                 and selected_target in self.config.critical_nodes
+            )
+            path_key = self.attacker.path_key_for_target(selected_target) if selected_target >= 0 else None
+            self.attacker.update_memory(
+                target_idx=selected_target,
+                success=success,
+                detected=detected,
+                attacked_decoy=attacked_decoy,
+                critical_reached=critical_reached,
+                path_key=path_key,
+            )
+            belief_entropy_step = self._belief_entropy()
+            self.attacker.record_lateral_result(selected_target, success)
+            if (
+                critical_reached
                 and not self.critical_compromise
             ):
                 self.critical_compromise = True
@@ -1477,6 +1856,24 @@ class CyberDefenseSimulator:
             self.history['attack_detection_prob'].append(float(detection_prob))
             self.history['target_defense_strength'].append(float(target_defense_strength))
             self.history['attacker_current_belief'].append(self.attacker.current_belief.copy())
+            self.history['success_memory'].append(
+                self.attacker.memory_vector('node_success_memory', self.config.n_nodes)
+            )
+            self.history['decoy_memory'].append(
+                self.attacker.memory_vector('node_decoy_memory', self.config.n_nodes)
+            )
+            self.history['detection_memory'].append(
+                self.attacker.memory_vector('node_detection_memory', self.config.n_nodes)
+            )
+            self.history['preference_score'].append(
+                self.attacker.memory_vector('node_preference_score', self.config.n_nodes)
+            )
+            self.history['path_preference_score'].append(self.attacker.serialized_path_preference())
+            self.history['planning_score'].append(
+                np.asarray(self.attacker.last_planning_score, dtype=float).copy()
+                if self.attacker.last_planning_score is not None
+                else np.zeros(self.config.n_nodes, dtype=float)
+            )
             self.history['defender_observed_belief'].append(self.defender_observed_belief.copy())
             self.history['defender_estimated_belief'].append(self.defender_estimated_belief.copy())
             self.history['defender_target_counts'].append(self.defender_target_counts.copy())
@@ -2534,6 +2931,11 @@ class CyberDefenseSimulator:
         ai_operational_risk_cost_series = np.asarray(self.history.get('ai_operational_risk_cost', []), dtype=float)
         ai_trust_degradation_cost_series = np.asarray(self.history.get('ai_trust_degradation_cost', []), dtype=float)
         ai_total_decision_cost_series = np.asarray(self.history.get('ai_total_decision_cost', []), dtype=float)
+        success_memory_history = np.asarray(self.history.get('success_memory', []), dtype=float)
+        decoy_memory_history = np.asarray(self.history.get('decoy_memory', []), dtype=float)
+        detection_memory_history = np.asarray(self.history.get('detection_memory', []), dtype=float)
+        preference_history = np.asarray(self.history.get('preference_score', []), dtype=float)
+        planning_history = np.asarray(self.history.get('planning_score', []), dtype=float)
         ai_weighted_cost = (
             float(np.mean(ai_total_decision_cost_series))
             if len(ai_total_decision_cost_series) > 0
@@ -2643,6 +3045,72 @@ class CyberDefenseSimulator:
         static_chokepoint_nodes = self._chokepoint_nodes(static_node_path_frequency)
         static_critical_edges = self._critical_edges(static_edge_path_frequency)
         decoy_nodes = {idx for idx, node_type in enumerate(self.config.node_type) if node_type == "decoy"}
+        static_critical_path_nodes = {
+            int(node)
+            for path in static_critical_paths
+            for node in path
+        }
+        final_preference = (
+            preference_history[-1]
+            if len(preference_history) > 0
+            else np.zeros(self.config.n_nodes, dtype=float)
+        )
+        preferred_node_id = int(np.argmax(final_preference)) if len(final_preference) > 0 else None
+        preferred_node_score = (
+            float(final_preference[int(preferred_node_id)])
+            if preferred_node_id is not None
+            else 0.0
+        )
+        preferred_node_on_critical_path = (
+            bool(preferred_node_score > 0.0 and preferred_node_id in static_critical_path_nodes)
+            if preferred_node_id is not None
+            else False
+        )
+        path_preference_values = self.attacker.path_preference_vector()
+        positive_path_preferences = {
+            key: float(value)
+            for key, value in (self.attacker.path_preference_score or {}).items()
+            if float(value) > 0.0
+        }
+        if positive_path_preferences:
+            preferred_path, preferred_path_score = max(
+                positive_path_preferences.items(),
+                key=lambda item: item[1],
+            )
+        else:
+            preferred_path, preferred_path_score = None, 0.0
+        static_critical_path_keys = {
+            "->".join(str(int(node)) for node in path)
+            for path in static_critical_paths
+        }
+        def _path_nodes_on_static_critical_path(nodes: List[int], path_key: Optional[str]) -> bool:
+            if not nodes:
+                return False
+            if path_key and path_key in static_critical_path_keys:
+                return True
+            for static_path in static_critical_paths:
+                static_nodes = [int(node) for node in static_path]
+                if nodes == static_nodes[:len(nodes)]:
+                    return True
+                for start in range(0, len(static_nodes) - len(nodes) + 1):
+                    if nodes == static_nodes[start:start + len(nodes)]:
+                        return True
+            return False
+        preferred_path_nodes = (
+            [int(part) for part in str(preferred_path).split("->")]
+            if preferred_path
+            else []
+        )
+        preferred_path_is_critical = _path_nodes_on_static_critical_path(preferred_path_nodes, preferred_path)
+        if planning_history.size > 0:
+            planning_score_values = planning_history[
+                np.isfinite(planning_history) & (planning_history > -1.0e11)
+            ]
+        else:
+            planning_score_values = np.asarray([], dtype=float)
+        planned_path_nodes = [int(node) for node in (self.attacker.last_planned_path or [])]
+        planned_path = "->".join(str(node) for node in planned_path_nodes) if planned_path_nodes else None
+        planned_path_is_critical = _path_nodes_on_static_critical_path(planned_path_nodes, planned_path)
         decoy_on_critical_path = any(
             int(node) in decoy_nodes
             for path in critical_paths
@@ -2849,6 +3317,58 @@ class CyberDefenseSimulator:
             'mean_attack_detection_prob': mean_attack_detection_prob,
             'mean_target_defense_strength': mean_target_defense_strength,
             'attacker_belief_learning_enabled': bool(self.attacker.belief_learning_enabled),
+            'adaptive_attacker_enabled': bool(self.config.adaptive_attacker_enabled),
+            'adaptive_success_weight': float(self.config.adaptive_success_weight),
+            'adaptive_decoy_weight': float(self.config.adaptive_decoy_weight),
+            'adaptive_detection_weight': float(self.config.adaptive_detection_weight),
+            'adaptive_preference_enabled': bool(self.config.adaptive_preference_enabled),
+            'adaptive_preference_weight': float(self.config.adaptive_preference_weight),
+            'adaptive_success_reward': float(self.config.adaptive_success_reward),
+            'adaptive_critical_reward': float(self.config.adaptive_critical_reward),
+            'adaptive_decoy_penalty': float(self.config.adaptive_decoy_penalty),
+            'adaptive_detection_penalty': float(self.config.adaptive_detection_penalty),
+            'adaptive_path_enabled': bool(self.config.adaptive_path_enabled),
+            'path_preference_weight': float(self.config.path_preference_weight),
+            'path_success_reward': float(self.config.path_success_reward),
+            'path_critical_reward': float(self.config.path_critical_reward),
+            'path_decoy_penalty': float(self.config.path_decoy_penalty),
+            'path_detection_penalty': float(self.config.path_detection_penalty),
+            'adaptive_planning_enabled': bool(self.config.adaptive_planning_enabled),
+            'planning_depth': int(self.config.planning_depth),
+            'planning_success_weight': float(self.config.planning_success_weight),
+            'planning_critical_weight': float(self.config.planning_critical_weight),
+            'planning_decoy_penalty': float(self.config.planning_decoy_penalty),
+            'planning_detection_penalty': float(self.config.planning_detection_penalty),
+            'adaptive_memory_success_mean': (
+                float(np.mean(success_memory_history[-1]))
+                if len(success_memory_history) > 0
+                else 0.0
+            ),
+            'adaptive_memory_decoy_mean': (
+                float(np.mean(decoy_memory_history[-1]))
+                if len(decoy_memory_history) > 0
+                else 0.0
+            ),
+            'adaptive_memory_detection_mean': (
+                float(np.mean(detection_memory_history[-1]))
+                if len(detection_memory_history) > 0
+                else 0.0
+            ),
+            'preference_mean': float(np.mean(final_preference)) if len(final_preference) > 0 else 0.0,
+            'preference_max': float(np.max(final_preference)) if len(final_preference) > 0 else 0.0,
+            'preferred_node_id': preferred_node_id,
+            'preferred_node_score': preferred_node_score,
+            'preferred_node_on_critical_path': preferred_node_on_critical_path,
+            'path_preference_mean': float(np.mean(path_preference_values)) if len(path_preference_values) > 0 else 0.0,
+            'path_preference_max': float(np.max(path_preference_values)) if len(path_preference_values) > 0 else 0.0,
+            'preferred_path': preferred_path,
+            'preferred_path_score': float(preferred_path_score),
+            'preferred_path_is_critical': bool(preferred_path_is_critical),
+            'planning_score_mean': float(np.mean(planning_score_values)) if len(planning_score_values) > 0 else 0.0,
+            'planning_score_max': float(np.max(planning_score_values)) if len(planning_score_values) > 0 else 0.0,
+            'planned_path': planned_path,
+            'planned_path_score': float(self.attacker.last_planned_path_score),
+            'planned_path_is_critical': bool(planned_path_is_critical),
             'attacker_initial_belief': initial_belief.tolist(),
             'attacker_final_belief': final_belief.tolist(),
             'attacker_belief_change_l1': float(np.sum(np.abs(belief_change))),
@@ -3048,6 +3568,12 @@ class CyberDefenseSimulator:
                 attack_detection_prob=np.asarray(self.history['attack_detection_prob'], dtype=float),
                 target_defense_strength=np.asarray(self.history['target_defense_strength'], dtype=float),
                 attacker_current_belief=np.asarray(self.history['attacker_current_belief'], dtype=float),
+                success_memory=np.asarray(self.history['success_memory'], dtype=float),
+                decoy_memory=np.asarray(self.history['decoy_memory'], dtype=float),
+                detection_memory=np.asarray(self.history['detection_memory'], dtype=float),
+                preference_score=np.asarray(self.history['preference_score'], dtype=float),
+                path_preference_score=np.asarray(self.history['path_preference_score'], dtype='<U4096'),
+                planning_score=np.asarray(self.history['planning_score'], dtype=float),
                 defender_observed_belief=np.asarray(self.history['defender_observed_belief'], dtype=float),
                 defender_estimated_belief=np.asarray(self.history['defender_estimated_belief'], dtype=float),
                 defender_target_counts=np.asarray(self.history['defender_target_counts'], dtype=float),
