@@ -18,6 +18,7 @@ from run_scenarios import (
     run_phase2_ai_weight_sweep_evaluation,
     run_phase2_cns_objective_evaluation,
     run_phase2_policy_selection_evaluation,
+    run_phase3_trust_attacker_evaluation,
     run_scenarios,
     run_scenarios_multi_seed,
 )
@@ -69,6 +70,7 @@ def test_simulation_history_shapes():
     assert np.asarray(history["attack_detection_prob"]).shape == (config.T,)
     assert np.asarray(history["target_defense_strength"]).shape == (config.T,)
     assert np.asarray(history["attacker_current_belief"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["trust_score"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["defender_observed_belief"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["defender_estimated_belief"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["defender_target_counts"]).shape == (config.T, config.n_nodes)
@@ -98,6 +100,40 @@ def test_resource_constraints():
     assert np.all(r >= -1e-8)
     assert np.all(r <= config.r_max + 1e-8)
     assert np.all(np.sum(r, axis=1) <= config.R_total + 1e-8)
+
+
+def test_trust_update_penalties_rewards_and_clip():
+    attacker = AttackerModel(
+        enabled=True,
+        attacker_belief=np.ones(3),
+        trust_enabled=True,
+        trust_decoy_penalty=0.20,
+        trust_credential_penalty=0.30,
+        trust_detection_penalty=0.15,
+        trust_success_reward=0.05,
+    )
+
+    attacker.update_trust(
+        target_idx=1,
+        success=False,
+        detected=True,
+        attacked_decoy=True,
+        credential_decoy_trigger=True,
+    )
+    assert attacker.trust_vector(3)[1] == pytest.approx(0.35)
+
+    attacker.update_trust(
+        target_idx=1,
+        success=True,
+        detected=False,
+        attacked_decoy=False,
+        credential_decoy_trigger=False,
+    )
+    assert attacker.trust_vector(3)[1] == pytest.approx(0.40)
+
+    for _ in range(5):
+        attacker.update_trust(1, success=False, detected=True, attacked_decoy=True, credential_decoy_trigger=True)
+    assert attacker.trust_vector(3)[1] == pytest.approx(0.0)
 
 
 def test_metrics_written(tmp_path):
@@ -159,6 +195,13 @@ def test_metrics_written(tmp_path):
         "mean_attack_detection_prob",
         "mean_target_defense_strength",
         "attacker_belief_learning_enabled",
+        "trust_enabled",
+        "trust_mean",
+        "trust_min",
+        "trust_max",
+        "trust_collapse_rate",
+        "least_trusted_node",
+        "most_trusted_node",
         "attacker_belief_change_l1",
         "attacker_belief_change_l2",
         "attacker_belief_decoy_reduction",

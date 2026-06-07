@@ -15,6 +15,7 @@ from run_scenarios import (  # noqa: E402
     run_phase3_path_attacker_evaluation,
     run_phase3_planning_attacker_evaluation,
     run_phase3_preference_attacker_evaluation,
+    run_phase3_trust_attacker_evaluation,
 )
 
 
@@ -62,6 +63,14 @@ def main() -> None:
         config_path=args.config,
     )
     print(f"Phase3.4 rows: {len(planning_rows)}")
+
+    print("Running Phase3.5 trust-aware planning attacker evaluation...")
+    trust_rows = run_phase3_trust_attacker_evaluation(
+        seeds=seeds,
+        output_dir=os.path.join(args.output_dir, "phase3_trust_attacker"),
+        config_path=args.config,
+    )
+    print(f"Phase3.5 rows: {len(trust_rows)}")
     print(f"Phase3-A outputs written below {args.output_dir}")
 
 

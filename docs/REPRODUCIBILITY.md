@@ -57,7 +57,7 @@ python .\scripts\run_phase2.py
 Run Phase3-A Adaptive Attacker Validation only:
 
 ```powershell
-python .\scripts\run_phase3.py
+python .\scripts\run_phase3a.py
 ```
 
 Run all publication evaluations:
@@ -83,10 +83,16 @@ Primary Phase2 outputs:
 
 Primary Phase3-A outputs:
 
+- `output/phase3_adaptive_attacker/`
+- `output/phase3_preference_attacker/`
+- `output/phase3_path_attacker/`
+- `output/phase3_planning_attacker/`
+- `output/phase3_trust_attacker/`
 - `output/phase3_publication/phase3_adaptive_attacker/`
 - `output/phase3_publication/phase3_preference_attacker/`
 - `output/phase3_publication/phase3_path_attacker/`
 - `output/phase3_publication/phase3_planning_attacker/`
+- `output/phase3_publication/phase3_trust_attacker/`
 
 Expected Phase3-A artifacts:
 
@@ -94,6 +100,13 @@ Expected Phase3-A artifacts:
 - `output/phase3_publication/phase3_preference_attacker/PHASE3_PREFERENCE_ATTACKER_REPORT.md`
 - `output/phase3_publication/phase3_path_attacker/PHASE3_PATH_ATTACKER_REPORT.md`
 - `output/phase3_publication/phase3_planning_attacker/PHASE3_PLANNING_ATTACKER_REPORT.md`
+- `output/phase3_publication/phase3_trust_attacker/PHASE3_TRUST_ATTACKER_REPORT.md`
+- `output/phase3_trust_attacker/trust_summary.csv`
+- `output/phase3_trust_attacker/trust_summary.json`
+- `output/phase3_trust_attacker/trust_cns.png`
+- `output/phase3_trust_attacker/trust_retreat_rate.png`
+- `output/phase3_trust_attacker/trust_collapse.png`
+- `output/phase3_trust_attacker/PHASE3_TRUST_ATTACKER_REPORT.md`
 - `output/phase3_publication/*/*_summary.csv`
 - `output/phase3_publication/*/*_summary.json`
 - `output/phase3_publication/*/runs/summary_runs.csv`

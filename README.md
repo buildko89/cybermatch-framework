@@ -71,6 +71,7 @@ Implemented attacker models:
 - Node preference attacker
 - Path preference attacker
 - Path planning attacker
+- Trust-aware planning attacker
 
 Current finding:
 
@@ -79,7 +80,7 @@ Current finding:
 Run:
 
 ```bash
-python scripts/run_phase3.py
+python scripts/run_phase3a.py
 ```
 
 ### All Evaluations
@@ -114,11 +115,11 @@ Main Phase2 policy finding:
 
 ### Phase3 Summary
 
-Phase3-A introduces Adaptive Attacker Validation. It evaluates memory, node preference, path preference, and path planning attackers without introducing RL/DQN/PPO.
+Phase3-A introduces Adaptive Attacker Validation. It evaluates memory, node preference, path preference, path planning, and trust-aware planning attackers without introducing RL/DQN/PPO.
 
 Main Phase3-A finding:
 
-- Decision Neutralization remains stable through Memory -> Preference -> Path Preference -> Planning.
+- Decision Neutralization remains stable through Memory -> Preference -> Path Preference -> Planning -> Trust-Aware Planning.
 
 ### Recommended Policies
 
@@ -163,6 +164,7 @@ cybermatch-framework/
     run_phase1.py
     run_phase2.py
     run_phase3.py
+    run_phase3a.py
     run_all.py
   tests/
   docs/

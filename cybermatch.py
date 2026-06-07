@@ -154,6 +154,11 @@ class SimulationConfig:
     planning_critical_weight: float = 5.0
     planning_decoy_penalty: float = 2.0
     planning_detection_penalty: float = 1.5
+    trust_enabled: bool = False
+    trust_decoy_penalty: float = 0.20
+    trust_credential_penalty: float = 0.30
+    trust_detection_penalty: float = 0.15
+    trust_success_reward: float = 0.05
     attacker_lateral_enabled: bool = False
     attacker_lateral_success_prob: float = 0.8
     attacker_lateral_detection_prob: float = 0.2
@@ -386,6 +391,14 @@ class SimulationConfig:
             errors.append("planning_decoy_penalty must be >= 0")
         if self.planning_detection_penalty < 0:
             errors.append("planning_detection_penalty must be >= 0")
+        if not 0 <= self.trust_decoy_penalty <= 1:
+            errors.append("trust_decoy_penalty must be between 0 and 1")
+        if not 0 <= self.trust_credential_penalty <= 1:
+            errors.append("trust_credential_penalty must be between 0 and 1")
+        if not 0 <= self.trust_detection_penalty <= 1:
+            errors.append("trust_detection_penalty must be between 0 and 1")
+        if not 0 <= self.trust_success_reward <= 1:
+            errors.append("trust_success_reward must be between 0 and 1")
         if not 0 <= self.attacker_lateral_success_prob <= 1:
             errors.append("attacker_lateral_success_prob must be between 0 and 1")
         if not 0 <= self.attacker_lateral_detection_prob <= 1:
@@ -670,6 +683,11 @@ class AttackerModel:
     planning_critical_weight: float = 5.0
     planning_decoy_penalty: float = 2.0
     planning_detection_penalty: float = 1.5
+    trust_enabled: bool = False
+    trust_decoy_penalty: float = 0.20
+    trust_credential_penalty: float = 0.30
+    trust_detection_penalty: float = 0.15
+    trust_success_reward: float = 0.05
     lateral_enabled: bool = False
     lateral_success_prob: float = 0.8
     lateral_detection_prob: float = 0.2
@@ -718,6 +736,7 @@ class AttackerModel:
     last_planning_score: Optional[np.ndarray] = None
     last_planned_path: Optional[List[int]] = None
     last_planned_path_score: float = 0.0
+    node_trust_score: Optional[Dict[int, float]] = None
 
     def __post_init__(self):
         if self.attacker_belief is None:
@@ -747,6 +766,7 @@ class AttackerModel:
         self.last_planning_score = np.zeros(n_nodes, dtype=float)
         self.last_planned_path = []
         self.last_planned_path_score = 0.0
+        self.node_trust_score = {node_id: 1.0 for node_id in range(n_nodes)}
 
     @property
     def utility(self) -> float:
@@ -877,6 +897,11 @@ class AttackerModel:
         memory = getattr(self, memory_name)
         return self._memory_array(memory, n_nodes)
 
+    def trust_vector(self, n_nodes: int) -> np.ndarray:
+        if self.node_trust_score is None:
+            return np.ones(n_nodes, dtype=float)
+        return np.array([float(self.node_trust_score.get(node_id, 1.0)) for node_id in range(n_nodes)], dtype=float)
+
     def _path_key(self, nodes: List[int]) -> str:
         return "->".join(str(int(node)) for node in nodes)
 
@@ -924,6 +949,8 @@ class AttackerModel:
             )
             immediate = self._planning_node_value(target, M_current)
             score = immediate + value
+            if self.trust_enabled:
+                score *= float(self.trust_vector(n_nodes)[target])
             planning_score[target] = score
             if score > best_score:
                 best_score = float(score)
@@ -992,6 +1019,31 @@ class AttackerModel:
         decoy_penalty = self.planning_decoy_penalty if node_type == "decoy" else 0.0
         detection_penalty = self.planning_detection_penalty * detection_prob
         return float(success_reward + critical_reward - decoy_penalty - detection_penalty)
+
+    def update_trust(
+        self,
+        target_idx: int,
+        success: bool,
+        detected: bool,
+        attacked_decoy: bool,
+        credential_decoy_trigger: bool = False,
+    ) -> None:
+        if not self.trust_enabled or target_idx < 0:
+            return
+        if self.node_trust_score is None:
+            n_nodes = int(len(self.current_belief)) if self.current_belief is not None else int(target_idx) + 1
+            self.node_trust_score = {node_id: 1.0 for node_id in range(n_nodes)}
+        target = int(target_idx)
+        current = float(self.node_trust_score.get(target, 1.0))
+        if attacked_decoy:
+            current -= self.trust_decoy_penalty
+        if credential_decoy_trigger:
+            current -= self.trust_credential_penalty
+        if detected:
+            current -= self.trust_detection_penalty
+        if success:
+            current += self.trust_success_reward
+        self.node_trust_score[target] = float(np.clip(current, 0.0, 1.0))
 
     def serialized_path_preference(self) -> str:
         if not self.path_preference_score:
@@ -1461,6 +1513,7 @@ class CyberDefenseSimulator:
             'preference_score': [],
             'path_preference_score': [],
             'planning_score': [],
+            'trust_score': [],
             'defender_observed_belief': [],
             'defender_estimated_belief': [],
             'defender_target_counts': [],
@@ -1539,6 +1592,11 @@ class CyberDefenseSimulator:
             planning_critical_weight=self.config.planning_critical_weight,
             planning_decoy_penalty=self.config.planning_decoy_penalty,
             planning_detection_penalty=self.config.planning_detection_penalty,
+            trust_enabled=self.config.trust_enabled,
+            trust_decoy_penalty=self.config.trust_decoy_penalty,
+            trust_credential_penalty=self.config.trust_credential_penalty,
+            trust_detection_penalty=self.config.trust_detection_penalty,
+            trust_success_reward=self.config.trust_success_reward,
             lateral_enabled=self.config.attacker_lateral_enabled,
             lateral_success_prob=self.config.attacker_lateral_success_prob,
             lateral_detection_prob=self.config.attacker_lateral_detection_prob,
@@ -1777,6 +1835,13 @@ class CyberDefenseSimulator:
                 critical_reached=critical_reached,
                 path_key=path_key,
             )
+            self.attacker.update_trust(
+                target_idx=selected_target,
+                success=success,
+                detected=detected,
+                attacked_decoy=attacked_decoy,
+                credential_decoy_trigger=credential_decoy_trigger,
+            )
             belief_entropy_step = self._belief_entropy()
             self.attacker.record_lateral_result(selected_target, success)
             if (
@@ -1874,6 +1939,7 @@ class CyberDefenseSimulator:
                 if self.attacker.last_planning_score is not None
                 else np.zeros(self.config.n_nodes, dtype=float)
             )
+            self.history['trust_score'].append(self.attacker.trust_vector(self.config.n_nodes))
             self.history['defender_observed_belief'].append(self.defender_observed_belief.copy())
             self.history['defender_estimated_belief'].append(self.defender_estimated_belief.copy())
             self.history['defender_target_counts'].append(self.defender_target_counts.copy())
@@ -2936,6 +3002,7 @@ class CyberDefenseSimulator:
         detection_memory_history = np.asarray(self.history.get('detection_memory', []), dtype=float)
         preference_history = np.asarray(self.history.get('preference_score', []), dtype=float)
         planning_history = np.asarray(self.history.get('planning_score', []), dtype=float)
+        trust_history = np.asarray(self.history.get('trust_score', []), dtype=float)
         ai_weighted_cost = (
             float(np.mean(ai_total_decision_cost_series))
             if len(ai_total_decision_cost_series) > 0
@@ -3111,6 +3178,17 @@ class CyberDefenseSimulator:
         planned_path_nodes = [int(node) for node in (self.attacker.last_planned_path or [])]
         planned_path = "->".join(str(node) for node in planned_path_nodes) if planned_path_nodes else None
         planned_path_is_critical = _path_nodes_on_static_critical_path(planned_path_nodes, planned_path)
+        final_trust = (
+            trust_history[-1]
+            if len(trust_history) > 0
+            else self.attacker.trust_vector(self.config.n_nodes)
+        )
+        trust_mean = float(np.mean(final_trust)) if len(final_trust) > 0 else 1.0
+        trust_min = float(np.min(final_trust)) if len(final_trust) > 0 else 1.0
+        trust_max = float(np.max(final_trust)) if len(final_trust) > 0 else 1.0
+        trust_collapse_rate = float(np.mean(final_trust < 0.5)) if len(final_trust) > 0 else 0.0
+        least_trusted_node = int(np.argmin(final_trust)) if len(final_trust) > 0 else None
+        most_trusted_node = int(np.argmax(final_trust)) if len(final_trust) > 0 else None
         decoy_on_critical_path = any(
             int(node) in decoy_nodes
             for path in critical_paths
@@ -3339,6 +3417,11 @@ class CyberDefenseSimulator:
             'planning_critical_weight': float(self.config.planning_critical_weight),
             'planning_decoy_penalty': float(self.config.planning_decoy_penalty),
             'planning_detection_penalty': float(self.config.planning_detection_penalty),
+            'trust_enabled': bool(self.config.trust_enabled),
+            'trust_decoy_penalty': float(self.config.trust_decoy_penalty),
+            'trust_credential_penalty': float(self.config.trust_credential_penalty),
+            'trust_detection_penalty': float(self.config.trust_detection_penalty),
+            'trust_success_reward': float(self.config.trust_success_reward),
             'adaptive_memory_success_mean': (
                 float(np.mean(success_memory_history[-1]))
                 if len(success_memory_history) > 0
@@ -3369,6 +3452,13 @@ class CyberDefenseSimulator:
             'planned_path': planned_path,
             'planned_path_score': float(self.attacker.last_planned_path_score),
             'planned_path_is_critical': bool(planned_path_is_critical),
+            'trust_mean': trust_mean,
+            'trust_min': trust_min,
+            'trust_max': trust_max,
+            'trust_collapse_rate': trust_collapse_rate,
+            'least_trusted_node': least_trusted_node,
+            'most_trusted_node': most_trusted_node,
+            'node_trust_score': [float(value) for value in final_trust.tolist()],
             'attacker_initial_belief': initial_belief.tolist(),
             'attacker_final_belief': final_belief.tolist(),
             'attacker_belief_change_l1': float(np.sum(np.abs(belief_change))),
@@ -3574,6 +3664,7 @@ class CyberDefenseSimulator:
                 preference_score=np.asarray(self.history['preference_score'], dtype=float),
                 path_preference_score=np.asarray(self.history['path_preference_score'], dtype='<U4096'),
                 planning_score=np.asarray(self.history['planning_score'], dtype=float),
+                trust_score=np.asarray(self.history['trust_score'], dtype=float),
                 defender_observed_belief=np.asarray(self.history['defender_observed_belief'], dtype=float),
                 defender_estimated_belief=np.asarray(self.history['defender_estimated_belief'], dtype=float),
                 defender_target_counts=np.asarray(self.history['defender_target_counts'], dtype=float),
