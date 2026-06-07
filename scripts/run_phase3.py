@@ -12,6 +12,7 @@ if ROOT not in sys.path:
 
 from run_scenarios import (  # noqa: E402
     run_phase3_adaptive_attacker_evaluation,
+    run_phase3_expected_utility_evaluation,
     run_phase3_path_attacker_evaluation,
     run_phase3_planning_attacker_evaluation,
     run_phase3_preference_attacker_evaluation,
@@ -71,6 +72,14 @@ def main() -> None:
         config_path=args.config,
     )
     print(f"Phase3.5 rows: {len(trust_rows)}")
+
+    print("Running Phase3.6 expected utility attacker evaluation...")
+    expected_rows = run_phase3_expected_utility_evaluation(
+        seeds=seeds,
+        output_dir=os.path.join(args.output_dir, "phase3_expected_utility"),
+        config_path=args.config,
+    )
+    print(f"Phase3.6 rows: {len(expected_rows)}")
     print(f"Phase3-A outputs written below {args.output_dir}")
 
 

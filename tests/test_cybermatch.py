@@ -18,6 +18,7 @@ from run_scenarios import (
     run_phase2_ai_weight_sweep_evaluation,
     run_phase2_cns_objective_evaluation,
     run_phase2_policy_selection_evaluation,
+    run_phase3_expected_utility_evaluation,
     run_phase3_trust_attacker_evaluation,
     run_scenarios,
     run_scenarios_multi_seed,
@@ -71,6 +72,7 @@ def test_simulation_history_shapes():
     assert np.asarray(history["target_defense_strength"]).shape == (config.T,)
     assert np.asarray(history["attacker_current_belief"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["trust_score"]).shape == (config.T, config.n_nodes)
+    assert np.asarray(history["expected_utility"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["defender_observed_belief"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["defender_estimated_belief"]).shape == (config.T, config.n_nodes)
     assert np.asarray(history["defender_target_counts"]).shape == (config.T, config.n_nodes)
@@ -134,6 +136,30 @@ def test_trust_update_penalties_rewards_and_clip():
     for _ in range(5):
         attacker.update_trust(1, success=False, detected=True, attacked_decoy=True, credential_decoy_trigger=True)
     assert attacker.trust_vector(3)[1] == pytest.approx(0.0)
+
+
+def test_expected_utility_score_uses_gain_trust_risk_and_search_cost():
+    attacker = AttackerModel(
+        enabled=True,
+        attacker_belief=np.array([1.0, 2.0, 3.0]),
+        adaptive_attacker_enabled=True,
+        expected_utility_enabled=True,
+        trust_enabled=True,
+        expected_gain_weight=1.0,
+        expected_success_weight=1.0,
+        expected_detection_cost=1.0,
+        expected_search_cost=1.0,
+        expected_trust_weight=1.0,
+        target_selection="adaptive",
+    )
+    attacker.node_trust_score = {0: 1.0, 1: 0.5, 2: 1.0}
+    x_current = np.array([1.0, 1.0, 1.0])
+    M_current = np.zeros((3, 1))
+
+    score = attacker.calculate_adaptive_score(x_current, M_current)
+
+    assert np.max(attacker.last_expected_utility) > 0.0
+    assert score[2] > score[1]
 
 
 def test_metrics_written(tmp_path):
@@ -202,6 +228,13 @@ def test_metrics_written(tmp_path):
         "trust_collapse_rate",
         "least_trusted_node",
         "most_trusted_node",
+        "expected_utility_enabled",
+        "expected_utility_final",
+        "expected_utility_mean",
+        "expected_gain_estimate",
+        "expected_detection_risk",
+        "expected_search_cost",
+        "target_switch_count",
         "attacker_belief_change_l1",
         "attacker_belief_change_l2",
         "attacker_belief_decoy_reduction",
@@ -843,6 +876,22 @@ def test_phase2_policy_selection_outputs_exist(tmp_path):
     assert (tmp_path / "phase2_policy_selection" / "phase1_vs_cns.png").exists()
     assert (tmp_path / "phase2_policy_selection" / "human_vs_ai_policy.png").exists()
     assert (tmp_path / "phase2_policy_selection" / "best_policy_report.md").exists()
+
+
+def test_phase3_expected_utility_outputs_exist(tmp_path):
+    rows = run_phase3_expected_utility_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase3_expected_utility"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert any(row["attacker_mode"] == "expected_utility" for row in rows)
+    assert (tmp_path / "phase3_expected_utility" / "expected_summary.csv").exists()
+    assert (tmp_path / "phase3_expected_utility" / "expected_summary.json").exists()
+    assert (tmp_path / "phase3_expected_utility" / "expected_cns.png").exists()
+    assert (tmp_path / "phase3_expected_utility" / "expected_retreat_rate.png").exists()
+    assert (tmp_path / "phase3_expected_utility" / "expected_target_switch.png").exists()
+    assert (tmp_path / "phase3_expected_utility" / "PHASE3_EXPECTED_UTILITY_REPORT.md").exists()
 
 
 def test_best_policy_fields_exist(tmp_path):

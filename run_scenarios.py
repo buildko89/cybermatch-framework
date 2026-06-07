@@ -1761,6 +1761,24 @@ SCENARIOS.update(
             "frustration_enabled": True,
             "frustration_retreat_threshold": 8.0,
         },
+        "phase3_expected_reference": {
+            **SCENARIOS["phase2_frustration_reference"],
+        },
+        "phase3_expected_frustration_decoy": {
+            **SCENARIOS["phase2_frustration_decoy"],
+        },
+        "phase3_expected_ai_balanced": {
+            **SCENARIOS["phase2_ai_balanced"],
+        },
+        "phase3_expected_gated_count2": {
+            **SCENARIOS["gated_edge_pressure_count_2"],
+            "perceived_utility_enabled": True,
+            "retreat_based_on": "frustration",
+            "attacker_retreat_threshold": -999.0,
+            "attacker_patience": 50,
+            "frustration_enabled": True,
+            "frustration_retreat_threshold": 8.0,
+        },
     }
 )
 
@@ -2110,6 +2128,13 @@ MULTI_SEED_RUN_COLUMNS = [
     "trust_collapse_rate",
     "least_trusted_node",
     "most_trusted_node",
+    "expected_utility_enabled",
+    "expected_utility_final",
+    "expected_utility_mean",
+    "expected_gain_estimate",
+    "expected_detection_risk",
+    "expected_search_cost",
+    "target_switch_count",
     "weighted_cumulative_risk",
     "final_risk_sum",
     "attacker_belief_change_l1",
@@ -2382,6 +2407,15 @@ MULTI_SEED_STATS_COLUMNS = [
     "trust_collapse_rate_std",
     "least_trusted_node_mean",
     "most_trusted_node_mean",
+    "expected_utility_final_mean",
+    "expected_utility_final_std",
+    "expected_utility_mean_mean",
+    "expected_utility_mean_std",
+    "expected_gain_estimate_mean",
+    "expected_detection_risk_mean",
+    "expected_search_cost_mean",
+    "target_switch_count_mean",
+    "target_switch_count_std",
     "weighted_cumulative_risk_mean",
     "weighted_cumulative_risk_std",
     "final_risk_sum_mean",
@@ -3292,6 +3326,12 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "trust_collapse_rate",
         "least_trusted_node",
         "most_trusted_node",
+        "expected_utility_final",
+        "expected_utility_mean",
+        "expected_gain_estimate",
+        "expected_detection_risk",
+        "expected_search_cost",
+        "target_switch_count",
         "frustration_final",
         "frustration_mean",
         "frustration_max",
@@ -6049,6 +6089,321 @@ def _write_phase3_trust_report(
         f.write("\n".join(lines) + "\n")
 
 
+PHASE3_EXPECTED_SCENARIO_NAMES = [
+    "phase3_expected_reference",
+    "phase3_expected_frustration_decoy",
+    "phase3_expected_ai_balanced",
+    "phase3_expected_gated_count2",
+]
+
+PHASE3_EXPECTED_COLUMNS = [
+    "scenario",
+    "attacker_mode",
+    "num_runs",
+    "policy_effectiveness_score",
+    "cognitive_neutralization_score",
+    "cns_delta_vs_static",
+    "cns_delta_vs_planning",
+    "cns_delta_vs_trust",
+    "retreat_rate",
+    "retreat_score",
+    "critical_protection_score",
+    "critical_compromise_rate",
+    "planning_score_mean",
+    "planning_score_max",
+    "trust_mean",
+    "trust_min",
+    "trust_collapse_rate",
+    "expected_utility_final",
+    "expected_utility_mean",
+    "expected_gain_estimate",
+    "expected_detection_risk",
+    "expected_search_cost",
+    "target_switch_count",
+    "planned_path",
+    "planned_path_is_critical_rate",
+]
+
+
+def run_phase3_expected_utility_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase3_expected_utility"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for name in PHASE3_EXPECTED_SCENARIO_NAMES:
+        base = SCENARIOS[name]
+        shared_adaptive = {
+            "adaptive_success_weight": 1.0,
+            "adaptive_decoy_weight": 2.0,
+            "adaptive_detection_weight": 1.5,
+            "adaptive_preference_weight": 2.0,
+            "adaptive_success_reward": 1.0,
+            "adaptive_critical_reward": 3.0,
+            "adaptive_decoy_penalty": 2.0,
+            "adaptive_detection_penalty": 1.5,
+            "path_preference_weight": 3.0,
+            "path_success_reward": 1.0,
+            "path_critical_reward": 5.0,
+            "path_decoy_penalty": 2.0,
+            "path_detection_penalty": 1.5,
+            "planning_depth": 2,
+            "planning_success_weight": 1.0,
+            "planning_critical_weight": 5.0,
+            "planning_decoy_penalty": 2.0,
+            "planning_detection_penalty": 1.5,
+        }
+        shared_trust = {
+            "trust_enabled": True,
+            "trust_decoy_penalty": 0.20,
+            "trust_credential_penalty": 0.30,
+            "trust_detection_penalty": 0.15,
+            "trust_success_reward": 0.05,
+        }
+        scenarios[f"{name}__static"] = {
+            **base,
+            "adaptive_attacker_enabled": False,
+            "adaptive_preference_enabled": False,
+            "adaptive_path_enabled": False,
+            "adaptive_planning_enabled": False,
+            "trust_enabled": False,
+            "expected_utility_enabled": False,
+            "attacker_target_selection": "greedy",
+        }
+        scenarios[f"{name}__planning"] = {
+            **base,
+            **shared_adaptive,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": True,
+            "adaptive_planning_enabled": True,
+            "trust_enabled": False,
+            "expected_utility_enabled": False,
+            "attacker_target_selection": "adaptive",
+        }
+        scenarios[f"{name}__trust"] = {
+            **base,
+            **shared_adaptive,
+            **shared_trust,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": True,
+            "adaptive_planning_enabled": True,
+            "expected_utility_enabled": False,
+            "attacker_target_selection": "adaptive",
+        }
+        scenarios[f"{name}__expected"] = {
+            **base,
+            **shared_adaptive,
+            **shared_trust,
+            "adaptive_attacker_enabled": True,
+            "adaptive_preference_enabled": True,
+            "adaptive_path_enabled": True,
+            "adaptive_planning_enabled": True,
+            "expected_utility_enabled": True,
+            "expected_gain_weight": 1.0,
+            "expected_success_weight": 1.0,
+            "expected_detection_cost": 1.0,
+            "expected_search_cost": 1.0,
+            "expected_trust_weight": 1.0,
+            "attacker_target_selection": "adaptive",
+        }
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase3_expected_row(row) for row in stats_rows]
+    _add_phase3_expected_deltas(summary_rows)
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("attacker_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase3_expected_rows(summary_rows)
+    _write_phase3_expected_summary(summary_rows, analysis, output_dir)
+    _plot_phase3_expected_metric(summary_rows, "cognitive_neutralization_score", "Expected Utility Attacker CNS", os.path.join(output_dir, "expected_cns.png"))
+    _plot_phase3_expected_metric(summary_rows, "retreat_rate", "Expected Utility Attacker Retreat Rate", os.path.join(output_dir, "expected_retreat_rate.png"))
+    _plot_phase3_expected_metric(summary_rows, "target_switch_count", "Expected Utility Target Switch Count", os.path.join(output_dir, "expected_target_switch.png"))
+    _write_phase3_expected_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase3_expected_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    if scenario_name.endswith("__expected"):
+        attacker_mode = "expected_utility"
+    elif scenario_name.endswith("__trust"):
+        attacker_mode = "trust_aware_planning"
+    elif scenario_name.endswith("__planning"):
+        attacker_mode = "adaptive_planning"
+    else:
+        attacker_mode = "static"
+    base_scenario = (
+        scenario_name
+        .replace("__static", "")
+        .replace("__planning", "")
+        .replace("__trust", "")
+        .replace("__expected", "")
+    )
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "scenario": base_scenario,
+        "attacker_mode": attacker_mode,
+        "num_runs": row.get("num_runs"),
+        "policy_effectiveness_score": effectiveness,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_delta_vs_static": 0.0,
+        "cns_delta_vs_planning": 0.0,
+        "cns_delta_vs_trust": 0.0,
+        "retreat_rate": row.get("retreat_rate"),
+        "retreat_score": row.get("retreat_score_mean"),
+        "critical_protection_score": row.get("critical_protection_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "planning_score_mean": row.get("planning_score_mean"),
+        "planning_score_max": row.get("planning_score_max_mean"),
+        "trust_mean": row.get("trust_mean_mean"),
+        "trust_min": row.get("trust_min_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "expected_utility_final": row.get("expected_utility_final_mean"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "expected_gain_estimate": row.get("expected_gain_estimate_mean"),
+        "expected_detection_risk": row.get("expected_detection_risk_mean"),
+        "expected_search_cost": row.get("expected_search_cost_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "planned_path": row.get("planned_path"),
+        "planned_path_is_critical_rate": row.get("planned_path_is_critical_rate"),
+    }
+
+
+def _add_phase3_expected_deltas(rows: List[Dict[str, object]]) -> None:
+    by_mode: Dict[str, Dict[str, float]] = {}
+    for mode in ["static", "adaptive_planning", "trust_aware_planning"]:
+        by_mode[mode] = {
+            str(row.get("scenario")): _to_float(row.get("cognitive_neutralization_score"))
+            for row in rows
+            if row.get("attacker_mode") == mode
+        }
+    for row in rows:
+        scenario = str(row.get("scenario"))
+        cns = _to_float(row.get("cognitive_neutralization_score"))
+        row["cns_delta_vs_static"] = cns - by_mode["static"].get(scenario, 0.0)
+        row["cns_delta_vs_planning"] = cns - by_mode["adaptive_planning"].get(scenario, 0.0)
+        row["cns_delta_vs_trust"] = cns - by_mode["trust_aware_planning"].get(scenario, 0.0)
+
+
+def _analyze_phase3_expected_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    expected_rows = [row for row in rows if row.get("attacker_mode") == "expected_utility"]
+    trust_rows = [row for row in rows if row.get("attacker_mode") == "trust_aware_planning"]
+    planning_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_planning"]
+    mean_expected_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in expected_rows])) if expected_rows else 0.0
+    mean_trust_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in trust_rows])) if trust_rows else 0.0
+    mean_planning_cns = float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in planning_rows])) if planning_rows else 0.0
+    best_expected = max(expected_rows, key=lambda row: _to_float(row.get("policy_effectiveness_score"))) if expected_rows else {}
+    frustration = next((row for row in expected_rows if row.get("scenario") == "phase3_expected_frustration_decoy"), {})
+    collapse_values = np.asarray([_to_float(row.get("trust_collapse_rate")) for row in expected_rows], dtype=float)
+    return {
+        "mean_planning_cns": mean_planning_cns,
+        "mean_trust_cns": mean_trust_cns,
+        "mean_expected_cns": mean_expected_cns,
+        "mean_cns_delta_expected_vs_trust": mean_expected_cns - mean_trust_cns,
+        "mean_cns_reduction_expected_vs_trust": mean_trust_cns - mean_expected_cns,
+        "expected_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in expected_rows])) if expected_rows else 0.0,
+        "trust_retreat_rate_mean": float(np.mean([_to_float(row.get("retreat_rate")) for row in trust_rows])) if trust_rows else 0.0,
+        "phase3_frustration_decoy_is_best": frustration.get("scenario") == best_expected.get("scenario"),
+        "best_expected_policy": best_expected.get("scenario"),
+        "target_switch_count_mean": float(np.mean([_to_float(row.get("target_switch_count")) for row in expected_rows])) if expected_rows else 0.0,
+        "target_switch_occurred": any(_to_float(row.get("target_switch_count")) > 0.0 for row in expected_rows),
+        "trust_collapse_rate_mean": float(np.mean(collapse_values)) if len(collapse_values) > 0 else 0.0,
+        "trust_collapse_occurred": bool(np.any(collapse_values > 0.0)) if len(collapse_values) > 0 else False,
+        "expected_attacker_stronger_than_trust": mean_expected_cns < mean_trust_cns,
+        "expected_critical_compromise_rate_mean": float(np.mean([_to_float(row.get("critical_compromise_rate")) for row in expected_rows])) if expected_rows else 0.0,
+        "expected_planned_critical_rate_mean": float(np.mean([_to_float(row.get("planned_path_is_critical_rate")) for row in expected_rows])) if expected_rows else 0.0,
+    }
+
+
+def _write_phase3_expected_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "expected_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE3_EXPECTED_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "expected_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase3_expected_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["static", "adaptive_planning", "trust_aware_planning", "expected_utility"]
+    colors = {
+        "static": "#4c78a8",
+        "adaptive_planning": "#7f3c8d",
+        "trust_aware_planning": "#b279a2",
+        "expected_utility": "#e45756",
+    }
+    x = np.arange(len(scenarios))
+    width = 0.18
+    fig, ax = plt.subplots(figsize=(14, 6))
+    for idx, mode in enumerate(modes):
+        values = []
+        for scenario in scenarios:
+            row = next((candidate for candidate in rows if candidate.get("scenario") == scenario and candidate.get("attacker_mode") == mode), {})
+            values.append(_to_float(row.get(key)))
+        ax.bar(x + (idx - 1.5) * width, values, width=width, color=colors[mode], label=mode)
+    labels = [scenario.replace("phase3_expected_", "") for scenario in scenarios]
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase3_expected_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase3 Expected Utility Attacker Report",
+        "",
+        "## Questions",
+        f"1. Expected Utility attacker CNS reduction vs Trust-Aware attacker: `{_to_float(analysis.get('mean_cns_reduction_expected_vs_trust')):.3f}` (trust `{_to_float(analysis.get('mean_trust_cns')):.3f}`, expected `{_to_float(analysis.get('mean_expected_cns')):.3f}`).",
+        f"2. retreat_rate maintained: expected `{_to_float(analysis.get('expected_retreat_rate_mean')):.3f}` vs trust `{_to_float(analysis.get('trust_retreat_rate_mean')):.3f}`.",
+        f"3. phase2_frustration_decoy lineage is still strongest: `{analysis.get('phase3_frustration_decoy_is_best')}`.",
+        f"4. target_switch occurred: `{analysis.get('target_switch_occurred')}` (mean switch count `{_to_float(analysis.get('target_switch_count_mean')):.3f}`).",
+        f"5. trust collapse remains observable: `{analysis.get('trust_collapse_occurred')}` (mean collapse rate `{_to_float(analysis.get('trust_collapse_rate_mean')):.3f}`).",
+        f"6. Expected Utility attacker stronger than Trust-Aware attacker: `{analysis.get('expected_attacker_stronger_than_trust')}`.",
+        f"7. Critical asset movement: critical compromise rate `{_to_float(analysis.get('expected_critical_compromise_rate_mean')):.3f}`, planned critical path rate `{_to_float(analysis.get('expected_planned_critical_rate_mean')):.3f}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | CNS | retreat_rate | effectiveness | expected_utility_mean | trust_collapse_rate | target_switch_count | critical_compromise_rate |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('attacker_mode')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} | "
+            f"{_to_float(row.get('policy_effectiveness_score')):.3f} | "
+            f"{_to_float(row.get('expected_utility_mean')):.3f} | "
+            f"{_to_float(row.get('trust_collapse_rate')):.3f} | "
+            f"{_to_float(row.get('target_switch_count')):.3f} | "
+            f"{_to_float(row.get('critical_compromise_rate')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE3_EXPECTED_UTILITY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 PHASE2_CNS_OBJECTIVE_SCENARIO_NAMES = [
     "phase2_frustration_decoy",
     "phase2_frustration_credential",
@@ -7414,3 +7769,5 @@ if __name__ == "__main__":
         print(f"Completed Phase3.4 planning attacker evaluation for {len(planning_rows)} rows. Summary written to output/phase3_planning_attacker.")
         trust_rows = run_phase3_trust_attacker_evaluation(seeds=MULTI_SEED_VALUES)
         print(f"Completed Phase3.5 trust-aware planning attacker evaluation for {len(trust_rows)} rows. Summary written to output/phase3_trust_attacker.")
+        expected_rows = run_phase3_expected_utility_evaluation(seeds=MULTI_SEED_VALUES)
+        print(f"Completed Phase3.6 expected utility attacker evaluation for {len(expected_rows)} rows. Summary written to output/phase3_expected_utility.")

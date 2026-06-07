@@ -159,6 +159,12 @@ class SimulationConfig:
     trust_credential_penalty: float = 0.30
     trust_detection_penalty: float = 0.15
     trust_success_reward: float = 0.05
+    expected_utility_enabled: bool = False
+    expected_gain_weight: float = 1.0
+    expected_success_weight: float = 1.0
+    expected_detection_cost: float = 1.0
+    expected_search_cost: float = 1.0
+    expected_trust_weight: float = 1.0
     attacker_lateral_enabled: bool = False
     attacker_lateral_success_prob: float = 0.8
     attacker_lateral_detection_prob: float = 0.2
@@ -399,6 +405,16 @@ class SimulationConfig:
             errors.append("trust_detection_penalty must be between 0 and 1")
         if not 0 <= self.trust_success_reward <= 1:
             errors.append("trust_success_reward must be between 0 and 1")
+        if self.expected_gain_weight < 0:
+            errors.append("expected_gain_weight must be >= 0")
+        if self.expected_success_weight < 0:
+            errors.append("expected_success_weight must be >= 0")
+        if self.expected_detection_cost < 0:
+            errors.append("expected_detection_cost must be >= 0")
+        if self.expected_search_cost < 0:
+            errors.append("expected_search_cost must be >= 0")
+        if self.expected_trust_weight < 0:
+            errors.append("expected_trust_weight must be >= 0")
         if not 0 <= self.attacker_lateral_success_prob <= 1:
             errors.append("attacker_lateral_success_prob must be between 0 and 1")
         if not 0 <= self.attacker_lateral_detection_prob <= 1:
@@ -688,6 +704,12 @@ class AttackerModel:
     trust_credential_penalty: float = 0.30
     trust_detection_penalty: float = 0.15
     trust_success_reward: float = 0.05
+    expected_utility_enabled: bool = False
+    expected_gain_weight: float = 1.0
+    expected_success_weight: float = 1.0
+    expected_detection_cost: float = 1.0
+    expected_search_cost: float = 1.0
+    expected_trust_weight: float = 1.0
     lateral_enabled: bool = False
     lateral_success_prob: float = 0.8
     lateral_detection_prob: float = 0.2
@@ -737,6 +759,10 @@ class AttackerModel:
     last_planned_path: Optional[List[int]] = None
     last_planned_path_score: float = 0.0
     node_trust_score: Optional[Dict[int, float]] = None
+    last_expected_utility: Optional[np.ndarray] = None
+    last_expected_gain_estimate: Optional[np.ndarray] = None
+    last_expected_detection_risk: Optional[np.ndarray] = None
+    last_expected_search_cost: Optional[np.ndarray] = None
 
     def __post_init__(self):
         if self.attacker_belief is None:
@@ -767,6 +793,10 @@ class AttackerModel:
         self.last_planned_path = []
         self.last_planned_path_score = 0.0
         self.node_trust_score = {node_id: 1.0 for node_id in range(n_nodes)}
+        self.last_expected_utility = np.zeros(n_nodes, dtype=float)
+        self.last_expected_gain_estimate = np.zeros(n_nodes, dtype=float)
+        self.last_expected_detection_risk = np.zeros(n_nodes, dtype=float)
+        self.last_expected_search_cost = np.zeros(n_nodes, dtype=float)
 
     @property
     def utility(self) -> float:
@@ -878,12 +908,14 @@ class AttackerModel:
         path_score = self._path_candidate_score(n_nodes)
         path_weight = self.path_preference_weight if self.adaptive_path_enabled else 0.0
         planning_score = self._planning_candidate_score(x_current, M_current)
+        expected_utility = self._expected_utility(x_current, M_current)
         return (
             score
             + self.adaptive_success_weight * success_memory
             + preference_weight * preference_score
             + path_weight * path_score
             + planning_score
+            + expected_utility
             - self.adaptive_decoy_weight * decoy_memory
             - self.adaptive_detection_weight * detection_memory
         )
@@ -901,6 +933,58 @@ class AttackerModel:
         if self.node_trust_score is None:
             return np.ones(n_nodes, dtype=float)
         return np.array([float(self.node_trust_score.get(node_id, 1.0)) for node_id in range(n_nodes)], dtype=float)
+
+    def _expected_utility(self, x_current: np.ndarray, M_current: np.ndarray) -> np.ndarray:
+        n_nodes = len(x_current)
+        if not self.expected_utility_enabled:
+            self.last_expected_utility = np.zeros(n_nodes, dtype=float)
+            self.last_expected_gain_estimate = np.zeros(n_nodes, dtype=float)
+            self.last_expected_detection_risk = np.zeros(n_nodes, dtype=float)
+            self.last_expected_search_cost = np.zeros(n_nodes, dtype=float)
+            return self.last_expected_utility
+
+        defense_strength = M_current.sum(axis=1)
+        belief = self._attacker_belief_or_default(n_nodes)
+        success_probability = np.clip(
+            self.success_base_rate * np.exp(-self.success_defense_decay * defense_strength),
+            0.0,
+            1.0,
+        )
+        detection_risk = np.clip(
+            self.detection_sensitivity * defense_strength / np.maximum(defense_strength + 1.0, 1.0),
+            0.0,
+            1.0,
+        )
+        trust = np.power(np.clip(self.trust_vector(n_nodes), 0.0, 1.0), self.expected_trust_weight)
+        expected_gain = self.expected_gain_weight * belief * (x_current + self.attack_budget)
+        search_cost = self._expected_search_cost(n_nodes)
+        expected_utility = (
+            expected_gain
+            * (self.expected_success_weight * success_probability)
+            * trust
+            - self.expected_detection_cost * detection_risk
+            - self.expected_search_cost * search_cost
+        )
+        self.last_expected_utility = np.asarray(expected_utility, dtype=float)
+        self.last_expected_gain_estimate = np.asarray(expected_gain, dtype=float)
+        self.last_expected_detection_risk = np.asarray(detection_risk, dtype=float)
+        self.last_expected_search_cost = np.asarray(search_cost, dtype=float)
+        return self.last_expected_utility
+
+    def _expected_search_cost(self, n_nodes: int) -> np.ndarray:
+        if not self.lateral_enabled or self.adjacency_matrix is None:
+            return np.zeros(n_nodes, dtype=float)
+        reachable = set(int(node) for node in self.reachable_nodes(n_nodes))
+        visited = set(int(node) for node in (self.visited_nodes or set()))
+        costs = np.ones(n_nodes, dtype=float)
+        for node_id in range(n_nodes):
+            if node_id == int(self.current_node):
+                costs[node_id] = 0.0
+            elif node_id in reachable:
+                costs[node_id] = 0.25
+            elif node_id in visited:
+                costs[node_id] = 0.5
+        return costs
 
     def _path_key(self, nodes: List[int]) -> str:
         return "->".join(str(int(node)) for node in nodes)
@@ -1514,6 +1598,7 @@ class CyberDefenseSimulator:
             'path_preference_score': [],
             'planning_score': [],
             'trust_score': [],
+            'expected_utility': [],
             'defender_observed_belief': [],
             'defender_estimated_belief': [],
             'defender_target_counts': [],
@@ -1597,6 +1682,12 @@ class CyberDefenseSimulator:
             trust_credential_penalty=self.config.trust_credential_penalty,
             trust_detection_penalty=self.config.trust_detection_penalty,
             trust_success_reward=self.config.trust_success_reward,
+            expected_utility_enabled=self.config.expected_utility_enabled,
+            expected_gain_weight=self.config.expected_gain_weight,
+            expected_success_weight=self.config.expected_success_weight,
+            expected_detection_cost=self.config.expected_detection_cost,
+            expected_search_cost=self.config.expected_search_cost,
+            expected_trust_weight=self.config.expected_trust_weight,
             lateral_enabled=self.config.attacker_lateral_enabled,
             lateral_success_prob=self.config.attacker_lateral_success_prob,
             lateral_detection_prob=self.config.attacker_lateral_detection_prob,
@@ -1940,6 +2031,11 @@ class CyberDefenseSimulator:
                 else np.zeros(self.config.n_nodes, dtype=float)
             )
             self.history['trust_score'].append(self.attacker.trust_vector(self.config.n_nodes))
+            self.history['expected_utility'].append(
+                np.asarray(self.attacker.last_expected_utility, dtype=float).copy()
+                if self.attacker.last_expected_utility is not None
+                else np.zeros(self.config.n_nodes, dtype=float)
+            )
             self.history['defender_observed_belief'].append(self.defender_observed_belief.copy())
             self.history['defender_estimated_belief'].append(self.defender_estimated_belief.copy())
             self.history['defender_target_counts'].append(self.defender_target_counts.copy())
@@ -3003,6 +3099,7 @@ class CyberDefenseSimulator:
         preference_history = np.asarray(self.history.get('preference_score', []), dtype=float)
         planning_history = np.asarray(self.history.get('planning_score', []), dtype=float)
         trust_history = np.asarray(self.history.get('trust_score', []), dtype=float)
+        expected_utility_history = np.asarray(self.history.get('expected_utility', []), dtype=float)
         ai_weighted_cost = (
             float(np.mean(ai_total_decision_cost_series))
             if len(ai_total_decision_cost_series) > 0
@@ -3066,6 +3163,7 @@ class CyberDefenseSimulator:
         selected_targets = np.asarray(self.history['attacker_selected_target'], dtype=int)
         valid_targets = selected_targets[selected_targets >= 0]
         valid_attack_mask = selected_targets >= 0
+        target_switch_count = int(np.count_nonzero(np.diff(valid_targets) != 0)) if len(valid_targets) > 1 else 0
         target_counts = np.bincount(valid_targets, minlength=self.config.n_nodes).astype(int).tolist()
         attacker_most_targeted_node = int(np.argmax(target_counts)) if len(valid_targets) > 0 else None
         belief_error = self.config.attacker_belief - self.config.asset_value
@@ -3189,6 +3287,31 @@ class CyberDefenseSimulator:
         trust_collapse_rate = float(np.mean(final_trust < 0.5)) if len(final_trust) > 0 else 0.0
         least_trusted_node = int(np.argmin(final_trust)) if len(final_trust) > 0 else None
         most_trusted_node = int(np.argmax(final_trust)) if len(final_trust) > 0 else None
+        expected_utility_values = (
+            expected_utility_history[np.isfinite(expected_utility_history)]
+            if expected_utility_history.size > 0
+            else np.asarray([], dtype=float)
+        )
+        expected_utility_final_values = (
+            expected_utility_history[-1]
+            if len(expected_utility_history) > 0
+            else np.asarray([], dtype=float)
+        )
+        expected_gain_vector = (
+            self.attacker.last_expected_gain_estimate
+            if self.attacker.last_expected_gain_estimate is not None
+            else np.zeros(self.config.n_nodes, dtype=float)
+        )
+        expected_detection_vector = (
+            self.attacker.last_expected_detection_risk
+            if self.attacker.last_expected_detection_risk is not None
+            else np.zeros(self.config.n_nodes, dtype=float)
+        )
+        expected_search_vector = (
+            self.attacker.last_expected_search_cost
+            if self.attacker.last_expected_search_cost is not None
+            else np.zeros(self.config.n_nodes, dtype=float)
+        )
         decoy_on_critical_path = any(
             int(node) in decoy_nodes
             for path in critical_paths
@@ -3314,6 +3437,7 @@ class CyberDefenseSimulator:
             'attacker_success_rate': attacker_success_rate,
             'attacker_target_counts': target_counts,
             'attacker_most_targeted_node': attacker_most_targeted_node,
+            'target_switch_count': target_switch_count,
             'attacker_greedy_mode': self.attacker.greedy_mode,
             'asset_value': self.config.asset_value.tolist(),
             'attacker_belief': self.config.attacker_belief.tolist(),
@@ -3422,6 +3546,12 @@ class CyberDefenseSimulator:
             'trust_credential_penalty': float(self.config.trust_credential_penalty),
             'trust_detection_penalty': float(self.config.trust_detection_penalty),
             'trust_success_reward': float(self.config.trust_success_reward),
+            'expected_utility_enabled': bool(self.config.expected_utility_enabled),
+            'expected_gain_weight': float(self.config.expected_gain_weight),
+            'expected_success_weight': float(self.config.expected_success_weight),
+            'expected_detection_cost': float(self.config.expected_detection_cost),
+            'expected_search_cost': float(self.config.expected_search_cost),
+            'expected_trust_weight': float(self.config.expected_trust_weight),
             'adaptive_memory_success_mean': (
                 float(np.mean(success_memory_history[-1]))
                 if len(success_memory_history) > 0
@@ -3459,6 +3589,11 @@ class CyberDefenseSimulator:
             'least_trusted_node': least_trusted_node,
             'most_trusted_node': most_trusted_node,
             'node_trust_score': [float(value) for value in final_trust.tolist()],
+            'expected_utility_final': float(np.max(expected_utility_final_values)) if len(expected_utility_final_values) > 0 else 0.0,
+            'expected_utility_mean': float(np.mean(expected_utility_values)) if len(expected_utility_values) > 0 else 0.0,
+            'expected_gain_estimate': float(np.mean(expected_gain_vector)) if len(expected_gain_vector) > 0 else 0.0,
+            'expected_detection_risk': float(np.mean(expected_detection_vector)) if len(expected_detection_vector) > 0 else 0.0,
+            'expected_search_cost': float(np.mean(expected_search_vector)) if len(expected_search_vector) > 0 else 0.0,
             'attacker_initial_belief': initial_belief.tolist(),
             'attacker_final_belief': final_belief.tolist(),
             'attacker_belief_change_l1': float(np.sum(np.abs(belief_change))),
@@ -3665,6 +3800,7 @@ class CyberDefenseSimulator:
                 path_preference_score=np.asarray(self.history['path_preference_score'], dtype='<U4096'),
                 planning_score=np.asarray(self.history['planning_score'], dtype=float),
                 trust_score=np.asarray(self.history['trust_score'], dtype=float),
+                expected_utility=np.asarray(self.history['expected_utility'], dtype=float),
                 defender_observed_belief=np.asarray(self.history['defender_observed_belief'], dtype=float),
                 defender_estimated_belief=np.asarray(self.history['defender_estimated_belief'], dtype=float),
                 defender_target_counts=np.asarray(self.history['defender_target_counts'], dtype=float),

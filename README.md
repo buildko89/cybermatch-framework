@@ -5,7 +5,7 @@ CyberMatch is a cyber-defense evaluation framework for both:
 - Defense Neutralization
 - Decision Neutralization
 
-It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost. Phase3 validates Decision Neutralization against adaptive attackers.
+It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost. Phase3 validates Decision Neutralization against adaptive and rational attackers.
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ Run:
 python scripts/run_phase2.py
 ```
 
-### Phase3 - Adaptive Attacker Validation
+### Phase3-A - Adaptive Attacker Validation
 
 Goal:
 Evaluate whether Decision Neutralization remains effective against adaptive attackers.
@@ -81,6 +81,26 @@ Run:
 
 ```bash
 python scripts/run_phase3a.py
+```
+
+### Phase3-B - Rational Attacker Validation
+
+Goal:
+Evaluate whether Decision Neutralization remains effective against a rational attacker.
+
+Implemented attacker model:
+
+- Expected Utility attacker
+
+Current finding:
+
+- Expected Utility attacker is the strongest attacker model evaluated so far.
+- Decision Neutralization still remains effective.
+
+Run:
+
+```bash
+python scripts/run_phase3b.py
 ```
 
 ### All Evaluations
@@ -113,13 +133,21 @@ Main Phase2 policy finding:
 
 - `phase2_frustration_decoy`
 
-### Phase3 Summary
+### Phase3-A Summary
 
 Phase3-A introduces Adaptive Attacker Validation. It evaluates memory, node preference, path preference, path planning, and trust-aware planning attackers without introducing RL/DQN/PPO.
 
 Main Phase3-A finding:
 
 - Decision Neutralization remains stable through Memory -> Preference -> Path Preference -> Planning -> Trust-Aware Planning.
+
+### Phase3-B Summary
+
+Phase3-B introduces Rational Attacker Validation. It evaluates the Expected Utility attacker without introducing RL/DQN/PPO.
+
+Main Phase3-B finding:
+
+- Expected Utility is the strongest attacker model evaluated so far, and Decision Neutralization still remains effective.
 
 ### Recommended Policies
 
@@ -145,6 +173,11 @@ Phase3-A:
 - [Phase3-A final report](docs/CYBERMATCH_PHASE3A_FINAL_REPORT.md)
 - [Phase3-A artifacts](docs/PHASE3A_ARTIFACTS.md)
 
+Phase3-B:
+
+- [Phase3-B final report](docs/CYBERMATCH_PHASE3B_FINAL_REPORT.md)
+- [Phase3-B artifacts](docs/PHASE3B_ARTIFACTS.md)
+
 Release and reproducibility:
 
 - [GitHub release notes](docs/GITHUB_RELEASE_NOTES.md)
@@ -165,6 +198,7 @@ cybermatch-framework/
     run_phase2.py
     run_phase3.py
     run_phase3a.py
+    run_phase3b.py
     run_all.py
   tests/
   docs/

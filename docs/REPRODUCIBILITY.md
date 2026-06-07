@@ -28,10 +28,10 @@ Required packages are listed in `requirements.txt`:
 python -m pytest
 ```
 
-Expected Phase2 finalization result:
+Expected current result:
 
 ```text
-199 passed
+205 passed
 ```
 
 ## Compile Check
@@ -58,6 +58,12 @@ Run Phase3-A Adaptive Attacker Validation only:
 
 ```powershell
 python .\scripts\run_phase3a.py
+```
+
+Run Phase3-B Rational Attacker Validation only:
+
+```powershell
+python .\scripts\run_phase3b.py
 ```
 
 Run all publication evaluations:
@@ -111,3 +117,18 @@ Expected Phase3-A artifacts:
 - `output/phase3_publication/*/*_summary.json`
 - `output/phase3_publication/*/runs/summary_runs.csv`
 - `output/phase3_publication/*/runs/summary_stats.json`
+
+Primary Phase3-B outputs:
+
+- `output/phase3_expected_utility/`
+
+Expected Phase3-B artifacts:
+
+- `output/phase3_expected_utility/expected_summary.csv`
+- `output/phase3_expected_utility/expected_summary.json`
+- `output/phase3_expected_utility/expected_cns.png`
+- `output/phase3_expected_utility/expected_retreat_rate.png`
+- `output/phase3_expected_utility/expected_target_switch.png`
+- `output/phase3_expected_utility/PHASE3_EXPECTED_UTILITY_REPORT.md`
+- `output/phase3_expected_utility/runs/summary_runs.csv`
+- `output/phase3_expected_utility/runs/summary_stats.json`
