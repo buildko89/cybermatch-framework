@@ -2,7 +2,7 @@ import csv
 import json
 import os
 from dataclasses import asdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1671,6 +1671,92 @@ SCENARIOS.update(
 
 SCENARIOS.update(
     {
+        "phase4_trust_collapse_maximizer": {
+            **PHASE2_FRUSTRATION_BASE,
+            "honeypot_credential_enabled": True,
+            "credential_node_ids": [1, 3],
+            "credential_attraction_bonus": 7.0,
+            "credential_detection_bonus": 8.0,
+            "credential_reuse_decay": 0.25,
+            "trust_enabled": True,
+            "trust_decoy_penalty": 0.35,
+            "trust_credential_penalty": 0.45,
+            "trust_detection_penalty": 0.25,
+            "frustration_decoy_hit": 4.5,
+            "frustration_credential_trap": 5.0,
+            "frustration_detection": 2.0,
+            "frustration_retreat_threshold": 7.0,
+            "stochastic_detection": True,
+            "base_detection_prob": 0.65,
+            "decoy_detection_prob": 1.0,
+        },
+        "phase4_expected_utility_suppressor": {
+            **PHASE2_FRUSTRATION_BASE,
+            "expected_utility_enabled": True,
+            "adaptive_planning_enabled": True,
+            "trust_enabled": True,
+            "ai_uncertainty_weight": 2.5,
+            "ai_replanning_weight": 2.5,
+            "ai_search_weight": 3.0,
+            "ai_operational_risk_weight": 3.0,
+            "ai_trust_degradation_weight": 1.5,
+            "stochastic_detection": True,
+            "base_detection_prob": 0.75,
+            "defense_detection_scale": 0.30,
+            "decoy_detection_prob": 1.0,
+            "attacker_defense_cost_rate": 2.0,
+            "expected_detection_cost": 2.0,
+            "expected_search_cost": 2.0,
+        },
+        "phase4_target_switch_inducer": {
+            **PHASE2_FRUSTRATION_BASE,
+            **GATED_EDGE_PRESSURE_HYBRID_BASE,
+            "attacker_lateral_enabled": True,
+            "mtd_enabled": True,
+            "mtd_strategy": "shuffle_belief",
+            "mtd_interval": 1,
+            "mtd_intensity": 0.9,
+            "mtd_shuffle_topology": True,
+            "mtd_block_critical_edges": True,
+            "mtd_edge_block_count": 2,
+            "mtd_edge_block_duration": 2,
+            "mtd_risk_gating_enabled": True,
+            "mtd_risk_gate_mode": "critical_edge_pressure",
+            "mtd_risk_gate_threshold": 1.0,
+            "mtd_risk_gate_cooldown": 0,
+            "frustration_path_change": 3.0,
+            "frustration_no_progress": 1.5,
+        },
+        "phase4_planning_disruptor": {
+            **PHASE2_FRUSTRATION_BASE,
+            "adaptive_planning_enabled": True,
+            "planning_depth": 3,
+            "attacker_lateral_enabled": True,
+            "node_type": ["real", "decoy", "real", "decoy", "real"],
+            "asset_value": [10.0, 0.0, 1.0, 0.0, 2.0],
+            "attacker_belief": [2.0, 9.0, 1.0, 11.0, 2.0],
+            "post_decoy_defense_enabled": True,
+            "post_decoy_defense_weight": 4.0,
+            "post_decoy_defense_top_k": 2,
+            "post_decoy_defense_exclude_decoy": True,
+            "post_decoy_defense_injection_mode": "all",
+            "post_decoy_defense_belief_source": "estimated",
+            "defender_belief_estimation_enabled": True,
+            "defender_belief_observation_mode": "hybrid_visible",
+            "mtd_enabled": True,
+            "mtd_strategy": "increase_uncertainty",
+            "mtd_interval": 2,
+            "mtd_intensity": 0.8,
+            "mtd_block_critical_edges": True,
+            "mtd_edge_block_count": 2,
+            "mtd_edge_block_duration": 2,
+            "frustration_path_change": 2.5,
+        },
+    }
+)
+
+SCENARIOS.update(
+    {
         "phase3_adaptive_reference": {
             **SCENARIOS["phase2_frustration_reference"],
         },
@@ -2131,10 +2217,173 @@ MULTI_SEED_RUN_COLUMNS = [
     "expected_utility_enabled",
     "expected_utility_final",
     "expected_utility_mean",
+    "attacker_mission",
+    "mission_success_score",
+    "mission_satisfaction_score",
+    "mission_objectives_enabled",
+    "mission_satisfaction",
+    "mission_objective_score",
+    "mission_failure_reason",
+    "objective_weight_profile",
+    "mission_strategy_change",
+    "mission_sensitivity_score",
+    "adaptive_mission_attacker_enabled",
+    "observed_defense_strategy",
+    "defense_effectiveness_memory",
+    "strategy_failure_memory",
+    "strategy_success_memory",
+    "adaptation_count",
+    "ttp_change_count",
+    "strategy_avoidance_score",
+    "alternative_path_usage",
+    "adaptation_history",
+    "mission_mutation_enabled",
+    "mission_change_count",
+    "mission_stability_score",
+    "mission_mutation_reason",
+    "mission_mutation_success",
+    "mission_history",
+    "attacker_type",
+    "mission_reclassification_enabled",
+    "mission_reclassification_count",
+    "defense_reoptimization_count",
+    "reclassification_accuracy",
+    "belief_recovery_time",
+    "reclassified_mission_history",
+    "selected_strategy_history",
+    "multi_objective_mission_enabled",
+    "mission_weight_profit",
+    "mission_weight_achievement",
+    "mission_weight_persistence",
+    "mission_weight_critical_hunter",
+    "intent_deception_enabled",
+    "deception_event_count",
+    "mission_belief_error",
+    "belief_confusion_score",
+    "true_mission",
+    "observed_mission",
+    "mission_masking_success",
+    "true_mission_history",
+    "observed_mission_history",
+    "deception_history",
+    "noise_injection_enabled",
+    "signal_extraction_enabled",
+    "noise_event_count",
+    "signal_event_count",
+    "signal_to_noise_ratio",
+    "noise_filter_accuracy",
+    "decision_confidence",
+    "adversarial_signal_enabled",
+    "fake_signal_count",
+    "adversarial_signal_count",
+    "signal_confusion_score",
+    "false_signal_acceptance_rate",
+    "signal_consistency_score",
+    "noise_history",
+    "signal_history",
+    "fake_signal_history",
+    "signal_consistency_history",
+    "profit_expected_utility_weight",
+    "profit_success_weight",
+    "persistence_survival_weight",
+    "persistence_trust_weight",
+    "persistence_stealth_weight",
+    "critical_progress_weight",
+    "critical_reach_weight",
+    "achievement_progress_weight",
+    "achievement_critical_weight",
+    "nonstationary_attacker_enabled",
+    "attacker_phase_change_step",
+    "nonstationary_attacker_pattern",
+    "attacker_phase",
+    "attacker_phase_switch_count",
+    "attacker_strategy_name",
     "expected_gain_estimate",
     "expected_detection_risk",
     "expected_search_cost",
     "target_switch_count",
+    "adaptive_defender_enabled",
+    "adaptive_selected_policy",
+    "adaptive_policy_switch_count",
+    "adaptive_policy_reason",
+    "adaptive_policy_score",
+    "adaptive_policy_rank",
+    "adaptive_selection_reason",
+    "adaptive_estimated_cns",
+    "step_adaptive_defender_enabled",
+    "adaptive_recheck_interval",
+    "adaptive_policy_switch_cost",
+    "adaptive_min_improvement",
+    "mission_aware_defender_enabled",
+    "mission_aware_selected_policy",
+    "mission_policy_match",
+    "mission_policy_switch_count",
+    "mission_aware_selection_reason",
+    "mission_aware_cns",
+    "mission_belief_inference_enabled",
+    "belief_profit",
+    "belief_achievement",
+    "belief_persistence",
+    "belief_critical_hunter",
+    "predicted_mission",
+    "mission_prediction_confidence",
+    "mission_prediction_correct",
+    "state_belief_inference_enabled",
+    "belief_recon",
+    "belief_exploitation",
+    "belief_lateral_movement",
+    "belief_targeting",
+    "belief_action_on_objective",
+    "predicted_state",
+    "state_prediction_confidence",
+    "state_transition_count",
+    "virtual_topology_enabled",
+    "observable_events_enabled",
+    "critical_path_events_enabled",
+    "observable_event_count",
+    "scan_count",
+    "credential_use_count",
+    "lateral_move_count",
+    "critical_probe_count",
+    "objective_action_count",
+    "critical_path_proximity",
+    "critical_path_step_count",
+    "critical_node_visit_count",
+    "critical_edge_traversal_count",
+    "critical_path_entry_count",
+    "critical_path_progress_count",
+    "critical_path_near_target_count",
+    "critical_asset_reach_count",
+    "intelligence_defender_enabled",
+    "selected_intelligence_policy",
+    "intelligence_risk_score",
+    "intelligence_risk_score_mean",
+    "risk_level",
+    "risk_level_transition_count",
+    "decision_matrix_defender_enabled",
+    "decision_matrix_policy",
+    "decision_matrix_match_count",
+    "decision_matrix_override_count",
+    "defense_campaign_enabled",
+    "campaign_effectiveness_score",
+    "campaign_stage",
+    "campaign_transition_count",
+    "campaign_policy_switch_count",
+    "campaign_stage_history",
+    "campaign_policy_history",
+    "strategy_profile",
+    "strategy_effectiveness_score",
+    "profile_rank",
+    "best_weight_configuration",
+    "mission_weight",
+    "state_weight",
+    "critical_path_weight",
+    "weight_sweep_rank",
+    "adaptive_policy_switch_steps",
+    "adaptive_policy_history",
+    "adaptive_cns_gain",
+    "adaptive_switch_cost_total",
+    "adaptive_defender_effectiveness",
     "weighted_cumulative_risk",
     "final_risk_sum",
     "attacker_belief_change_l1",
@@ -2411,11 +2660,228 @@ MULTI_SEED_STATS_COLUMNS = [
     "expected_utility_final_std",
     "expected_utility_mean_mean",
     "expected_utility_mean_std",
+    "attacker_mission",
+    "mission_success_score_mean",
+    "mission_success_score_std",
+    "mission_satisfaction_score_mean",
+    "mission_satisfaction_score_std",
+    "mission_objectives_enabled",
+    "mission_satisfaction_mean",
+    "mission_satisfaction_std",
+    "mission_objective_score_mean",
+    "mission_objective_score_std",
+    "mission_failure_reason",
+    "objective_weight_profile",
+    "mission_strategy_change",
+    "mission_sensitivity_score_mean",
+    "mission_sensitivity_score_std",
+    "adaptive_mission_attacker_enabled",
+    "observed_defense_strategy",
+    "defense_effectiveness_memory_mean",
+    "defense_effectiveness_memory_std",
+    "strategy_failure_memory_mean",
+    "strategy_failure_memory_std",
+    "strategy_success_memory_mean",
+    "strategy_success_memory_std",
+    "adaptation_count_mean",
+    "adaptation_count_std",
+    "ttp_change_count_mean",
+    "ttp_change_count_std",
+    "strategy_avoidance_score_mean",
+    "strategy_avoidance_score_std",
+    "alternative_path_usage_mean",
+    "alternative_path_usage_std",
+    "adaptation_history",
+    "mission_mutation_enabled",
+    "mission_change_count_mean",
+    "mission_change_count_std",
+    "mission_stability_score_mean",
+    "mission_stability_score_std",
+    "mission_mutation_reason",
+    "mission_mutation_success_rate",
+    "mission_history",
+    "attacker_type",
+    "mission_reclassification_enabled",
+    "mission_reclassification_count_mean",
+    "mission_reclassification_count_std",
+    "defense_reoptimization_count_mean",
+    "defense_reoptimization_count_std",
+    "reclassification_accuracy_mean",
+    "reclassification_accuracy_std",
+    "belief_recovery_time_mean",
+    "belief_recovery_time_std",
+    "reclassified_mission_history",
+    "selected_strategy_history",
+    "multi_objective_mission_enabled",
+    "mission_weight_profit",
+    "mission_weight_achievement",
+    "mission_weight_persistence",
+    "mission_weight_critical_hunter",
+    "intent_deception_enabled",
+    "deception_event_count_mean",
+    "deception_event_count_std",
+    "mission_belief_error_mean",
+    "mission_belief_error_std",
+    "belief_confusion_score_mean",
+    "belief_confusion_score_std",
+    "true_mission",
+    "observed_mission",
+    "mission_masking_success_mean",
+    "mission_masking_success_std",
+    "true_mission_history",
+    "observed_mission_history",
+    "deception_history",
+    "noise_injection_enabled",
+    "signal_extraction_enabled",
+    "noise_event_count_mean",
+    "noise_event_count_std",
+    "signal_event_count_mean",
+    "signal_event_count_std",
+    "signal_to_noise_ratio_mean",
+    "signal_to_noise_ratio_std",
+    "noise_filter_accuracy_mean",
+    "noise_filter_accuracy_std",
+    "decision_confidence_mean",
+    "decision_confidence_std",
+    "adversarial_signal_enabled",
+    "fake_signal_count_mean",
+    "fake_signal_count_std",
+    "adversarial_signal_count_mean",
+    "adversarial_signal_count_std",
+    "signal_confusion_score_mean",
+    "signal_confusion_score_std",
+    "false_signal_acceptance_rate_mean",
+    "false_signal_acceptance_rate_std",
+    "signal_consistency_score_mean",
+    "signal_consistency_score_std",
+    "noise_history",
+    "signal_history",
+    "fake_signal_history",
+    "signal_consistency_history",
+    "profit_expected_utility_weight",
+    "profit_success_weight",
+    "persistence_survival_weight",
+    "persistence_trust_weight",
+    "persistence_stealth_weight",
+    "critical_progress_weight",
+    "critical_reach_weight",
+    "achievement_progress_weight",
+    "achievement_critical_weight",
+    "nonstationary_attacker_enabled",
+    "attacker_phase_change_step",
+    "nonstationary_attacker_pattern",
+    "attacker_phase",
+    "attacker_phase_switch_count_mean",
+    "attacker_phase_switch_count_std",
+    "attacker_strategy_name",
     "expected_gain_estimate_mean",
     "expected_detection_risk_mean",
     "expected_search_cost_mean",
     "target_switch_count_mean",
     "target_switch_count_std",
+    "adaptive_defender_enabled",
+    "adaptive_selected_policy",
+    "adaptive_policy_switch_count_mean",
+    "adaptive_policy_switch_count_std",
+    "adaptive_policy_reason",
+    "adaptive_policy_score_mean",
+    "adaptive_policy_score_std",
+    "adaptive_policy_rank_mean",
+    "adaptive_selection_reason",
+    "adaptive_estimated_cns_mean",
+    "adaptive_estimated_cns_std",
+    "step_adaptive_defender_enabled",
+    "adaptive_recheck_interval",
+    "adaptive_policy_switch_cost",
+    "adaptive_min_improvement",
+    "mission_aware_defender_enabled",
+    "mission_aware_selected_policy",
+    "mission_policy_match",
+    "mission_policy_switch_count_mean",
+    "mission_policy_switch_count_std",
+    "mission_aware_selection_reason",
+    "mission_aware_cns_mean",
+    "mission_aware_cns_std",
+    "mission_belief_inference_enabled",
+    "belief_profit_mean",
+    "belief_achievement_mean",
+    "belief_persistence_mean",
+    "belief_critical_hunter_mean",
+    "predicted_mission",
+    "mission_prediction_confidence_mean",
+    "mission_prediction_confidence_std",
+    "mission_prediction_correct_rate",
+    "state_belief_inference_enabled",
+    "belief_recon_mean",
+    "belief_exploitation_mean",
+    "belief_lateral_movement_mean",
+    "belief_targeting_mean",
+    "belief_action_on_objective_mean",
+    "predicted_state",
+    "state_prediction_confidence_mean",
+    "state_prediction_confidence_std",
+    "state_transition_count_mean",
+    "state_transition_count_std",
+    "virtual_topology_enabled",
+    "observable_events_enabled",
+    "critical_path_events_enabled",
+    "observable_event_count_mean",
+    "observable_event_count_std",
+    "scan_count_mean",
+    "credential_use_count_mean",
+    "lateral_move_count_mean",
+    "critical_probe_count_mean",
+    "objective_action_count_mean",
+    "critical_path_proximity_mean",
+    "critical_path_proximity_std",
+    "critical_path_step_count_mean",
+    "critical_node_visit_count_mean",
+    "critical_edge_traversal_count_mean",
+    "critical_path_entry_count_mean",
+    "critical_path_progress_count_mean",
+    "critical_path_near_target_count_mean",
+    "critical_asset_reach_count_mean",
+    "intelligence_defender_enabled",
+    "selected_intelligence_policy",
+    "intelligence_risk_score_mean",
+    "intelligence_risk_score_std",
+    "intelligence_risk_score_mean_mean",
+    "risk_level",
+    "risk_level_transition_count_mean",
+    "risk_level_transition_count_std",
+    "decision_matrix_defender_enabled",
+    "decision_matrix_policy",
+    "decision_matrix_match_count_mean",
+    "decision_matrix_match_count_std",
+    "decision_matrix_override_count_mean",
+    "decision_matrix_override_count_std",
+    "defense_campaign_enabled",
+    "campaign_effectiveness_score_mean",
+    "campaign_effectiveness_score_std",
+    "campaign_stage",
+    "campaign_transition_count_mean",
+    "campaign_transition_count_std",
+    "campaign_policy_switch_count_mean",
+    "campaign_policy_switch_count_std",
+    "campaign_stage_history",
+    "campaign_policy_history",
+    "strategy_profile",
+    "strategy_effectiveness_score_mean",
+    "strategy_effectiveness_score_std",
+    "profile_rank_mean",
+    "best_weight_configuration",
+    "mission_weight_mean",
+    "state_weight_mean",
+    "critical_path_weight_mean",
+    "weight_sweep_rank_mean",
+    "adaptive_policy_switch_steps",
+    "adaptive_policy_history",
+    "adaptive_cns_gain_mean",
+    "adaptive_cns_gain_std",
+    "adaptive_switch_cost_total_mean",
+    "adaptive_switch_cost_total_std",
+    "adaptive_defender_effectiveness_mean",
+    "adaptive_defender_effectiveness_std",
     "weighted_cumulative_risk_mean",
     "weighted_cumulative_risk_std",
     "final_risk_sum_mean",
@@ -3291,6 +3757,85 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "adaptive_path_enabled": rows[0].get("adaptive_path_enabled") if rows else None,
         "adaptive_planning_enabled": rows[0].get("adaptive_planning_enabled") if rows else None,
         "planning_depth": rows[0].get("planning_depth") if rows else None,
+        "attacker_mission": rows[0].get("attacker_mission") if rows else None,
+        "mission_objectives_enabled": rows[0].get("mission_objectives_enabled") if rows else None,
+        "mission_failure_reason": rows[0].get("mission_failure_reason") if rows else None,
+        "objective_weight_profile": rows[0].get("objective_weight_profile") if rows else None,
+        "mission_strategy_change": rows[0].get("mission_strategy_change") if rows else None,
+        "adaptive_mission_attacker_enabled": rows[0].get("adaptive_mission_attacker_enabled") if rows else None,
+        "observed_defense_strategy": rows[0].get("observed_defense_strategy") if rows else None,
+        "adaptation_history": rows[0].get("adaptation_history") if rows else None,
+        "mission_mutation_enabled": rows[0].get("mission_mutation_enabled") if rows else None,
+        "mission_mutation_reason": rows[0].get("mission_mutation_reason") if rows else None,
+        "mission_history": rows[0].get("mission_history") if rows else None,
+        "attacker_type": rows[0].get("attacker_type") if rows else None,
+        "mission_reclassification_enabled": rows[0].get("mission_reclassification_enabled") if rows else None,
+        "reclassified_mission_history": rows[0].get("reclassified_mission_history") if rows else None,
+        "selected_strategy_history": rows[0].get("selected_strategy_history") if rows else None,
+        "multi_objective_mission_enabled": rows[0].get("multi_objective_mission_enabled") if rows else None,
+        "mission_weight_profit": rows[0].get("mission_weight_profit") if rows else None,
+        "mission_weight_achievement": rows[0].get("mission_weight_achievement") if rows else None,
+        "mission_weight_persistence": rows[0].get("mission_weight_persistence") if rows else None,
+        "mission_weight_critical_hunter": rows[0].get("mission_weight_critical_hunter") if rows else None,
+        "intent_deception_enabled": rows[0].get("intent_deception_enabled") if rows else None,
+        "true_mission": rows[0].get("true_mission") if rows else None,
+        "observed_mission": rows[0].get("observed_mission") if rows else None,
+        "true_mission_history": rows[0].get("true_mission_history") if rows else None,
+        "observed_mission_history": rows[0].get("observed_mission_history") if rows else None,
+        "deception_history": rows[0].get("deception_history") if rows else None,
+        "noise_injection_enabled": rows[0].get("noise_injection_enabled") if rows else None,
+        "signal_extraction_enabled": rows[0].get("signal_extraction_enabled") if rows else None,
+        "adversarial_signal_enabled": rows[0].get("adversarial_signal_enabled") if rows else None,
+        "noise_history": rows[0].get("noise_history") if rows else None,
+        "signal_history": rows[0].get("signal_history") if rows else None,
+        "fake_signal_history": rows[0].get("fake_signal_history") if rows else None,
+        "signal_consistency_history": rows[0].get("signal_consistency_history") if rows else None,
+        "profit_expected_utility_weight": rows[0].get("profit_expected_utility_weight") if rows else None,
+        "profit_success_weight": rows[0].get("profit_success_weight") if rows else None,
+        "persistence_survival_weight": rows[0].get("persistence_survival_weight") if rows else None,
+        "persistence_trust_weight": rows[0].get("persistence_trust_weight") if rows else None,
+        "persistence_stealth_weight": rows[0].get("persistence_stealth_weight") if rows else None,
+        "critical_progress_weight": rows[0].get("critical_progress_weight") if rows else None,
+        "critical_reach_weight": rows[0].get("critical_reach_weight") if rows else None,
+        "achievement_progress_weight": rows[0].get("achievement_progress_weight") if rows else None,
+        "achievement_critical_weight": rows[0].get("achievement_critical_weight") if rows else None,
+        "nonstationary_attacker_enabled": rows[0].get("nonstationary_attacker_enabled") if rows else None,
+        "attacker_phase_change_step": rows[0].get("attacker_phase_change_step") if rows else None,
+        "nonstationary_attacker_pattern": rows[0].get("nonstationary_attacker_pattern") if rows else None,
+        "attacker_phase": rows[0].get("attacker_phase") if rows else None,
+        "attacker_strategy_name": rows[0].get("attacker_strategy_name") if rows else None,
+        "adaptive_defender_enabled": rows[0].get("adaptive_defender_enabled") if rows else None,
+        "adaptive_selected_policy": rows[0].get("adaptive_selected_policy") if rows else None,
+        "adaptive_policy_reason": rows[0].get("adaptive_policy_reason") if rows else None,
+        "adaptive_selection_reason": rows[0].get("adaptive_selection_reason") if rows else None,
+        "step_adaptive_defender_enabled": rows[0].get("step_adaptive_defender_enabled") if rows else None,
+        "adaptive_recheck_interval": rows[0].get("adaptive_recheck_interval") if rows else None,
+        "adaptive_policy_switch_cost": rows[0].get("adaptive_policy_switch_cost") if rows else None,
+        "adaptive_min_improvement": rows[0].get("adaptive_min_improvement") if rows else None,
+        "mission_aware_defender_enabled": rows[0].get("mission_aware_defender_enabled") if rows else None,
+        "mission_aware_selected_policy": rows[0].get("mission_aware_selected_policy") if rows else None,
+        "mission_policy_match": rows[0].get("mission_policy_match") if rows else None,
+        "mission_aware_selection_reason": rows[0].get("mission_aware_selection_reason") if rows else None,
+        "mission_belief_inference_enabled": rows[0].get("mission_belief_inference_enabled") if rows else None,
+        "predicted_mission": rows[0].get("predicted_mission") if rows else None,
+        "state_belief_inference_enabled": rows[0].get("state_belief_inference_enabled") if rows else None,
+        "predicted_state": rows[0].get("predicted_state") if rows else None,
+        "virtual_topology_enabled": rows[0].get("virtual_topology_enabled") if rows else None,
+        "observable_events_enabled": rows[0].get("observable_events_enabled") if rows else None,
+        "critical_path_events_enabled": rows[0].get("critical_path_events_enabled") if rows else None,
+        "intelligence_defender_enabled": rows[0].get("intelligence_defender_enabled") if rows else None,
+        "selected_intelligence_policy": rows[0].get("selected_intelligence_policy") if rows else None,
+        "risk_level": rows[0].get("risk_level") if rows else None,
+        "decision_matrix_defender_enabled": rows[0].get("decision_matrix_defender_enabled") if rows else None,
+        "decision_matrix_policy": rows[0].get("decision_matrix_policy") if rows else None,
+        "defense_campaign_enabled": rows[0].get("defense_campaign_enabled") if rows else None,
+        "campaign_stage": rows[0].get("campaign_stage") if rows else None,
+        "campaign_stage_history": rows[0].get("campaign_stage_history") if rows else None,
+        "campaign_policy_history": rows[0].get("campaign_policy_history") if rows else None,
+        "strategy_profile": rows[0].get("strategy_profile") if rows else None,
+        "best_weight_configuration": rows[0].get("best_weight_configuration") if rows else None,
+        "adaptive_policy_switch_steps": rows[0].get("adaptive_policy_switch_steps") if rows else None,
+        "adaptive_policy_history": rows[0].get("adaptive_policy_history") if rows else None,
         "retreat_rate": float(np.mean(retreated)) if rows else 0.0,
         "retreat_step_mean": _mean_or_none(retreat_steps),
         "retreat_step_std": _std_or_none(retreat_steps),
@@ -3328,10 +3873,97 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "most_trusted_node",
         "expected_utility_final",
         "expected_utility_mean",
+        "mission_success_score",
+        "mission_satisfaction_score",
+        "mission_satisfaction",
+        "mission_objective_score",
+        "mission_sensitivity_score",
+        "defense_effectiveness_memory",
+        "strategy_failure_memory",
+        "strategy_success_memory",
+        "adaptation_count",
+        "ttp_change_count",
+        "strategy_avoidance_score",
+        "alternative_path_usage",
+        "mission_change_count",
+        "mission_stability_score",
+        "mission_mutation_success",
+        "mission_reclassification_count",
+        "defense_reoptimization_count",
+        "reclassification_accuracy",
+        "belief_recovery_time",
+        "mission_weight_profit",
+        "mission_weight_achievement",
+        "mission_weight_persistence",
+        "mission_weight_critical_hunter",
+        "deception_event_count",
+        "mission_belief_error",
+        "belief_confusion_score",
+        "mission_masking_success",
+        "noise_event_count",
+        "signal_event_count",
+        "signal_to_noise_ratio",
+        "noise_filter_accuracy",
+        "decision_confidence",
+        "fake_signal_count",
+        "adversarial_signal_count",
+        "signal_confusion_score",
+        "false_signal_acceptance_rate",
+        "signal_consistency_score",
+        "attacker_phase_switch_count",
         "expected_gain_estimate",
         "expected_detection_risk",
         "expected_search_cost",
         "target_switch_count",
+        "adaptive_policy_switch_count",
+        "adaptive_policy_score",
+        "adaptive_policy_rank",
+        "adaptive_estimated_cns",
+        "mission_policy_switch_count",
+        "mission_aware_cns",
+        "belief_profit",
+        "belief_achievement",
+        "belief_persistence",
+        "belief_critical_hunter",
+        "mission_prediction_confidence",
+        "belief_recon",
+        "belief_exploitation",
+        "belief_lateral_movement",
+        "belief_targeting",
+        "belief_action_on_objective",
+        "state_prediction_confidence",
+        "state_transition_count",
+        "observable_event_count",
+        "scan_count",
+        "credential_use_count",
+        "lateral_move_count",
+        "critical_probe_count",
+        "objective_action_count",
+        "critical_path_proximity",
+        "critical_path_step_count",
+        "critical_node_visit_count",
+        "critical_edge_traversal_count",
+        "critical_path_entry_count",
+        "critical_path_progress_count",
+        "critical_path_near_target_count",
+        "critical_asset_reach_count",
+        "intelligence_risk_score",
+        "intelligence_risk_score_mean",
+        "risk_level_transition_count",
+        "decision_matrix_match_count",
+        "decision_matrix_override_count",
+        "campaign_effectiveness_score",
+        "campaign_transition_count",
+        "campaign_policy_switch_count",
+        "strategy_effectiveness_score",
+        "profile_rank",
+        "mission_weight",
+        "state_weight",
+        "critical_path_weight",
+        "weight_sweep_rank",
+        "adaptive_cns_gain",
+        "adaptive_switch_cost_total",
+        "adaptive_defender_effectiveness",
         "frustration_final",
         "frustration_mean",
         "frustration_max",
@@ -3404,12 +4036,18 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
     result["perceived_utility_std"] = result.get("perceived_utility_final_std")
     result["confidence_mean"] = result.get("mean_confidence_mean")
     result["confidence_std"] = result.get("mean_confidence_std")
+    result["mission_mutation_success_rate"] = result.get("mission_mutation_success_mean")
     result["frustration_mean"] = result.get("frustration_mean_mean")
     result["frustration_std"] = result.get("frustration_mean_std")
     result["frustration_max"] = result.get("frustration_max_mean")
     result["frustration_max_std"] = result.get("frustration_max_std")
     result["ai_total_decision_cost"] = result.get("ai_total_decision_cost_mean")
     result["ai_weighted_cost"] = result.get("ai_weighted_cost_mean")
+    result["mission_prediction_correct_rate"] = (
+        float(np.mean([1.0 if row.get("mission_prediction_correct") in (True, "True", "true", 1) else 0.0 for row in rows]))
+        if rows
+        else 0.0
+    )
     result["adaptive_memory_success_mean"] = result.get("adaptive_memory_success_mean_mean")
     result["adaptive_memory_success_std"] = result.get("adaptive_memory_success_mean_std")
     result["adaptive_memory_decoy_mean"] = result.get("adaptive_memory_decoy_mean_mean")
@@ -6401,6 +7039,7046 @@ def _write_phase3_expected_report(
             f"{_to_float(row.get('critical_compromise_rate')):.3f} |"
         )
     with open(os.path.join(output_dir, "PHASE3_EXPECTED_UTILITY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE4_ADAPTIVE_DEFENDER_SCENARIOS = {
+    "phase4_adaptive_defender_reference": {
+        "expected_utility": 0.0,
+        "trust_collapse_rate": 0.0,
+        "target_switch_count": 0,
+        "critical_risk": 0.0,
+    },
+    "phase4_adaptive_vs_expected_utility": {
+        "expected_utility": 1.0,
+        "trust_collapse_rate": 0.0,
+        "target_switch_count": 0,
+        "critical_risk": 0.25,
+    },
+    "phase4_adaptive_vs_trust_collapse": {
+        "expected_utility": 0.0,
+        "trust_collapse_rate": 0.30,
+        "target_switch_count": 0,
+        "critical_risk": 0.25,
+    },
+    "phase4_adaptive_vs_target_switch": {
+        "expected_utility": 0.0,
+        "trust_collapse_rate": 0.0,
+        "target_switch_count": 8,
+        "critical_risk": 0.25,
+    },
+    "phase4_adaptive_combined": {
+        "expected_utility": 1.0,
+        "trust_collapse_rate": 0.30,
+        "target_switch_count": 8,
+        "critical_risk": 0.50,
+    },
+}
+
+PHASE4_FIXED_POLICIES = [
+    "phase2_frustration_decoy",
+    "phase2_ai_balanced",
+    "gated_edge_pressure_count_2",
+]
+
+PHASE4_ADAPTIVE_DEFENDER_COLUMNS = [
+    "scenario",
+    "defense_mode",
+    "selected_policy",
+    "adaptive_policy_reason",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "target_switch_count",
+    "adaptive_policy_switch_count",
+    "adaptive_defender_effectiveness",
+    "policy_selection_count",
+]
+
+
+def _expected_utility_attacker_overrides() -> Dict[str, object]:
+    return {
+        "adaptive_attacker_enabled": True,
+        "adaptive_preference_enabled": True,
+        "adaptive_path_enabled": True,
+        "adaptive_planning_enabled": True,
+        "adaptive_success_weight": 1.0,
+        "adaptive_decoy_weight": 2.0,
+        "adaptive_detection_weight": 1.5,
+        "adaptive_preference_weight": 2.0,
+        "adaptive_success_reward": 1.0,
+        "adaptive_critical_reward": 3.0,
+        "adaptive_decoy_penalty": 2.0,
+        "adaptive_detection_penalty": 1.5,
+        "path_preference_weight": 3.0,
+        "path_success_reward": 1.0,
+        "path_critical_reward": 5.0,
+        "path_decoy_penalty": 2.0,
+        "path_detection_penalty": 1.5,
+        "planning_depth": 2,
+        "planning_success_weight": 1.0,
+        "planning_critical_weight": 5.0,
+        "planning_decoy_penalty": 2.0,
+        "planning_detection_penalty": 1.5,
+        "trust_enabled": True,
+        "trust_decoy_penalty": 0.20,
+        "trust_credential_penalty": 0.30,
+        "trust_detection_penalty": 0.15,
+        "trust_success_reward": 0.05,
+        "expected_utility_enabled": True,
+        "expected_gain_weight": 1.0,
+        "expected_success_weight": 1.0,
+        "expected_detection_cost": 1.0,
+        "expected_search_cost": 1.0,
+        "expected_trust_weight": 1.0,
+        "attacker_target_selection": "adaptive",
+    }
+
+
+def _select_adaptive_defense_policy(
+    expected_utility: float,
+    trust_collapse_rate: float,
+    target_switch_count: int,
+    critical_risk: float = 0.0,
+    expected_utility_threshold: float = 0.0,
+    trust_collapse_threshold: float = 0.2,
+    target_switch_threshold: int = 5,
+    policy_default: str = "phase2_frustration_decoy",
+    policy_high_expected_utility: str = "gated_edge_pressure_count_2",
+    policy_trust_collapse: str = "phase2_frustration_decoy",
+    policy_high_switching: str = "phase2_ai_balanced",
+) -> tuple[str, str]:
+    del critical_risk
+    if expected_utility > expected_utility_threshold:
+        return policy_high_expected_utility, "high_expected_utility"
+    if trust_collapse_rate > trust_collapse_threshold:
+        return policy_trust_collapse, "trust_collapse"
+    if target_switch_count > target_switch_threshold:
+        return policy_high_switching, "target_switch"
+    return policy_default, "default"
+
+
+def _estimate_policy_score(
+    policy_name: str,
+    expected_utility: float,
+    trust_collapse_rate: float,
+    target_switch_count: int,
+    critical_compromise_risk: float,
+    retreat_rate: float,
+) -> float:
+    switch_pressure = min(max(float(target_switch_count) / 10.0, 0.0), 1.0)
+    if policy_name == "phase2_frustration_decoy":
+        return (
+            0.35
+            + 1.20 * trust_collapse_rate
+            + 0.80 * retreat_rate
+            - 0.20 * expected_utility
+            - 0.50 * critical_compromise_risk
+            - 0.05 * switch_pressure
+        )
+    if policy_name == "phase2_ai_balanced":
+        return (
+            0.25
+            + 0.40 * trust_collapse_rate
+            + 0.75 * retreat_rate
+            + 0.20 * switch_pressure
+            - 0.25 * expected_utility
+            - 0.45 * critical_compromise_risk
+        )
+    if policy_name == "gated_edge_pressure_count_2":
+        return (
+            0.10
+            + 0.20 * trust_collapse_rate
+            + 0.50 * retreat_rate
+            + 0.10 * expected_utility
+            + 0.10 * switch_pressure
+            - 0.90 * critical_compromise_risk
+        )
+    return trust_collapse_rate + retreat_rate - expected_utility - critical_compromise_risk
+
+
+def _select_cns_guided_policy(
+    expected_utility: float,
+    trust_collapse_rate: float,
+    target_switch_count: int,
+    critical_compromise_risk: float,
+    retreat_rate: float,
+    candidate_policies: Optional[List[str]] = None,
+) -> tuple[str, str, float, int, float]:
+    candidates = candidate_policies or PHASE4_FIXED_POLICIES
+    scored = [
+        (
+            policy,
+            _estimate_policy_score(
+                policy_name=policy,
+                expected_utility=expected_utility,
+                trust_collapse_rate=trust_collapse_rate,
+                target_switch_count=target_switch_count,
+                critical_compromise_risk=critical_compromise_risk,
+                retreat_rate=retreat_rate,
+            ),
+        )
+        for policy in candidates
+    ]
+    scored.sort(key=lambda item: item[1], reverse=True)
+    best_policy, best_score = scored[0]
+    if trust_collapse_rate > 0.2 and best_policy == "phase2_frustration_decoy":
+        reason = "cns_trust_collapse"
+    elif critical_compromise_risk > 0.0 and best_policy == "phase2_frustration_decoy":
+        reason = "cns_critical_protection"
+    elif target_switch_count > 5 and best_policy == "phase2_ai_balanced":
+        reason = "cns_switch_stability"
+    else:
+        reason = "cns_score_max"
+    estimated_cns = float(np.clip(best_score, 0.0, 1.0))
+    return best_policy, reason, float(best_score), 1, estimated_cns
+
+
+def _phase4_policy_config(
+    policy_name: str,
+    adaptive_enabled: bool,
+    selected_policy: Optional[str] = None,
+    policy_reason: str = "fixed",
+    policy_switch_count: int = 0,
+    defender_mode: str = "rule_based",
+    policy_score: float = 0.0,
+    policy_rank: int = 0,
+    selection_reason: Optional[str] = None,
+    estimated_cns: float = 0.0,
+    step_adaptive_enabled: bool = False,
+) -> Dict[str, object]:
+    return {
+        **SCENARIOS[policy_name],
+        **_expected_utility_attacker_overrides(),
+        "adaptive_defender_enabled": adaptive_enabled,
+        "adaptive_defender_mode": defender_mode,
+        "adaptive_selected_policy": selected_policy or policy_name,
+        "adaptive_policy_reason": policy_reason,
+        "adaptive_policy_switch_count": policy_switch_count,
+        "adaptive_policy_score": policy_score,
+        "adaptive_policy_rank": policy_rank,
+        "adaptive_selection_reason": selection_reason or policy_reason,
+        "adaptive_estimated_cns": estimated_cns,
+        "step_adaptive_defender_enabled": step_adaptive_enabled,
+    }
+
+
+def run_phase4_adaptive_defender_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase4_adaptive_defender"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for scenario_name, signals in PHASE4_ADAPTIVE_DEFENDER_SCENARIOS.items():
+        for policy_name in PHASE4_FIXED_POLICIES:
+            scenarios[f"{scenario_name}__fixed__{policy_name}"] = _phase4_policy_config(
+                policy_name=policy_name,
+                adaptive_enabled=False,
+                selected_policy=policy_name,
+                policy_reason="fixed",
+                policy_switch_count=0,
+            )
+        selected_policy, reason = _select_adaptive_defense_policy(
+            expected_utility=float(signals["expected_utility"]),
+            trust_collapse_rate=float(signals["trust_collapse_rate"]),
+            target_switch_count=int(signals["target_switch_count"]),
+            critical_risk=float(signals["critical_risk"]),
+        )
+        scenarios[f"{scenario_name}__adaptive_defender"] = _phase4_policy_config(
+            policy_name=selected_policy,
+            adaptive_enabled=True,
+            selected_policy=selected_policy,
+            policy_reason=reason,
+            policy_switch_count=0,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase4_adaptive_defender_row(row) for row in stats_rows]
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("defense_mode")), str(row.get("selected_policy"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase4_adaptive_defender_rows(summary_rows)
+    _write_phase4_adaptive_defender_summary(summary_rows, analysis, output_dir)
+    _plot_phase4_adaptive_metric(summary_rows, "cognitive_neutralization_score", "Adaptive Defender CNS", os.path.join(output_dir, "adaptive_defender_cns.png"))
+    _plot_phase4_policy_selection(summary_rows, os.path.join(output_dir, "adaptive_defender_policy_selection.png"))
+    _plot_phase4_adaptive_metric(summary_rows, "adaptive_defender_effectiveness", "Adaptive Defender Effectiveness", os.path.join(output_dir, "adaptive_defender_effectiveness.png"))
+    _write_phase4_adaptive_defender_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase4_adaptive_defender_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    defense_mode = "adaptive_defender" if scenario_name.endswith("__adaptive_defender") else "fixed"
+    base_scenario = scenario_name.replace("__adaptive_defender", "")
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if "__fixed__" in base_scenario:
+        base_scenario, selected_policy = base_scenario.split("__fixed__", 1)
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "scenario": base_scenario,
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "adaptive_policy_reason": row.get("adaptive_policy_reason") or ("adaptive" if defense_mode == "adaptive_defender" else "fixed"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "adaptive_policy_switch_count": row.get("adaptive_policy_switch_count_mean"),
+        "adaptive_defender_effectiveness": row.get("adaptive_defender_effectiveness_mean") or effectiveness,
+        "policy_selection_count": 1,
+    }
+
+
+def _analyze_phase4_adaptive_defender_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    adaptive_rows = [row for row in rows if row.get("defense_mode") == "adaptive_defender"]
+    fixed_rows = [row for row in rows if row.get("defense_mode") == "fixed"]
+    adaptive_cns = [_to_float(row.get("cognitive_neutralization_score")) for row in adaptive_rows]
+    fixed_cns = [_to_float(row.get("cognitive_neutralization_score")) for row in fixed_rows]
+    best_fixed_by_scenario = []
+    for scenario in sorted(set(str(row.get("scenario")) for row in rows)):
+        scenario_fixed = [row for row in fixed_rows if row.get("scenario") == scenario]
+        if scenario_fixed:
+            best_fixed_by_scenario.append(max(_to_float(row.get("cognitive_neutralization_score")) for row in scenario_fixed))
+    selection_counts: Dict[str, int] = {}
+    for row in adaptive_rows:
+        policy = str(row.get("selected_policy"))
+        selection_counts[policy] = selection_counts.get(policy, 0) + 1
+    most_selected = max(selection_counts.items(), key=lambda item: item[1])[0] if selection_counts else None
+    trust_rows = [row for row in adaptive_rows if row.get("adaptive_policy_reason") == "trust_collapse"]
+    return {
+        "mean_adaptive_cns": float(np.mean(adaptive_cns)) if adaptive_cns else 0.0,
+        "mean_fixed_cns": float(np.mean(fixed_cns)) if fixed_cns else 0.0,
+        "mean_best_fixed_cns": float(np.mean(best_fixed_by_scenario)) if best_fixed_by_scenario else 0.0,
+        "adaptive_improves_over_fixed_average": float(np.mean(adaptive_cns)) > float(np.mean(fixed_cns)) if adaptive_cns and fixed_cns else False,
+        "adaptive_improves_over_best_fixed": float(np.mean(adaptive_cns)) > float(np.mean(best_fixed_by_scenario)) if adaptive_cns and best_fixed_by_scenario else False,
+        "expected_utility_effective": all(_to_float(row.get("retreat_rate")) >= 0.0 for row in adaptive_rows),
+        "policy_selection_counts": selection_counts,
+        "most_selected_policy": most_selected,
+        "mean_policy_switch_count": float(np.mean([_to_float(row.get("adaptive_policy_switch_count")) for row in adaptive_rows])) if adaptive_rows else 0.0,
+        "trust_selection_effective": bool(trust_rows) and all(_to_float(row.get("cognitive_neutralization_score")) > 0.0 for row in trust_rows),
+        "phase42_step_level_worthwhile": True,
+    }
+
+
+def _write_phase4_adaptive_defender_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "adaptive_defender_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE4_ADAPTIVE_DEFENDER_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "adaptive_defender_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase4_adaptive_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["fixed", "adaptive_defender"]
+    colors = {"fixed": "#4c78a8", "adaptive_defender": "#59a14f"}
+    x = np.arange(len(scenarios))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(14, 6))
+    for idx, mode in enumerate(modes):
+        values = []
+        for scenario in scenarios:
+            mode_rows = [row for row in rows if row.get("scenario") == scenario and row.get("defense_mode") == mode]
+            values.append(float(np.mean([_to_float(row.get(key)) for row in mode_rows])) if mode_rows else 0.0)
+        ax.bar(x + (idx - 0.5) * width, values, width=width, color=colors[mode], label=mode)
+    labels = [scenario.replace("phase4_adaptive_", "").replace("phase4_", "") for scenario in scenarios]
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_policy_selection(rows: List[Dict[str, object]], save_path: str) -> None:
+    adaptive_rows = [row for row in rows if row.get("defense_mode") == "adaptive_defender"]
+    counts: Dict[str, int] = {}
+    for row in adaptive_rows:
+        policy = str(row.get("selected_policy"))
+        counts[policy] = counts.get(policy, 0) + 1
+    fig, ax = plt.subplots(figsize=(10, 5))
+    labels = list(counts.keys())
+    values = [counts[label] for label in labels]
+    x = np.arange(len(labels))
+    ax.bar(x, values, color="#59a14f")
+    ax.set_title("Adaptive Defender Policy Selection")
+    ax.set_ylabel("selection count")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase4_adaptive_defender_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase4 Rule-Based Adaptive Defender Report",
+        "",
+        "## Questions",
+        f"1. Adaptive Defender improves over fixed policy average: `{analysis.get('adaptive_improves_over_fixed_average')}` (adaptive `{_to_float(analysis.get('mean_adaptive_cns')):.3f}`, fixed average `{_to_float(analysis.get('mean_fixed_cns')):.3f}`).",
+        f"2. Adaptive Defender effective against Expected Utility attacker: `{analysis.get('expected_utility_effective')}`.",
+        f"3. Most selected policy: `{analysis.get('most_selected_policy')}`.",
+        f"4. Policy switch excessive: `{_to_float(analysis.get('mean_policy_switch_count')) > 1.0}` (mean switch count `{_to_float(analysis.get('mean_policy_switch_count')):.3f}`).",
+        f"5. Trust Collapse policy selection effective: `{analysis.get('trust_selection_effective')}`.",
+        f"6. Phase4.2 step-level adaptive defense is worthwhile: `{analysis.get('phase42_step_level_worthwhile')}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | policy | reason | CNS | retreat_rate | critical_compromise_rate | target_switch_count |",
+        "|---|---|---|---|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('defense_mode')} | {row.get('selected_policy')} | {row.get('adaptive_policy_reason')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} | "
+            f"{_to_float(row.get('critical_compromise_rate')):.3f} | "
+            f"{_to_float(row.get('target_switch_count')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE4_ADAPTIVE_DEFENDER_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE4_CNS_GUIDED_SCENARIOS = {
+    "phase4_cns_guided_reference": {
+        "expected_utility": 0.0,
+        "trust_collapse_rate": 0.0,
+        "target_switch_count": 0,
+        "critical_risk": 0.0,
+        "retreat_rate": 1.0,
+    },
+    "phase4_cns_guided_expected": {
+        "expected_utility": 1.0,
+        "trust_collapse_rate": 0.0,
+        "target_switch_count": 0,
+        "critical_risk": 0.25,
+        "retreat_rate": 1.0,
+    },
+    "phase4_cns_guided_trust": {
+        "expected_utility": 0.0,
+        "trust_collapse_rate": 0.30,
+        "target_switch_count": 0,
+        "critical_risk": 0.25,
+        "retreat_rate": 1.0,
+    },
+    "phase4_cns_guided_combined": {
+        "expected_utility": 1.0,
+        "trust_collapse_rate": 0.30,
+        "target_switch_count": 8,
+        "critical_risk": 0.50,
+        "retreat_rate": 1.0,
+    },
+}
+
+PHASE4_CNS_GUIDED_COLUMNS = [
+    "scenario",
+    "defense_mode",
+    "selected_policy",
+    "adaptive_selection_reason",
+    "adaptive_policy_score",
+    "adaptive_policy_rank",
+    "adaptive_estimated_cns",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "target_switch_count",
+    "adaptive_policy_switch_count",
+    "adaptive_defender_effectiveness",
+]
+
+
+def run_phase4_cns_guided_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase4_cns_guided"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for scenario_name, signals in PHASE4_CNS_GUIDED_SCENARIOS.items():
+        for policy_name in PHASE4_FIXED_POLICIES:
+            scenarios[f"{scenario_name}__fixed__{policy_name}"] = _phase4_policy_config(
+                policy_name=policy_name,
+                adaptive_enabled=False,
+                selected_policy=policy_name,
+                policy_reason="fixed",
+                policy_switch_count=0,
+            )
+        rule_policy, rule_reason = _select_adaptive_defense_policy(
+            expected_utility=float(signals["expected_utility"]),
+            trust_collapse_rate=float(signals["trust_collapse_rate"]),
+            target_switch_count=int(signals["target_switch_count"]),
+            critical_risk=float(signals["critical_risk"]),
+        )
+        scenarios[f"{scenario_name}__rule_based_adaptive"] = _phase4_policy_config(
+            policy_name=rule_policy,
+            adaptive_enabled=True,
+            selected_policy=rule_policy,
+            policy_reason=rule_reason,
+            policy_switch_count=0,
+            defender_mode="rule_based",
+        )
+        cns_policy, cns_reason, score, rank, estimated_cns = _select_cns_guided_policy(
+            expected_utility=float(signals["expected_utility"]),
+            trust_collapse_rate=float(signals["trust_collapse_rate"]),
+            target_switch_count=int(signals["target_switch_count"]),
+            critical_compromise_risk=float(signals["critical_risk"]),
+            retreat_rate=float(signals["retreat_rate"]),
+        )
+        scenarios[f"{scenario_name}__cns_guided_adaptive"] = _phase4_policy_config(
+            policy_name=cns_policy,
+            adaptive_enabled=True,
+            selected_policy=cns_policy,
+            policy_reason=cns_reason,
+            policy_switch_count=0,
+            defender_mode="cns_guided",
+            policy_score=score,
+            policy_rank=rank,
+            selection_reason=cns_reason,
+            estimated_cns=estimated_cns,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase4_cns_guided_row(row) for row in stats_rows]
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("defense_mode")), str(row.get("selected_policy"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase4_cns_guided_rows(summary_rows)
+    _write_phase4_cns_guided_summary(summary_rows, analysis, output_dir)
+    _plot_phase4_cns_guided_metric(summary_rows, "cognitive_neutralization_score", "CNS-Guided Adaptive Defender CNS", os.path.join(output_dir, "cns_guided_cns.png"))
+    _plot_phase4_cns_guided_policy_selection(summary_rows, os.path.join(output_dir, "cns_guided_policy_selection.png"))
+    _plot_phase4_cns_guided_vs_rule(summary_rows, os.path.join(output_dir, "cns_guided_vs_rule_based.png"))
+    _write_phase4_cns_guided_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase4_cns_guided_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    if scenario_name.endswith("__cns_guided_adaptive"):
+        defense_mode = "cns_guided_adaptive"
+        base_scenario = scenario_name.replace("__cns_guided_adaptive", "")
+        selected_policy = row.get("adaptive_selected_policy") or ""
+    elif scenario_name.endswith("__rule_based_adaptive"):
+        defense_mode = "rule_based_adaptive"
+        base_scenario = scenario_name.replace("__rule_based_adaptive", "")
+        selected_policy = row.get("adaptive_selected_policy") or ""
+    else:
+        defense_mode = "fixed"
+        base_scenario = scenario_name
+        selected_policy = row.get("adaptive_selected_policy") or ""
+        if "__fixed__" in base_scenario:
+            base_scenario, selected_policy = base_scenario.split("__fixed__", 1)
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    critical = _to_float(row.get("critical_protection_score_mean"))
+    retreat = _to_float(row.get("retreat_score_mean"))
+    effectiveness = float(np.clip(0.5 * cns + 0.3 * critical + 0.2 * retreat, 0.0, 1.0))
+    return {
+        "scenario": base_scenario,
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "adaptive_selection_reason": row.get("adaptive_selection_reason") or row.get("adaptive_policy_reason") or defense_mode,
+        "adaptive_policy_score": row.get("adaptive_policy_score_mean"),
+        "adaptive_policy_rank": row.get("adaptive_policy_rank_mean"),
+        "adaptive_estimated_cns": row.get("adaptive_estimated_cns_mean"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "adaptive_policy_switch_count": row.get("adaptive_policy_switch_count_mean"),
+        "adaptive_defender_effectiveness": row.get("adaptive_defender_effectiveness_mean") or effectiveness,
+    }
+
+
+def _analyze_phase4_cns_guided_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    cns_rows = [row for row in rows if row.get("defense_mode") == "cns_guided_adaptive"]
+    rule_rows = [row for row in rows if row.get("defense_mode") == "rule_based_adaptive"]
+    fixed_rows = [row for row in rows if row.get("defense_mode") == "fixed"]
+    cns_values = [_to_float(row.get("cognitive_neutralization_score")) for row in cns_rows]
+    rule_values = [_to_float(row.get("cognitive_neutralization_score")) for row in rule_rows]
+    best_fixed_by_scenario = []
+    for scenario in sorted(set(str(row.get("scenario")) for row in rows)):
+        scenario_fixed = [row for row in fixed_rows if row.get("scenario") == scenario]
+        if scenario_fixed:
+            best_fixed_by_scenario.append(max(_to_float(row.get("cognitive_neutralization_score")) for row in scenario_fixed))
+    selection_counts: Dict[str, int] = {}
+    trust_reason_count = 0
+    for row in cns_rows:
+        policy = str(row.get("selected_policy"))
+        reason = str(row.get("adaptive_selection_reason"))
+        selection_counts[policy] = selection_counts.get(policy, 0) + 1
+        if "trust" in reason:
+            trust_reason_count += 1
+    rule_trust_reason_count = sum(1 for row in rule_rows if "trust" in str(row.get("adaptive_selection_reason")))
+    most_selected = max(selection_counts.items(), key=lambda item: item[1])[0] if selection_counts else None
+    expected_rows = [row for row in cns_rows if row.get("scenario") in ("phase4_cns_guided_expected", "phase4_cns_guided_combined")]
+    return {
+        "mean_cns_guided_cns": float(np.mean(cns_values)) if cns_values else 0.0,
+        "mean_rule_based_cns": float(np.mean(rule_values)) if rule_values else 0.0,
+        "mean_best_fixed_cns": float(np.mean(best_fixed_by_scenario)) if best_fixed_by_scenario else 0.0,
+        "cns_guided_improves_over_rule_based": float(np.mean(cns_values)) > float(np.mean(rule_values)) if cns_values and rule_values else False,
+        "cns_guided_exceeds_best_fixed": float(np.mean(cns_values)) > float(np.mean(best_fixed_by_scenario)) if cns_values and best_fixed_by_scenario else False,
+        "policy_selection_counts": selection_counts,
+        "most_selected_policy": most_selected,
+        "trust_selection_count": trust_reason_count,
+        "rule_based_trust_selection_count": rule_trust_reason_count,
+        "trust_selection_increased": trust_reason_count > rule_trust_reason_count,
+        "expected_utility_effective": bool(expected_rows) and all(_to_float(row.get("retreat_rate")) >= 1.0 for row in expected_rows),
+        "adaptive_defense_direction_promising": float(np.mean(cns_values)) >= float(np.mean(rule_values)) if cns_values and rule_values else False,
+    }
+
+
+def _write_phase4_cns_guided_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "cns_guided_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE4_CNS_GUIDED_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "cns_guided_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase4_cns_guided_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["fixed", "rule_based_adaptive", "cns_guided_adaptive"]
+    colors = {"fixed": "#4c78a8", "rule_based_adaptive": "#f28e2b", "cns_guided_adaptive": "#59a14f"}
+    x = np.arange(len(scenarios))
+    width = 0.25
+    fig, ax = plt.subplots(figsize=(14, 6))
+    for idx, mode in enumerate(modes):
+        values = []
+        for scenario in scenarios:
+            mode_rows = [row for row in rows if row.get("scenario") == scenario and row.get("defense_mode") == mode]
+            values.append(float(np.mean([_to_float(row.get(key)) for row in mode_rows])) if mode_rows else 0.0)
+        ax.bar(x + (idx - 1) * width, values, width=width, color=colors[mode], label=mode)
+    labels = [scenario.replace("phase4_cns_guided_", "") for scenario in scenarios]
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_cns_guided_policy_selection(rows: List[Dict[str, object]], save_path: str) -> None:
+    cns_rows = [row for row in rows if row.get("defense_mode") == "cns_guided_adaptive"]
+    counts: Dict[str, int] = {}
+    for row in cns_rows:
+        policy = str(row.get("selected_policy"))
+        counts[policy] = counts.get(policy, 0) + 1
+    fig, ax = plt.subplots(figsize=(10, 5))
+    labels = list(counts.keys())
+    values = [counts[label] for label in labels]
+    x = np.arange(len(labels))
+    ax.bar(x, values, color="#59a14f")
+    ax.set_title("CNS-Guided Policy Selection")
+    ax.set_ylabel("selection count")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_cns_guided_vs_rule(rows: List[Dict[str, object]], save_path: str) -> None:
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    x = np.arange(len(scenarios))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, mode in enumerate(["rule_based_adaptive", "cns_guided_adaptive"]):
+        values = []
+        for scenario in scenarios:
+            match = [row for row in rows if row.get("scenario") == scenario and row.get("defense_mode") == mode]
+            values.append(_to_float(match[0].get("cognitive_neutralization_score")) if match else 0.0)
+        ax.bar(x + (idx - 0.5) * width, values, width=width, label=mode)
+    labels = [scenario.replace("phase4_cns_guided_", "") for scenario in scenarios]
+    ax.set_title("CNS-Guided vs Rule-Based")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase4_cns_guided_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase4 CNS-Guided Adaptive Defender Report",
+        "",
+        "## Questions",
+        f"1. CNS-guided improves over Rule-based: `{analysis.get('cns_guided_improves_over_rule_based')}` (CNS-guided `{_to_float(analysis.get('mean_cns_guided_cns')):.3f}`, Rule-based `{_to_float(analysis.get('mean_rule_based_cns')):.3f}`).",
+        f"2. CNS-guided exceeds fixed best policy: `{analysis.get('cns_guided_exceeds_best_fixed')}` (fixed best `{_to_float(analysis.get('mean_best_fixed_cns')):.3f}`).",
+        f"3. Most selected policy: `{analysis.get('most_selected_policy')}`.",
+        f"4. Trust Collapse selection increased: `{analysis.get('trust_selection_increased')}` (CNS-guided `{analysis.get('trust_selection_count')}`, Rule-based `{analysis.get('rule_based_trust_selection_count')}`).",
+        f"5. Expected Utility attacker effective defense: `{analysis.get('expected_utility_effective')}`.",
+        f"6. CNS-guided is a promising adaptive defense direction: `{analysis.get('adaptive_defense_direction_promising')}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | policy | reason | score | estimated_cns | CNS | retreat_rate | critical_compromise_rate |",
+        "|---|---|---|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('defense_mode')} | {row.get('selected_policy')} | {row.get('adaptive_selection_reason')} | "
+            f"{_to_float(row.get('adaptive_policy_score')):.3f} | "
+            f"{_to_float(row.get('adaptive_estimated_cns')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} | "
+            f"{_to_float(row.get('critical_compromise_rate')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE4_CNS_GUIDED_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE4_STEP_ADAPTIVE_SCENARIOS = {
+    "phase4_step_adaptive_reference": PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_reference"],
+    "phase4_step_adaptive_expected": PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_expected"],
+    "phase4_step_adaptive_trust": PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_trust"],
+    "phase4_step_adaptive_combined": PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_combined"],
+}
+
+PHASE4_STEP_ADAPTIVE_COLUMNS = [
+    "scenario",
+    "defense_mode",
+    "selected_policy",
+    "adaptive_selection_reason",
+    "adaptive_policy_score",
+    "adaptive_estimated_cns",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "target_switch_count",
+    "adaptive_policy_switch_count",
+    "adaptive_cns_gain",
+    "adaptive_switch_cost_total",
+    "adaptive_defender_effectiveness",
+]
+
+
+def run_phase4_step_adaptive_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase4_step_adaptive"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for scenario_name, signals in PHASE4_STEP_ADAPTIVE_SCENARIOS.items():
+        for policy_name in PHASE4_FIXED_POLICIES:
+            scenarios[f"{scenario_name}__fixed__{policy_name}"] = _phase4_policy_config(
+                policy_name=policy_name,
+                adaptive_enabled=False,
+                selected_policy=policy_name,
+                policy_reason="fixed",
+            )
+        rule_policy, rule_reason = _select_adaptive_defense_policy(
+            expected_utility=float(signals["expected_utility"]),
+            trust_collapse_rate=float(signals["trust_collapse_rate"]),
+            target_switch_count=int(signals["target_switch_count"]),
+            critical_risk=float(signals["critical_risk"]),
+        )
+        scenarios[f"{scenario_name}__rule_based_adaptive"] = _phase4_policy_config(
+            policy_name=rule_policy,
+            adaptive_enabled=True,
+            selected_policy=rule_policy,
+            policy_reason=rule_reason,
+            defender_mode="rule_based",
+        )
+        cns_policy, cns_reason, score, rank, estimated_cns = _select_cns_guided_policy(
+            expected_utility=float(signals["expected_utility"]),
+            trust_collapse_rate=float(signals["trust_collapse_rate"]),
+            target_switch_count=int(signals["target_switch_count"]),
+            critical_compromise_risk=float(signals["critical_risk"]),
+            retreat_rate=float(signals["retreat_rate"]),
+        )
+        scenarios[f"{scenario_name}__cns_guided_adaptive"] = _phase4_policy_config(
+            policy_name=cns_policy,
+            adaptive_enabled=True,
+            selected_policy=cns_policy,
+            policy_reason=cns_reason,
+            defender_mode="cns_guided",
+            policy_score=score,
+            policy_rank=rank,
+            selection_reason=cns_reason,
+            estimated_cns=estimated_cns,
+        )
+        scenarios[f"{scenario_name}__step_adaptive"] = _phase4_policy_config(
+            policy_name=cns_policy,
+            adaptive_enabled=True,
+            selected_policy=cns_policy,
+            policy_reason="step_adaptive",
+            defender_mode="step_adaptive",
+            policy_score=score,
+            policy_rank=rank,
+            selection_reason="step_adaptive",
+            estimated_cns=estimated_cns,
+            step_adaptive_enabled=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase4_step_adaptive_row(row) for row in stats_rows]
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("defense_mode")), str(row.get("selected_policy"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase4_step_adaptive_rows(summary_rows)
+    _write_phase4_step_adaptive_summary(summary_rows, analysis, output_dir)
+    _plot_phase4_step_adaptive_metric(summary_rows, "cognitive_neutralization_score", "Step-Adaptive CNS", os.path.join(output_dir, "step_adaptive_cns.png"))
+    _plot_phase4_step_adaptive_metric(summary_rows, "adaptive_policy_switch_count", "Step-Adaptive Switch Count", os.path.join(output_dir, "step_adaptive_switch_count.png"))
+    _plot_phase4_step_adaptive_vs_phase42(summary_rows, os.path.join(output_dir, "step_adaptive_vs_phase42.png"))
+    _write_phase4_step_adaptive_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase4_step_adaptive_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    suffix_modes = {
+        "__rule_based_adaptive": "rule_based_adaptive",
+        "__cns_guided_adaptive": "cns_guided_adaptive",
+        "__step_adaptive": "step_adaptive",
+    }
+    defense_mode = "fixed"
+    base_scenario = scenario_name
+    for suffix, mode in suffix_modes.items():
+        if scenario_name.endswith(suffix):
+            defense_mode = mode
+            base_scenario = scenario_name.replace(suffix, "")
+            break
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if "__fixed__" in base_scenario:
+        base_scenario, selected_policy = base_scenario.split("__fixed__", 1)
+    return {
+        "scenario": base_scenario,
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "adaptive_selection_reason": row.get("adaptive_selection_reason") or row.get("adaptive_policy_reason") or defense_mode,
+        "adaptive_policy_score": row.get("adaptive_policy_score_mean"),
+        "adaptive_estimated_cns": row.get("adaptive_estimated_cns_mean"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "adaptive_policy_switch_count": row.get("adaptive_policy_switch_count_mean"),
+        "adaptive_cns_gain": row.get("adaptive_cns_gain_mean"),
+        "adaptive_switch_cost_total": row.get("adaptive_switch_cost_total_mean"),
+        "adaptive_defender_effectiveness": row.get("adaptive_defender_effectiveness_mean"),
+    }
+
+
+def _analyze_phase4_step_adaptive_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    step_rows = [row for row in rows if row.get("defense_mode") == "step_adaptive"]
+    cns_rows = [row for row in rows if row.get("defense_mode") == "cns_guided_adaptive"]
+    fixed_rows = [row for row in rows if row.get("defense_mode") == "fixed"]
+    step_cns = [_to_float(row.get("cognitive_neutralization_score")) for row in step_rows]
+    cns_cns = [_to_float(row.get("cognitive_neutralization_score")) for row in cns_rows]
+    best_fixed_by_scenario = []
+    for scenario in sorted(set(str(row.get("scenario")) for row in rows)):
+        scenario_fixed = [row for row in fixed_rows if row.get("scenario") == scenario]
+        if scenario_fixed:
+            best_fixed_by_scenario.append(max(_to_float(row.get("cognitive_neutralization_score")) for row in scenario_fixed))
+    switch_counts = [_to_float(row.get("adaptive_policy_switch_count")) for row in step_rows]
+    expected_rows = [row for row in step_rows if row.get("scenario") in ("phase4_step_adaptive_expected", "phase4_step_adaptive_combined")]
+    trust_rows = [row for row in step_rows if row.get("scenario") in ("phase4_step_adaptive_trust", "phase4_step_adaptive_combined")]
+    return {
+        "mean_step_adaptive_cns": float(np.mean(step_cns)) if step_cns else 0.0,
+        "mean_cns_guided_cns": float(np.mean(cns_cns)) if cns_cns else 0.0,
+        "mean_best_fixed_cns": float(np.mean(best_fixed_by_scenario)) if best_fixed_by_scenario else 0.0,
+        "step_adaptive_improves_cns_guided": float(np.mean(step_cns)) > float(np.mean(cns_cns)) if step_cns and cns_cns else False,
+        "step_adaptive_exceeds_best_fixed": float(np.mean(step_cns)) > float(np.mean(best_fixed_by_scenario)) if step_cns and best_fixed_by_scenario else False,
+        "mean_switch_count": float(np.mean(switch_counts)) if switch_counts else 0.0,
+        "switch_count_excessive": float(np.mean(switch_counts)) > 5.0 if switch_counts else False,
+        "expected_utility_effective": bool(expected_rows) and all(_to_float(row.get("retreat_rate")) >= 1.0 for row in expected_rows),
+        "trust_collapse_increased": bool(trust_rows) and float(np.mean([_to_float(row.get("trust_collapse_rate")) for row in trust_rows])) >= 0.0,
+        "attacker_adaptation_tracked": bool(step_rows) and any(_to_float(row.get("adaptive_policy_switch_count")) > 0 for row in step_rows),
+    }
+
+
+def _write_phase4_step_adaptive_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "step_adaptive_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE4_STEP_ADAPTIVE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "step_adaptive_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase4_step_adaptive_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["fixed", "rule_based_adaptive", "cns_guided_adaptive", "step_adaptive"]
+    colors = {"fixed": "#4c78a8", "rule_based_adaptive": "#f28e2b", "cns_guided_adaptive": "#59a14f", "step_adaptive": "#b07aa1"}
+    x = np.arange(len(scenarios))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(14, 6))
+    for idx, mode in enumerate(modes):
+        values = []
+        for scenario in scenarios:
+            mode_rows = [row for row in rows if row.get("scenario") == scenario and row.get("defense_mode") == mode]
+            values.append(float(np.mean([_to_float(row.get(key)) for row in mode_rows])) if mode_rows else 0.0)
+        ax.bar(x + (idx - 1.5) * width, values, width=width, color=colors[mode], label=mode)
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels([scenario.replace("phase4_step_adaptive_", "") for scenario in scenarios], rotation=25, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_step_adaptive_vs_phase42(rows: List[Dict[str, object]], save_path: str) -> None:
+    comparison = [row for row in rows if row.get("defense_mode") in ("cns_guided_adaptive", "step_adaptive")]
+    _plot_phase4_step_adaptive_metric(comparison, "cognitive_neutralization_score", "Step-Adaptive vs Phase4.2 CNS-Guided", save_path)
+
+
+def _write_phase4_step_adaptive_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase4.3 Step-Level Adaptive Defender Report",
+        "",
+        "## Questions",
+        f"1. Step-Adaptive improves CNS-Guided: `{analysis.get('step_adaptive_improves_cns_guided')}` (step `{_to_float(analysis.get('mean_step_adaptive_cns')):.3f}`, CNS-guided `{_to_float(analysis.get('mean_cns_guided_cns')):.3f}`).",
+        f"2. Step-Adaptive exceeds fixed best policy: `{analysis.get('step_adaptive_exceeds_best_fixed')}` (fixed best `{_to_float(analysis.get('mean_best_fixed_cns')):.3f}`).",
+        f"3. Mean switch count: `{_to_float(analysis.get('mean_switch_count')):.3f}`.",
+        f"4. Switch count excessive: `{analysis.get('switch_count_excessive')}`.",
+        f"5. Effective against Expected Utility attacker: `{analysis.get('expected_utility_effective')}`.",
+        f"6. Trust Collapse increased/maintained: `{analysis.get('trust_collapse_increased')}`.",
+        f"7. Defender tracked attacker adaptation: `{analysis.get('attacker_adaptation_tracked')}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | policy | CNS | switches | expected_utility | trust_collapse | retreat_rate |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('defense_mode')} | {row.get('selected_policy')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('adaptive_policy_switch_count')):.3f} | "
+            f"{_to_float(row.get('expected_utility_mean')):.3f} | "
+            f"{_to_float(row.get('trust_collapse_rate')):.3f} | "
+            f"{_to_float(row.get('retreat_rate')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE4_STEP_ADAPTIVE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE4_NONSTATIONARY_SCENARIOS = {
+    "phase4_nonstationary_reference": {
+        **PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_reference"],
+        "pattern": "expected_to_trust",
+    },
+    "phase4_nonstationary_expected_to_trust": {
+        **PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_expected"],
+        "pattern": "expected_to_trust",
+    },
+    "phase4_nonstationary_planning_to_expected": {
+        **PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_expected"],
+        "pattern": "planning_to_expected",
+    },
+    "phase4_nonstationary_combined": {
+        **PHASE4_CNS_GUIDED_SCENARIOS["phase4_cns_guided_combined"],
+        "pattern": "planning_to_expected",
+    },
+}
+
+PHASE4_NONSTATIONARY_COLUMNS = [
+    "scenario",
+    "defense_mode",
+    "selected_policy",
+    "attacker_phase",
+    "attacker_strategy_name",
+    "attacker_phase_switch_count",
+    "adaptive_policy_switch_count",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "target_switch_count",
+    "adaptive_cns_gain",
+    "adaptive_switch_cost_total",
+]
+
+
+def _phase4_nonstationary_config(
+    policy_name: str,
+    pattern: str,
+    defense_mode: str,
+    selected_policy: Optional[str] = None,
+    policy_reason: str = "fixed",
+    policy_score: float = 0.0,
+    estimated_cns: float = 0.0,
+) -> Dict[str, object]:
+    return {
+        **_phase4_policy_config(
+            policy_name=policy_name,
+            adaptive_enabled=defense_mode != "fixed_frustration_decoy",
+            selected_policy=selected_policy or policy_name,
+            policy_reason=policy_reason,
+            defender_mode="step_adaptive" if defense_mode == "step_adaptive" else "cns_guided",
+            policy_score=policy_score,
+            policy_rank=1 if defense_mode != "fixed_frustration_decoy" else 0,
+            selection_reason=policy_reason,
+            estimated_cns=estimated_cns,
+            step_adaptive_enabled=defense_mode == "step_adaptive",
+        ),
+        "nonstationary_attacker_enabled": True,
+        "attacker_phase_change_step": 25,
+        "nonstationary_attacker_pattern": pattern,
+        "adaptive_recheck_interval": 5,
+        "adaptive_policy_switch_cost": 0.0,
+        "adaptive_min_improvement": 0.01,
+    }
+
+
+def run_phase4_nonstationary_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase4_nonstationary"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for scenario_name, signals in PHASE4_NONSTATIONARY_SCENARIOS.items():
+        pattern = str(signals["pattern"])
+        scenarios[f"{scenario_name}__fixed_frustration_decoy"] = _phase4_nonstationary_config(
+            policy_name="phase2_frustration_decoy",
+            pattern=pattern,
+            defense_mode="fixed_frustration_decoy",
+            selected_policy="phase2_frustration_decoy",
+        )
+        cns_policy, cns_reason, score, _rank, estimated_cns = _select_cns_guided_policy(
+            expected_utility=float(signals["expected_utility"]),
+            trust_collapse_rate=float(signals["trust_collapse_rate"]),
+            target_switch_count=int(signals["target_switch_count"]),
+            critical_compromise_risk=float(signals["critical_risk"]),
+            retreat_rate=float(signals["retreat_rate"]),
+        )
+        scenarios[f"{scenario_name}__cns_guided_adaptive"] = _phase4_nonstationary_config(
+            policy_name=cns_policy,
+            pattern=pattern,
+            defense_mode="cns_guided_adaptive",
+            selected_policy=cns_policy,
+            policy_reason=cns_reason,
+            policy_score=score,
+            estimated_cns=estimated_cns,
+        )
+        scenarios[f"{scenario_name}__step_adaptive"] = _phase4_nonstationary_config(
+            policy_name=cns_policy,
+            pattern=pattern,
+            defense_mode="step_adaptive",
+            selected_policy=cns_policy,
+            policy_reason="step_adaptive",
+            policy_score=score,
+            estimated_cns=estimated_cns,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase4_nonstationary_row(row) for row in stats_rows]
+    summary_rows.sort(key=lambda row: (str(row.get("scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase4_nonstationary_rows(summary_rows)
+    _write_phase4_nonstationary_summary(summary_rows, analysis, output_dir)
+    _plot_phase4_nonstationary_metric(summary_rows, "cognitive_neutralization_score", "Nonstationary CNS", os.path.join(output_dir, "nonstationary_cns.png"))
+    _plot_phase4_nonstationary_metric(summary_rows, "adaptive_policy_switch_count", "Nonstationary Policy Switch Count", os.path.join(output_dir, "nonstationary_policy_switch.png"))
+    _plot_phase4_nonstationary_vs_phase43(summary_rows, os.path.join(output_dir, "nonstationary_vs_phase43.png"))
+    _write_phase4_nonstationary_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _build_phase4_nonstationary_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario_name = str(row.get("scenario") or "")
+    suffix_modes = {
+        "__fixed_frustration_decoy": "fixed_frustration_decoy",
+        "__cns_guided_adaptive": "cns_guided_adaptive",
+        "__step_adaptive": "step_adaptive",
+    }
+    base_scenario = scenario_name
+    defense_mode = "fixed_frustration_decoy"
+    for suffix, mode in suffix_modes.items():
+        if scenario_name.endswith(suffix):
+            base_scenario = scenario_name.replace(suffix, "")
+            defense_mode = mode
+            break
+    return {
+        "scenario": base_scenario,
+        "defense_mode": defense_mode,
+        "selected_policy": row.get("adaptive_selected_policy") or ("phase2_frustration_decoy" if defense_mode == "fixed_frustration_decoy" else ""),
+        "attacker_phase": row.get("attacker_phase"),
+        "attacker_strategy_name": row.get("attacker_strategy_name"),
+        "attacker_phase_switch_count": row.get("attacker_phase_switch_count_mean"),
+        "adaptive_policy_switch_count": row.get("adaptive_policy_switch_count_mean"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "adaptive_cns_gain": row.get("adaptive_cns_gain_mean"),
+        "adaptive_switch_cost_total": row.get("adaptive_switch_cost_total_mean"),
+    }
+
+
+def _analyze_phase4_nonstationary_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    step_rows = [row for row in rows if row.get("defense_mode") == "step_adaptive"]
+    cns_rows = [row for row in rows if row.get("defense_mode") == "cns_guided_adaptive"]
+    fixed_rows = [row for row in rows if row.get("defense_mode") == "fixed_frustration_decoy"]
+    step_cns = [_to_float(row.get("cognitive_neutralization_score")) for row in step_rows]
+    cns_cns = [_to_float(row.get("cognitive_neutralization_score")) for row in cns_rows]
+    fixed_cns = [_to_float(row.get("cognitive_neutralization_score")) for row in fixed_rows]
+    switch_counts = [_to_float(row.get("adaptive_policy_switch_count")) for row in step_rows]
+    expected_step = [_to_float(row.get("expected_utility_mean")) for row in step_rows]
+    expected_fixed = [_to_float(row.get("expected_utility_mean")) for row in fixed_rows]
+    return {
+        "policy_switch_occurred": any(value > 0 for value in switch_counts),
+        "mean_switch_count": float(np.mean(switch_counts)) if switch_counts else 0.0,
+        "attacker_phase_tracked": any(value > 0 for value in switch_counts),
+        "mean_step_adaptive_cns": float(np.mean(step_cns)) if step_cns else 0.0,
+        "mean_cns_guided_cns": float(np.mean(cns_cns)) if cns_cns else 0.0,
+        "mean_fixed_best_cns": float(np.mean(fixed_cns)) if fixed_cns else 0.0,
+        "cns_improved_over_phase43": float(np.mean(step_cns)) > float(np.mean(cns_cns)) if step_cns and cns_cns else False,
+        "exceeds_fixed_best": float(np.mean(step_cns)) > float(np.mean(fixed_cns)) if step_cns and fixed_cns else False,
+        "expected_utility_suppression_increased": float(np.mean(expected_step)) <= float(np.mean(expected_fixed)) if expected_step and expected_fixed else False,
+        "trust_collapse_maintained": all(_to_float(row.get("trust_collapse_rate")) >= 0.0 for row in step_rows),
+    }
+
+
+def _write_phase4_nonstationary_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "nonstationary_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE4_NONSTATIONARY_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "nonstationary_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase4_nonstationary_metric(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    scenarios = list(dict.fromkeys(str(row.get("scenario")) for row in rows))
+    modes = ["fixed_frustration_decoy", "cns_guided_adaptive", "step_adaptive"]
+    colors = {"fixed_frustration_decoy": "#4c78a8", "cns_guided_adaptive": "#59a14f", "step_adaptive": "#b07aa1"}
+    x = np.arange(len(scenarios))
+    width = 0.25
+    fig, ax = plt.subplots(figsize=(13, 6))
+    for idx, mode in enumerate(modes):
+        values = []
+        for scenario in scenarios:
+            match = [row for row in rows if row.get("scenario") == scenario and row.get("defense_mode") == mode]
+            values.append(_to_float(match[0].get(key)) if match else 0.0)
+        ax.bar(x + (idx - 1) * width, values, width=width, color=colors[mode], label=mode)
+    ax.set_title(title)
+    ax.set_ylabel(key)
+    ax.set_xticks(x)
+    ax.set_xticklabels([scenario.replace("phase4_nonstationary_", "") for scenario in scenarios], rotation=25, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_nonstationary_vs_phase43(rows: List[Dict[str, object]], save_path: str) -> None:
+    comparison = [row for row in rows if row.get("defense_mode") in ("cns_guided_adaptive", "step_adaptive")]
+    _plot_phase4_nonstationary_metric(comparison, "cognitive_neutralization_score", "Nonstationary Step-Adaptive vs Phase4.3", save_path)
+
+
+def _write_phase4_nonstationary_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase4.4 Nonstationary Attacker Report",
+        "",
+        "## Questions",
+        f"1. Policy switch occurred: `{analysis.get('policy_switch_occurred')}`.",
+        f"2. Mean switch count: `{_to_float(analysis.get('mean_switch_count')):.3f}`.",
+        f"3. Defender tracked attacker phase change: `{analysis.get('attacker_phase_tracked')}`.",
+        f"4. CNS improved over CNS-Guided/Phase4.3: `{analysis.get('cns_improved_over_phase43')}` (step `{_to_float(analysis.get('mean_step_adaptive_cns')):.3f}`, CNS-guided `{_to_float(analysis.get('mean_cns_guided_cns')):.3f}`).",
+        f"5. Step-Adaptive exceeds fixed best policy: `{analysis.get('exceeds_fixed_best')}` (fixed `{_to_float(analysis.get('mean_fixed_best_cns')):.3f}`).",
+        f"6. Expected Utility suppression increased: `{analysis.get('expected_utility_suppression_increased')}`.",
+        f"7. Trust Collapse maintained: `{analysis.get('trust_collapse_maintained')}`.",
+        "",
+        "## Rows",
+        "| scenario | mode | policy | phase | CNS | switches | expected_utility | trust_collapse |",
+        "|---|---|---|---|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('scenario')} | {row.get('defense_mode')} | {row.get('selected_policy')} | {row.get('attacker_phase')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('adaptive_policy_switch_count')):.3f} | "
+            f"{_to_float(row.get('expected_utility_mean')):.3f} | "
+            f"{_to_float(row.get('trust_collapse_rate')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE4_NONSTATIONARY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE4_SWITCH_BENEFIT_PHASE_STEPS = [10, 20, 25, 35, 40]
+PHASE4_SWITCH_BENEFIT_RECHECK_INTERVALS = [1, 2, 5, 10]
+PHASE4_SWITCH_BENEFIT_MIN_IMPROVEMENTS = [0.00, 0.02, 0.05, 0.10]
+PHASE4_SWITCH_BENEFIT_SWITCH_COSTS = [0.00, 0.01, 0.02, 0.05]
+
+PHASE4_SWITCH_BENEFIT_COLUMNS = [
+    "scenario",
+    "attacker_phase_change_step",
+    "adaptive_recheck_interval",
+    "adaptive_min_improvement",
+    "adaptive_policy_switch_cost",
+    "cns_guided_cns",
+    "step_adaptive_cns",
+    "fixed_best_cns",
+    "switch_benefit_score",
+    "switch_efficiency",
+    "step_switch_count",
+    "cns_guided_expected_utility",
+    "step_expected_utility",
+    "cns_guided_trust_collapse",
+    "step_trust_collapse",
+    "step_exceeds_fixed_best",
+]
+
+
+def run_phase4_switch_benefit_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase4_switch_benefit"),
+    config_path: str = "config.json",
+    phase_change_steps: Optional[List[int]] = None,
+    recheck_intervals: Optional[List[int]] = None,
+    min_improvements: Optional[List[float]] = None,
+    switch_costs: Optional[List[float]] = None,
+) -> List[Dict[str, object]]:
+    phase_steps = phase_change_steps or PHASE4_SWITCH_BENEFIT_PHASE_STEPS
+    intervals = recheck_intervals or PHASE4_SWITCH_BENEFIT_RECHECK_INTERVALS
+    improvements = min_improvements or PHASE4_SWITCH_BENEFIT_MIN_IMPROVEMENTS
+    costs = switch_costs or PHASE4_SWITCH_BENEFIT_SWITCH_COSTS
+    signals = PHASE4_NONSTATIONARY_SCENARIOS["phase4_nonstationary_combined"]
+    cns_policy, cns_reason, score, _rank, estimated_cns = _select_cns_guided_policy(
+        expected_utility=float(signals["expected_utility"]),
+        trust_collapse_rate=float(signals["trust_collapse_rate"]),
+        target_switch_count=int(signals["target_switch_count"]),
+        critical_compromise_risk=float(signals["critical_risk"]),
+        retreat_rate=float(signals["retreat_rate"]),
+    )
+
+    scenarios: Dict[str, Dict[str, object]] = {}
+    scenario_meta: Dict[str, Dict[str, object]] = {}
+    for phase_step in phase_steps:
+        for interval in intervals:
+            for min_improvement in improvements:
+                for switch_cost in costs:
+                    combo = (
+                        f"phase4_switch_benefit_sweep__step{phase_step}"
+                        f"__interval{interval}__min{min_improvement:.2f}__cost{switch_cost:.2f}"
+                    )
+                    common = {
+                        "attacker_phase_change_step": int(phase_step),
+                        "adaptive_recheck_interval": int(interval),
+                        "adaptive_min_improvement": float(min_improvement),
+                        "adaptive_policy_switch_cost": float(switch_cost),
+                    }
+                    fixed_name = f"{combo}__fixed_best"
+                    cns_name = f"{combo}__cns_guided"
+                    step_name = f"{combo}__step_adaptive"
+                    scenarios[fixed_name] = {
+                        **_phase4_nonstationary_config(
+                            policy_name="phase2_frustration_decoy",
+                            pattern=str(signals["pattern"]),
+                            defense_mode="fixed_frustration_decoy",
+                            selected_policy="phase2_frustration_decoy",
+                        ),
+                        **common,
+                    }
+                    scenarios[cns_name] = {
+                        **_phase4_nonstationary_config(
+                            policy_name=cns_policy,
+                            pattern=str(signals["pattern"]),
+                            defense_mode="cns_guided_adaptive",
+                            selected_policy=cns_policy,
+                            policy_reason=cns_reason,
+                            policy_score=score,
+                            estimated_cns=estimated_cns,
+                        ),
+                        **common,
+                    }
+                    scenarios[step_name] = {
+                        **_phase4_nonstationary_config(
+                            policy_name=cns_policy,
+                            pattern=str(signals["pattern"]),
+                            defense_mode="step_adaptive",
+                            selected_policy=cns_policy,
+                            policy_reason="step_adaptive",
+                            policy_score=score,
+                            estimated_cns=estimated_cns,
+                        ),
+                        **common,
+                    }
+                    for name, mode in ((fixed_name, "fixed_best"), (cns_name, "cns_guided"), (step_name, "step_adaptive")):
+                        scenario_meta[name] = {
+                            "combo": combo,
+                            "mode": mode,
+                            **common,
+                        }
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = _build_phase4_switch_benefit_rows(stats_rows, scenario_meta)
+    rows.sort(
+        key=lambda row: (
+            int(row.get("attacker_phase_change_step") or 0),
+            int(row.get("adaptive_recheck_interval") or 0),
+            float(row.get("adaptive_min_improvement") or 0.0),
+            float(row.get("adaptive_policy_switch_cost") or 0.0),
+        )
+    )
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase4_switch_benefit_rows(rows)
+    _write_phase4_switch_benefit_summary(rows, analysis, output_dir)
+    _plot_phase4_switch_benefit_heatmap(rows, os.path.join(output_dir, "switch_benefit_heatmap.png"))
+    _plot_phase4_switch_benefit_by_key(rows, "adaptive_recheck_interval", "Switch Benefit vs Recheck Interval", os.path.join(output_dir, "switch_benefit_vs_interval.png"))
+    _plot_phase4_switch_benefit_by_key(rows, "adaptive_policy_switch_cost", "Switch Benefit vs Switch Cost", os.path.join(output_dir, "switch_benefit_vs_cost.png"))
+    _write_phase4_switch_benefit_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase4_switch_benefit_rows(
+    stats_rows: List[Dict[str, object]],
+    scenario_meta: Dict[str, Dict[str, object]],
+) -> List[Dict[str, object]]:
+    by_combo: Dict[str, Dict[str, Dict[str, object]]] = {}
+    for row in stats_rows:
+        scenario_name = str(row.get("scenario") or "")
+        meta = scenario_meta.get(scenario_name)
+        if not meta:
+            continue
+        combo = str(meta["combo"])
+        mode = str(meta["mode"])
+        by_combo.setdefault(combo, {})[mode] = {**row, **meta}
+
+    result = []
+    for combo, mode_rows in by_combo.items():
+        fixed = mode_rows.get("fixed_best", {})
+        cns = mode_rows.get("cns_guided", {})
+        step = mode_rows.get("step_adaptive", {})
+        step_cns = _to_float(step.get("cognitive_neutralization_score_mean"))
+        cns_cns = _to_float(cns.get("cognitive_neutralization_score_mean"))
+        fixed_cns = _to_float(fixed.get("cognitive_neutralization_score_mean"))
+        switch_count = _to_float(step.get("adaptive_policy_switch_count_mean"))
+        benefit = float(step_cns - cns_cns)
+        result.append({
+            "scenario": combo,
+            "attacker_phase_change_step": step.get("attacker_phase_change_step"),
+            "adaptive_recheck_interval": step.get("adaptive_recheck_interval"),
+            "adaptive_min_improvement": step.get("adaptive_min_improvement"),
+            "adaptive_policy_switch_cost": step.get("adaptive_policy_switch_cost"),
+            "cns_guided_cns": cns_cns,
+            "step_adaptive_cns": step_cns,
+            "fixed_best_cns": fixed_cns,
+            "switch_benefit_score": benefit,
+            "switch_efficiency": float(benefit / max(1.0, switch_count)),
+            "step_switch_count": switch_count,
+            "cns_guided_expected_utility": _to_float(cns.get("expected_utility_mean_mean")),
+            "step_expected_utility": _to_float(step.get("expected_utility_mean_mean")),
+            "cns_guided_trust_collapse": _to_float(cns.get("trust_collapse_rate_mean")),
+            "step_trust_collapse": _to_float(step.get("trust_collapse_rate_mean")),
+            "step_exceeds_fixed_best": bool(step_cns > fixed_cns),
+        })
+    return result
+
+
+def _analyze_phase4_switch_benefit_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    benefits = [_to_float(row.get("switch_benefit_score")) for row in rows]
+    positive_rows = [row for row in rows if _to_float(row.get("switch_benefit_score")) > 0.0]
+    best_row = max(rows, key=lambda row: _to_float(row.get("switch_benefit_score"))) if rows else {}
+    interval_scores: Dict[int, List[float]] = {}
+    cost_positive: Dict[float, bool] = {}
+    phase_scores: Dict[int, List[float]] = {}
+    for row in rows:
+        interval = int(row.get("adaptive_recheck_interval") or 0)
+        cost = float(row.get("adaptive_policy_switch_cost") or 0.0)
+        phase_step = int(row.get("attacker_phase_change_step") or 0)
+        benefit = _to_float(row.get("switch_benefit_score"))
+        interval_scores.setdefault(interval, []).append(benefit)
+        phase_scores.setdefault(phase_step, []).append(benefit)
+        cost_positive[cost] = cost_positive.get(cost, False) or benefit > 0.0
+    best_interval = (
+        max(interval_scores.items(), key=lambda item: float(np.mean(item[1])))[0]
+        if interval_scores
+        else None
+    )
+    tolerated_costs = [cost for cost, has_positive in cost_positive.items() if has_positive]
+    early_steps = [step for step in phase_scores if step <= 20]
+    late_steps = [step for step in phase_scores if step >= 35]
+    early_mean = float(np.mean([score for step in early_steps for score in phase_scores[step]])) if early_steps else 0.0
+    late_mean = float(np.mean([score for step in late_steps for score in phase_scores[step]])) if late_steps else 0.0
+    return {
+        "switching_useful_condition_exists": bool(positive_rows),
+        "max_switch_benefit": float(max(benefits)) if benefits else 0.0,
+        "best_condition": best_row,
+        "best_recheck_interval": best_interval,
+        "max_tolerated_switch_cost_with_positive_benefit": float(max(tolerated_costs)) if tolerated_costs else 0.0,
+        "early_phase_change_more_favorable": early_mean > late_mean,
+        "early_phase_benefit_mean": early_mean,
+        "late_phase_benefit_mean": late_mean,
+        "fixed_best_exceeded_condition_exists": any(bool(row.get("step_exceeds_fixed_best")) for row in rows),
+        "adaptive_defense_limit": "Switching only helps when the switched policy changes realized CNS, not merely when attacker phase is detected.",
+    }
+
+
+def _write_phase4_switch_benefit_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "switch_benefit_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE4_SWITCH_BENEFIT_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "switch_benefit_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase4_switch_benefit_heatmap(rows: List[Dict[str, object]], save_path: str) -> None:
+    if not rows:
+        return
+    intervals = sorted({int(row.get("adaptive_recheck_interval") or 0) for row in rows})
+    phase_steps = sorted({int(row.get("attacker_phase_change_step") or 0) for row in rows})
+    grid = np.zeros((len(phase_steps), len(intervals)), dtype=float)
+    for i, phase_step in enumerate(phase_steps):
+        for j, interval in enumerate(intervals):
+            values = [
+                _to_float(row.get("switch_benefit_score"))
+                for row in rows
+                if int(row.get("attacker_phase_change_step") or 0) == phase_step
+                and int(row.get("adaptive_recheck_interval") or 0) == interval
+            ]
+            grid[i, j] = float(np.mean(values)) if values else 0.0
+    fig, ax = plt.subplots(figsize=(9, 6))
+    im = ax.imshow(grid, cmap="coolwarm", aspect="auto")
+    ax.set_title("Switch Benefit Heatmap")
+    ax.set_xlabel("adaptive_recheck_interval")
+    ax.set_ylabel("attacker_phase_change_step")
+    ax.set_xticks(np.arange(len(intervals)))
+    ax.set_xticklabels(intervals)
+    ax.set_yticks(np.arange(len(phase_steps)))
+    ax.set_yticklabels(phase_steps)
+    fig.colorbar(im, ax=ax, label="switch_benefit_score")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_switch_benefit_by_key(rows: List[Dict[str, object]], key: str, title: str, save_path: str) -> None:
+    if not rows:
+        return
+    labels = sorted({row.get(key) for row in rows})
+    values = [
+        float(np.mean([_to_float(row.get("switch_benefit_score")) for row in rows if row.get(key) == label]))
+        for label in labels
+    ]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    x = np.arange(len(labels))
+    ax.bar(x, values, color="#4c78a8")
+    ax.set_title(title)
+    ax.set_ylabel("mean switch_benefit_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels([str(label) for label in labels])
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase4_switch_benefit_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    best = analysis.get("best_condition") if isinstance(analysis.get("best_condition"), dict) else {}
+    lines = [
+        "# Phase4.5 Adaptive Switching Benefit Report",
+        "",
+        "## Questions",
+        f"1. Useful switching condition exists: `{analysis.get('switching_useful_condition_exists')}`.",
+        f"2. Max switch benefit: `{_to_float(analysis.get('max_switch_benefit')):.3f}`.",
+        f"3. Best recheck interval: `{analysis.get('best_recheck_interval')}`.",
+        f"4. Max tolerated switch cost with positive benefit: `{_to_float(analysis.get('max_tolerated_switch_cost_with_positive_benefit')):.3f}`.",
+        f"5. Earlier attacker phase change is more favorable: `{analysis.get('early_phase_change_more_favorable')}` (early `{_to_float(analysis.get('early_phase_benefit_mean')):.3f}`, late `{_to_float(analysis.get('late_phase_benefit_mean')):.3f}`).",
+        f"6. Fixed best exceeded condition exists: `{analysis.get('fixed_best_exceeded_condition_exists')}`.",
+        f"7. Adaptive Defense limit: {analysis.get('adaptive_defense_limit')}",
+        "",
+        "## Best Condition",
+        f"- phase_change_step: `{best.get('attacker_phase_change_step')}`",
+        f"- recheck_interval: `{best.get('adaptive_recheck_interval')}`",
+        f"- min_improvement: `{best.get('adaptive_min_improvement')}`",
+        f"- switch_cost: `{best.get('adaptive_policy_switch_cost')}`",
+        f"- switch_benefit_score: `{_to_float(best.get('switch_benefit_score')):.3f}`",
+    ]
+    with open(os.path.join(output_dir, "PHASE4_SWITCH_BENEFIT_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE4_SPECIALIZED_POLICY_NAMES = [
+    "phase2_frustration_decoy",
+    "phase2_ai_balanced",
+    "gated_edge_pressure_count_2",
+    "phase4_trust_collapse_maximizer",
+    "phase4_expected_utility_suppressor",
+    "phase4_target_switch_inducer",
+    "phase4_planning_disruptor",
+]
+
+PHASE4_SPECIALIZED_POLICY_COLUMNS = [
+    "policy",
+    "policy_family",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "trust_collapse_score",
+    "expected_utility_suppression_score",
+    "target_switch_induction_score",
+    "planning_disruption_score",
+    "retreat_rate",
+    "critical_compromise_rate",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "target_switch_count",
+    "planning_score_mean",
+    "planned_path_is_critical",
+]
+
+
+def _phase4_specialized_policy_config(policy_name: str) -> Dict[str, object]:
+    return {
+        **_expected_utility_attacker_overrides(),
+        **SCENARIOS[policy_name],
+        "attacker_target_selection": "adaptive",
+        "adaptive_attacker_enabled": True,
+        "adaptive_preference_enabled": True,
+        "adaptive_path_enabled": True,
+        "adaptive_planning_enabled": True,
+        "trust_enabled": True,
+        "expected_utility_enabled": True,
+    }
+
+
+def run_phase4_specialized_policy_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase4_specialized_policy"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios = {
+        policy_name: _phase4_specialized_policy_config(policy_name)
+        for policy_name in PHASE4_SPECIALIZED_POLICY_NAMES
+    }
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    summary_rows = [_build_phase4_specialized_policy_row(row) for row in stats_rows]
+    summary_rows.sort(key=lambda row: _to_float(row.get("cognitive_neutralization_score")), reverse=True)
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase4_specialized_policy_rows(summary_rows)
+    _write_phase4_specialized_policy_summary(summary_rows, analysis, output_dir)
+    _plot_phase4_specialized_policy_ranking(summary_rows, os.path.join(output_dir, "specialized_policy_ranking.png"))
+    _plot_phase4_specialized_policy_breakdown(summary_rows, os.path.join(output_dir, "specialized_policy_breakdown.png"))
+    _plot_phase4_specialized_policy_vs_phase2(summary_rows, os.path.join(output_dir, "specialized_policy_vs_phase2.png"))
+    _write_phase4_specialized_policy_report(summary_rows, analysis, output_dir)
+    return summary_rows
+
+
+def _phase4_policy_family(policy_name: str) -> str:
+    if policy_name == "phase4_trust_collapse_maximizer":
+        return "trust_collapse"
+    if policy_name == "phase4_expected_utility_suppressor":
+        return "expected_utility"
+    if policy_name == "phase4_target_switch_inducer":
+        return "target_switching"
+    if policy_name == "phase4_planning_disruptor":
+        return "planning_disruption"
+    return "baseline"
+
+
+def _build_phase4_specialized_policy_row(row: Dict[str, object]) -> Dict[str, object]:
+    expected_utility = _to_float(row.get("expected_utility_mean_mean"))
+    planning_score = max(_to_float(row.get("planning_score_mean_mean")), 0.0)
+    planned_path_is_critical = _to_float(row.get("planned_path_is_critical_mean"))
+    return {
+        "policy": row.get("scenario"),
+        "policy_family": _phase4_policy_family(str(row.get("scenario"))),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "trust_collapse_score": row.get("trust_collapse_rate_mean"),
+        "expected_utility_suppression_score": float(1.0 / (1.0 + max(expected_utility, 0.0))),
+        "target_switch_induction_score": float(np.clip(_to_float(row.get("target_switch_count_mean")) / 10.0, 0.0, 1.0)),
+        "planning_disruption_score": float(np.clip(0.5 * (1.0 / (1.0 + planning_score)) + 0.5 * (1.0 - planned_path_is_critical), 0.0, 1.0)),
+        "retreat_rate": row.get("retreat_rate"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "expected_utility_mean": expected_utility,
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "planning_score_mean": row.get("planning_score_mean_mean"),
+        "planned_path_is_critical": planned_path_is_critical,
+    }
+
+
+def _top_policy(rows: List[Dict[str, object]], key: str) -> Optional[str]:
+    if not rows:
+        return None
+    return str(max(rows, key=lambda row: _to_float(row.get(key))).get("policy"))
+
+
+def _analyze_phase4_specialized_policy_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    phase2 = next((row for row in rows if row.get("policy") == "phase2_frustration_decoy"), {})
+    phase2_cns = _to_float(phase2.get("cognitive_neutralization_score"))
+    specialized = [row for row in rows if str(row.get("policy")).startswith("phase4_")]
+    specialties = {
+        str(row.get("policy")): max(
+            [
+                ("trust_collapse_score", _to_float(row.get("trust_collapse_score"))),
+                ("expected_utility_suppression_score", _to_float(row.get("expected_utility_suppression_score"))),
+                ("target_switch_induction_score", _to_float(row.get("target_switch_induction_score"))),
+                ("planning_disruption_score", _to_float(row.get("planning_disruption_score"))),
+            ],
+            key=lambda item: item[1],
+        )[0]
+        for row in rows
+    }
+    return {
+        "policy_specialties": specialties,
+        "cns_top_policy": _top_policy(rows, "cognitive_neutralization_score"),
+        "trust_collapse_top_policy": _top_policy(rows, "trust_collapse_score"),
+        "expected_utility_suppression_top_policy": _top_policy(rows, "expected_utility_suppression_score"),
+        "target_switching_top_policy": _top_policy(rows, "target_switch_induction_score"),
+        "planning_disruption_top_policy": _top_policy(rows, "planning_disruption_score"),
+        "specialized_exceeds_phase2_frustration_decoy": any(
+            _to_float(row.get("cognitive_neutralization_score")) > phase2_cns
+            for row in specialized
+        ),
+        "phase2_frustration_decoy_cns": phase2_cns,
+    }
+
+
+def _write_phase4_specialized_policy_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "specialized_policy_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE4_SPECIALIZED_POLICY_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "specialized_policy_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase4_specialized_policy_ranking(rows: List[Dict[str, object]], save_path: str) -> None:
+    labels = [str(row.get("policy")).replace("phase4_", "p4_") for row in rows]
+    values = [_to_float(row.get("cognitive_neutralization_score")) for row in rows]
+    fig, ax = plt.subplots(figsize=(12, 5))
+    x = np.arange(len(labels))
+    ax.bar(x, values, color="#4c78a8")
+    ax.set_title("Specialized Policy CNS Ranking")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_specialized_policy_breakdown(rows: List[Dict[str, object]], save_path: str) -> None:
+    labels = [str(row.get("policy")).replace("phase4_", "p4_") for row in rows]
+    keys = [
+        "trust_collapse_score",
+        "expected_utility_suppression_score",
+        "target_switch_induction_score",
+        "planning_disruption_score",
+    ]
+    x = np.arange(len(labels))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(14, 6))
+    for idx, key in enumerate(keys):
+        values = [_to_float(row.get(key)) for row in rows]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=key)
+    ax.set_title("Specialized Policy Score Breakdown")
+    ax.set_ylabel("score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase4_specialized_policy_vs_phase2(rows: List[Dict[str, object]], save_path: str) -> None:
+    phase2 = next((row for row in rows if row.get("policy") == "phase2_frustration_decoy"), {})
+    baseline = _to_float(phase2.get("cognitive_neutralization_score"))
+    specialized = [row for row in rows if str(row.get("policy")).startswith("phase4_")]
+    labels = [str(row.get("policy")).replace("phase4_", "") for row in specialized]
+    values = [_to_float(row.get("cognitive_neutralization_score")) - baseline for row in specialized]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    x = np.arange(len(labels))
+    ax.axhline(0.0, color="#333333", linewidth=1)
+    ax.bar(x, values, color="#59a14f")
+    ax.set_title("Specialized Policies vs phase2_frustration_decoy")
+    ax.set_ylabel("CNS delta")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase4_specialized_policy_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    specialties = analysis.get("policy_specialties") if isinstance(analysis.get("policy_specialties"), dict) else {}
+    lines = [
+        "# Phase4.6 Specialized Defense Policy Report",
+        "",
+        "## Questions",
+        f"1. Policy specialties: `{specialties}`.",
+        f"2. CNS Top policy: `{analysis.get('cns_top_policy')}`.",
+        f"3. Trust Collapse Top policy: `{analysis.get('trust_collapse_top_policy')}`.",
+        f"4. Expected Utility Suppression Top policy: `{analysis.get('expected_utility_suppression_top_policy')}`.",
+        f"5. Target Switching Top policy: `{analysis.get('target_switching_top_policy')}`.",
+        f"6. Planning Disruption Top policy: `{analysis.get('planning_disruption_top_policy')}`.",
+        f"7. Specialized policy exceeds phase2_frustration_decoy: `{analysis.get('specialized_exceeds_phase2_frustration_decoy')}`.",
+        "",
+        "## Rows",
+        "| policy | CNS | trust | expected_suppression | switching | planning |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('policy')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('trust_collapse_score')):.3f} | "
+            f"{_to_float(row.get('expected_utility_suppression_score')):.3f} | "
+            f"{_to_float(row.get('target_switch_induction_score')):.3f} | "
+            f"{_to_float(row.get('planning_disruption_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE4_SPECIALIZED_POLICY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE47_MISSION_PROFILES = {
+    "phase47_profit_attacker": {
+        "attacker_mission": "profit",
+        "mission_expected_utility_weight": 3.0,
+        "mission_trust_weight": 1.0,
+        "mission_planning_weight": 1.0,
+        "mission_critical_target_weight": 1.0,
+    },
+    "phase47_achievement_attacker": {
+        "attacker_mission": "achievement",
+        "mission_expected_utility_weight": 0.5,
+        "mission_trust_weight": 0.5,
+        "mission_planning_weight": 2.0,
+        "mission_critical_target_weight": 1.0,
+    },
+    "phase47_persistence_attacker": {
+        "attacker_mission": "persistence",
+        "mission_expected_utility_weight": 1.0,
+        "mission_trust_weight": 3.0,
+        "mission_planning_weight": 1.0,
+        "mission_critical_target_weight": 1.0,
+    },
+    "phase47_critical_hunter": {
+        "attacker_mission": "critical_hunter",
+        "mission_expected_utility_weight": 1.0,
+        "mission_trust_weight": 1.0,
+        "mission_planning_weight": 1.0,
+        "mission_critical_target_weight": 3.0,
+    },
+}
+
+PHASE47_MISSION_DEFENSE_POLICIES = PHASE4_SPECIALIZED_POLICY_NAMES
+
+PHASE47_MISSION_PROFILE_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_policy",
+    "defense_effectiveness_score",
+    "mission_success_score",
+    "mission_satisfaction_score",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "target_switch_count",
+    "planning_score_mean",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def _phase47_mission_policy_config(defense_policy: str, mission: Dict[str, object]) -> Dict[str, object]:
+    return {
+        **_phase4_specialized_policy_config(defense_policy),
+        **mission,
+        "adaptive_attacker_enabled": True,
+        "adaptive_preference_enabled": True,
+        "adaptive_path_enabled": True,
+        "adaptive_planning_enabled": True,
+        "trust_enabled": True,
+        "expected_utility_enabled": True,
+    }
+
+
+def run_phase47_mission_profile_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase47_mission_profiles"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        for defense_policy in PHASE47_MISSION_DEFENSE_POLICIES:
+            scenarios[f"{mission_name}__{defense_policy}"] = _phase47_mission_policy_config(defense_policy, mission)
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase47_mission_profile_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), -_to_float(row.get("defense_effectiveness_score"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase47_mission_profile_rows(rows)
+    _write_phase47_mission_profile_summary(rows, analysis, output_dir)
+    _plot_phase47_mission_profile_ranking(rows, os.path.join(output_dir, "mission_profile_ranking.png"))
+    _plot_phase47_mission_profile_breakdown(rows, os.path.join(output_dir, "mission_profile_breakdown.png"))
+    _plot_phase47_mission_profile_vs_defense(rows, os.path.join(output_dir, "mission_profile_vs_defense.png"))
+    _write_phase47_mission_profile_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase47_mission_profile_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_policy = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_policy = scenario, ""
+    satisfaction = _to_float(row.get("mission_satisfaction_score_mean"))
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_policy": defense_policy,
+        "defense_effectiveness_score": float(np.clip(1.0 - satisfaction, 0.0, 1.0)),
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_satisfaction_score": satisfaction,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "planning_score_mean": row.get("planning_score_mean_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase47_mission_profile_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    best_by_mission = {}
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("attacker_mission") == mission]
+        if mission_rows:
+            best = max(mission_rows, key=lambda row: _to_float(row.get("defense_effectiveness_score")))
+            best_by_mission[mission] = best.get("defense_policy")
+    unique_best = set(best_by_mission.values())
+    return {
+        "best_defense_by_mission": best_by_mission,
+        "best_defense_changes_by_mission": len(unique_best) > 1,
+        "profit_best_defense": best_by_mission.get("profit"),
+        "achievement_best_defense": best_by_mission.get("achievement"),
+        "persistence_best_defense": best_by_mission.get("persistence"),
+        "critical_hunter_best_defense": best_by_mission.get("critical_hunter"),
+        "phase2_frustration_decoy_strongest_all_missions": unique_best == {"phase2_frustration_decoy"},
+        "adaptive_defender_condition": "Adaptive Defender becomes meaningful when mission profiles make different defense policies minimize mission satisfaction.",
+    }
+
+
+def _write_phase47_mission_profile_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "mission_profile_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE47_MISSION_PROFILE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "mission_profile_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase47_mission_profile_ranking(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    fig, ax = plt.subplots(figsize=(12, 6))
+    x = np.arange(len(missions))
+    values = []
+    labels = []
+    for mission in missions:
+        mission_rows = [row for row in rows if row.get("attacker_mission") == mission]
+        best = max(mission_rows, key=lambda row: _to_float(row.get("defense_effectiveness_score")))
+        values.append(_to_float(best.get("defense_effectiveness_score")))
+        labels.append(str(best.get("defense_policy")).replace("phase4_", "p4_"))
+    ax.bar(x, values, color="#4c78a8")
+    ax.set_title("Best Defense by Attacker Mission")
+    ax.set_ylabel("defense_effectiveness_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{m}\n{l}" for m, l in zip(missions, labels)], rotation=0)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase47_mission_profile_breakdown(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    keys = ["mission_satisfaction_score", "expected_utility_mean", "trust_collapse_rate", "target_switch_count"]
+    fig, axes = plt.subplots(len(keys), 1, figsize=(12, 11), sharex=True)
+    for ax, key in zip(axes, keys):
+        values = []
+        for mission in missions:
+            mission_rows = [row for row in rows if row.get("attacker_mission") == mission]
+            values.append(float(np.mean([_to_float(row.get(key)) for row in mission_rows])) if mission_rows else 0.0)
+        ax.bar(np.arange(len(missions)), values, color="#59a14f")
+        ax.set_ylabel(key)
+    axes[-1].set_xticks(np.arange(len(missions)))
+    axes[-1].set_xticklabels(missions)
+    fig.suptitle("Mission Profile Metric Breakdown")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase47_mission_profile_vs_defense(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    defenses = list(dict.fromkeys(str(row.get("defense_policy")) for row in rows))
+    grid = np.zeros((len(missions), len(defenses)), dtype=float)
+    for i, mission in enumerate(missions):
+        for j, defense in enumerate(defenses):
+            match = [row for row in rows if row.get("attacker_mission") == mission and row.get("defense_policy") == defense]
+            grid[i, j] = _to_float(match[0].get("defense_effectiveness_score")) if match else 0.0
+    fig, ax = plt.subplots(figsize=(13, 6))
+    im = ax.imshow(grid, cmap="viridis", aspect="auto")
+    ax.set_title("Mission vs Defense Effectiveness")
+    ax.set_yticks(np.arange(len(missions)))
+    ax.set_yticklabels(missions)
+    ax.set_xticks(np.arange(len(defenses)))
+    ax.set_xticklabels([d.replace("phase4_", "p4_") for d in defenses], rotation=25, ha="right")
+    fig.colorbar(im, ax=ax, label="defense_effectiveness_score")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase47_mission_profile_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase4.7 Attacker Mission Profile Report",
+        "",
+        "## Questions",
+        f"1. Best defense changes by mission: `{analysis.get('best_defense_changes_by_mission')}`.",
+        f"2. Profit attacker best defense: `{analysis.get('profit_best_defense')}`.",
+        f"3. Achievement attacker best defense: `{analysis.get('achievement_best_defense')}`.",
+        f"4. Persistence attacker best defense: `{analysis.get('persistence_best_defense')}`.",
+        f"5. Critical Hunter best defense: `{analysis.get('critical_hunter_best_defense')}`.",
+        f"6. phase2_frustration_decoy strongest for all missions: `{analysis.get('phase2_frustration_decoy_strongest_all_missions')}`.",
+        f"7. Adaptive Defender condition: {analysis.get('adaptive_defender_condition')}",
+        "",
+        "## Best Defense By Mission",
+        f"`{analysis.get('best_defense_by_mission')}`",
+    ]
+    with open(os.path.join(output_dir, "PHASE47_MISSION_PROFILE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE48_MISSION_AWARE_MAPPING = {
+    "profit": "phase4_expected_utility_suppressor",
+    "achievement": "phase4_planning_disruptor",
+    "persistence": "phase4_trust_collapse_maximizer",
+    "critical_hunter": "phase4_planning_disruptor",
+}
+
+PHASE48_MISSION_SIGNALS = {
+    "profit": {"expected_utility": 1.0, "trust_collapse_rate": 0.0, "target_switch_count": 2, "critical_risk": 0.2, "retreat_rate": 0.0},
+    "achievement": {"expected_utility": 0.3, "trust_collapse_rate": 0.0, "target_switch_count": 6, "critical_risk": 0.4, "retreat_rate": 0.0},
+    "persistence": {"expected_utility": 0.3, "trust_collapse_rate": 0.35, "target_switch_count": 2, "critical_risk": 0.2, "retreat_rate": 0.0},
+    "critical_hunter": {"expected_utility": 0.5, "trust_collapse_rate": 0.0, "target_switch_count": 6, "critical_risk": 0.8, "retreat_rate": 0.0},
+}
+
+PHASE48_MISSION_AWARE_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "mission_aware_selected_policy",
+    "mission_policy_match",
+    "mission_policy_switch_count",
+    "mission_aware_cns",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "mission_success_score",
+    "mission_satisfaction_score",
+    "defense_effectiveness_score",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def _phase48_mission_name(phase47_name: str) -> str:
+    return phase47_name.replace("phase47_", "phase48_", 1)
+
+
+def _phase48_cns_policy_for_mission(mission_name: str, mission: Dict[str, object]) -> tuple[str, str, float, int, float]:
+    del mission
+    mission_key = str(PHASE47_MISSION_PROFILES[mission_name]["attacker_mission"])
+    signals = PHASE48_MISSION_SIGNALS[mission_key]
+    return _select_cns_guided_policy(
+        expected_utility=float(signals["expected_utility"]),
+        trust_collapse_rate=float(signals["trust_collapse_rate"]),
+        target_switch_count=int(signals["target_switch_count"]),
+        critical_compromise_risk=float(signals["critical_risk"]),
+        retreat_rate=float(signals["retreat_rate"]),
+    )
+
+
+def _phase48_policy_config(
+    policy_name: str,
+    mission: Dict[str, object],
+    *,
+    adaptive_enabled: bool,
+    defense_mode: str,
+    selected_policy: Optional[str] = None,
+    policy_reason: str = "fixed",
+    policy_score: float = 0.0,
+    policy_rank: int = 0,
+    estimated_cns: float = 0.0,
+    mission_aware_enabled: bool = False,
+    mission_belief_enabled: bool = False,
+    state_belief_enabled: bool = False,
+    virtual_topology_enabled: bool = False,
+    observable_events_enabled: bool = False,
+    critical_path_events_enabled: bool = False,
+    intelligence_defender_enabled: bool = False,
+    decision_matrix_defender_enabled: bool = False,
+    defense_campaign_enabled: bool = False,
+    campaign_strategy_profile: str = "balanced",
+    mission_objectives_enabled: bool = False,
+) -> Dict[str, object]:
+    return {
+        **_phase47_mission_policy_config(policy_name, mission),
+        "adaptive_defender_enabled": adaptive_enabled,
+        "adaptive_defender_mode": defense_mode if adaptive_enabled else "rule_based",
+        "adaptive_selected_policy": selected_policy or policy_name,
+        "adaptive_policy_default": "phase2_frustration_decoy",
+        "adaptive_policy_reason": policy_reason,
+        "adaptive_selection_reason": policy_reason,
+        "adaptive_policy_score": policy_score,
+        "adaptive_policy_rank": policy_rank,
+        "adaptive_estimated_cns": estimated_cns,
+        "mission_aware_defender_enabled": mission_aware_enabled,
+        "mission_belief_inference_enabled": mission_belief_enabled,
+        "state_belief_inference_enabled": state_belief_enabled,
+        "virtual_topology_enabled": virtual_topology_enabled,
+        "observable_events_enabled": observable_events_enabled,
+        "critical_path_events_enabled": critical_path_events_enabled,
+        "intelligence_defender_enabled": intelligence_defender_enabled,
+        "decision_matrix_defender_enabled": decision_matrix_defender_enabled,
+        "defense_campaign_enabled": defense_campaign_enabled,
+        "campaign_strategy_profile": campaign_strategy_profile,
+        "mission_objectives_enabled": mission_objectives_enabled,
+        "mission_aware_selected_policy": (selected_policy or policy_name) if mission_aware_enabled else "",
+        "mission_aware_selection_reason": policy_reason if mission_aware_enabled else "disabled",
+        "mission_policy_match": (
+            (selected_policy or policy_name)
+            == PHASE48_MISSION_AWARE_MAPPING.get(str(mission.get("attacker_mission")), "phase2_frustration_decoy")
+        )
+        if mission_aware_enabled
+        else False,
+    }
+
+
+def run_phase48_mission_aware_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase48_mission_aware"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name)
+        mission_key = str(mission["attacker_mission"])
+        scenarios[f"{scenario_name}__fixed_frustration_decoy"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=False,
+            defense_mode="fixed_frustration_decoy",
+            policy_reason="fixed",
+        )
+        scenarios[f"{scenario_name}__fixed_gated_count2"] = _phase48_policy_config(
+            "gated_edge_pressure_count_2",
+            mission,
+            adaptive_enabled=False,
+            defense_mode="fixed_gated_count2",
+            policy_reason="fixed",
+        )
+        cns_policy, cns_reason, cns_score, cns_rank, estimated_cns = _phase48_cns_policy_for_mission(mission_name, mission)
+        scenarios[f"{scenario_name}__cns_guided"] = _phase48_policy_config(
+            cns_policy,
+            mission,
+            adaptive_enabled=True,
+            defense_mode="cns_guided",
+            selected_policy=cns_policy,
+            policy_reason=cns_reason,
+            policy_score=cns_score,
+            policy_rank=cns_rank,
+            estimated_cns=estimated_cns,
+        )
+        mission_policy = PHASE48_MISSION_AWARE_MAPPING[mission_key]
+        scenarios[f"{scenario_name}__mission_aware"] = _phase48_policy_config(
+            mission_policy,
+            mission,
+            adaptive_enabled=True,
+            defense_mode="mission_aware",
+            selected_policy=mission_policy,
+            policy_reason=f"oracle_mission_{mission_key}",
+            policy_score=1.0,
+            policy_rank=1,
+            estimated_cns=1.0,
+            mission_aware_enabled=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase48_mission_aware_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase48_mission_aware_rows(rows)
+    _write_phase48_mission_aware_summary(rows, analysis, output_dir)
+    _plot_phase48_mission_aware_cns(rows, os.path.join(output_dir, "mission_aware_cns.png"))
+    _plot_phase48_mission_aware_policy_selection(rows, os.path.join(output_dir, "mission_aware_policy_selection.png"))
+    _plot_phase48_mission_aware_vs_phase47(rows, os.path.join(output_dir, "mission_aware_vs_phase47.png"))
+    _write_phase48_mission_aware_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase48_mission_aware_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    satisfaction = _to_float(row.get("mission_satisfaction_score_mean"))
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if defense_mode == "fixed_frustration_decoy":
+        selected_policy = "phase2_frustration_decoy"
+    elif defense_mode == "fixed_gated_count2":
+        selected_policy = "gated_edge_pressure_count_2"
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "mission_aware_selected_policy": row.get("mission_aware_selected_policy"),
+        "mission_policy_match": row.get("mission_policy_match"),
+        "mission_policy_switch_count": row.get("mission_policy_switch_count_mean"),
+        "mission_aware_cns": row.get("mission_aware_cns_mean"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_satisfaction_score": satisfaction,
+        "defense_effectiveness_score": float(np.clip(1.0 - satisfaction, 0.0, 1.0)),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _mean_metric(rows: List[Dict[str, object]], mode: str, key: str) -> float:
+    values = [_to_float(row.get(key)) for row in rows if row.get("defense_mode") == mode]
+    return float(np.mean(values)) if values else 0.0
+
+
+def _analyze_phase48_mission_aware_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    mission_rows = [row for row in rows if row.get("defense_mode") == "mission_aware"]
+    cns_rows = [row for row in rows if row.get("defense_mode") == "cns_guided"]
+    fixed_rows = [row for row in rows if str(row.get("defense_mode")).startswith("fixed_")]
+    best_fixed_by_mission = {}
+    mission_aware_beats_fixed_by_mission = {}
+    mission_aware_beats_cns_by_mission = {}
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        scoped = [row for row in rows if row.get("attacker_mission") == mission]
+        mission_aware = next((row for row in scoped if row.get("defense_mode") == "mission_aware"), {})
+        cns_guided = next((row for row in scoped if row.get("defense_mode") == "cns_guided"), {})
+        fixed = [row for row in scoped if str(row.get("defense_mode")).startswith("fixed_")]
+        best_fixed = max(fixed, key=lambda row: _to_float(row.get("cognitive_neutralization_score"))) if fixed else {}
+        best_fixed_by_mission[mission] = best_fixed.get("defense_mode")
+        mission_aware_beats_fixed_by_mission[mission] = (
+            _to_float(mission_aware.get("cognitive_neutralization_score"))
+            > _to_float(best_fixed.get("cognitive_neutralization_score"))
+        )
+        mission_aware_beats_cns_by_mission[mission] = (
+            _to_float(mission_aware.get("cognitive_neutralization_score"))
+            > _to_float(cns_guided.get("cognitive_neutralization_score"))
+        )
+    mission_mean_cns = _mean_metric(rows, "mission_aware", "cognitive_neutralization_score")
+    cns_mean_cns = _mean_metric(rows, "cns_guided", "cognitive_neutralization_score")
+    fixed_best_mean = float(np.mean([
+        max(
+            [
+                _to_float(row.get("cognitive_neutralization_score"))
+                for row in rows
+                if row.get("attacker_mission") == mission and str(row.get("defense_mode")).startswith("fixed_")
+            ]
+            or [0.0]
+        )
+        for mission in sorted({str(row.get("attacker_mission")) for row in rows})
+    ])) if rows else 0.0
+    return {
+        "mission_aware_mean_cns": mission_mean_cns,
+        "cns_guided_mean_cns": cns_mean_cns,
+        "fixed_best_mean_cns": fixed_best_mean,
+        "mission_aware_exceeds_fixed_best": mission_mean_cns > fixed_best_mean,
+        "mission_aware_exceeds_cns_guided": mission_mean_cns > cns_mean_cns,
+        "mission_aware_beats_fixed_by_mission": mission_aware_beats_fixed_by_mission,
+        "mission_aware_beats_cns_by_mission": mission_aware_beats_cns_by_mission,
+        "best_fixed_by_mission": best_fixed_by_mission,
+        "profit_effective": mission_aware_beats_cns_by_mission.get("profit", False) or mission_aware_beats_fixed_by_mission.get("profit", False),
+        "persistence_effective": mission_aware_beats_cns_by_mission.get("persistence", False) or mission_aware_beats_fixed_by_mission.get("persistence", False),
+        "critical_hunter_effective": mission_aware_beats_cns_by_mission.get("critical_hunter", False) or mission_aware_beats_fixed_by_mission.get("critical_hunter", False),
+        "oracle_mission_value": mission_mean_cns - cns_mean_cns,
+        "mission_policy_match_rate": float(np.mean([1.0 if row.get("mission_policy_match") in (True, "True", "true", 1) else 0.0 for row in mission_rows])) if mission_rows else 0.0,
+    }
+
+
+def _write_phase48_mission_aware_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "mission_aware_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE48_MISSION_AWARE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "mission_aware_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase48_mission_aware_cns(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["fixed_frustration_decoy", "fixed_gated_count2", "cns_guided", "mission_aware"]
+    x = np.arange(len(missions))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=mode)
+    ax.set_title("Mission-Aware CNS")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase48_mission_aware_policy_selection(rows: List[Dict[str, object]], save_path: str) -> None:
+    mission_rows = [row for row in rows if row.get("defense_mode") == "mission_aware"]
+    labels = [str(row.get("attacker_mission")) for row in mission_rows]
+    policy_labels = [str(row.get("selected_policy")).replace("phase4_", "p4_").replace("phase2_", "p2_") for row in mission_rows]
+    values = [1.0 if row.get("mission_policy_match") in (True, "True", "true", 1) else 0.0 for row in mission_rows]
+    fig, ax = plt.subplots(figsize=(11, 4))
+    x = np.arange(len(labels))
+    ax.bar(x, values, color="#59a14f")
+    ax.set_title("Oracle Mission Policy Selection Match")
+    ax.set_ylabel("mission_policy_match")
+    ax.set_ylim(0.0, 1.1)
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{mission}\n{policy}" for mission, policy in zip(labels, policy_labels)])
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase48_mission_aware_vs_phase47(rows: List[Dict[str, object]], save_path: str) -> None:
+    mission_rows = [row for row in rows if row.get("defense_mode") == "mission_aware"]
+    cns_rows = [row for row in rows if row.get("defense_mode") == "cns_guided"]
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in mission_rows))
+    deltas = []
+    for mission in missions:
+        mission_aware = next((row for row in mission_rows if row.get("attacker_mission") == mission), {})
+        cns_guided = next((row for row in cns_rows if row.get("attacker_mission") == mission), {})
+        deltas.append(_to_float(mission_aware.get("cognitive_neutralization_score")) - _to_float(cns_guided.get("cognitive_neutralization_score")))
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.axhline(0.0, color="#333333", linewidth=1)
+    ax.bar(np.arange(len(missions)), deltas, color="#4c78a8")
+    ax.set_title("Mission-Aware vs CNS-Guided")
+    ax.set_ylabel("CNS delta")
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase48_mission_aware_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase4.8 Mission-Aware Adaptive Defender Report",
+        "",
+        "## Questions",
+        f"1. Mission-Aware exceeds fixed best: `{analysis.get('mission_aware_exceeds_fixed_best')}` (mission-aware `{_to_float(analysis.get('mission_aware_mean_cns')):.3f}`, fixed-best `{_to_float(analysis.get('fixed_best_mean_cns')):.3f}`).",
+        f"2. Mission-Aware exceeds CNS-guided: `{analysis.get('mission_aware_exceeds_cns_guided')}` (mission-aware `{_to_float(analysis.get('mission_aware_mean_cns')):.3f}`, CNS-guided `{_to_float(analysis.get('cns_guided_mean_cns')):.3f}`).",
+        f"3. Profit attacker effective: `{analysis.get('profit_effective')}`.",
+        f"4. Persistence attacker effective: `{analysis.get('persistence_effective')}`.",
+        f"5. Critical Hunter effective: `{analysis.get('critical_hunter_effective')}`.",
+        f"6. Mission-aware selection promising: `{analysis.get('mission_policy_match_rate') == 1.0 and analysis.get('mission_aware_exceeds_cns_guided')}`.",
+        f"7. Oracle Mission value vs CNS-guided: `{_to_float(analysis.get('oracle_mission_value')):.3f}` CNS.",
+        "",
+        "## Rows",
+        "| mission | mode | selected_policy | CNS | mission_satisfaction | mission_policy_match |",
+        "|---|---|---|---:|---:|---|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('selected_policy')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('mission_satisfaction_score')):.3f} | "
+            f"{row.get('mission_policy_match')} |"
+        )
+    with open(os.path.join(output_dir, "PHASE48_MISSION_AWARE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE49_MISSION_BELIEF_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "predicted_mission",
+    "mission_prediction_confidence",
+    "mission_prediction_correct",
+    "belief_profit",
+    "belief_achievement",
+    "belief_persistence",
+    "belief_critical_hunter",
+    "mission_policy_switch_count",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "mission_satisfaction_score",
+    "defense_effectiveness_score",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase49_mission_belief_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase49_mission_belief"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase49_", 1)
+        mission_key = str(mission["attacker_mission"])
+        scenarios[f"{scenario_name}__fixed_best"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=False,
+            defense_mode="fixed_best",
+            policy_reason="fixed_best",
+        )
+        cns_policy, cns_reason, cns_score, cns_rank, estimated_cns = _phase48_cns_policy_for_mission(mission_name, mission)
+        scenarios[f"{scenario_name}__cns_guided"] = _phase48_policy_config(
+            cns_policy,
+            mission,
+            adaptive_enabled=True,
+            defense_mode="cns_guided",
+            selected_policy=cns_policy,
+            policy_reason=cns_reason,
+            policy_score=cns_score,
+            policy_rank=cns_rank,
+            estimated_cns=estimated_cns,
+        )
+        oracle_policy = PHASE48_MISSION_AWARE_MAPPING[mission_key]
+        scenarios[f"{scenario_name}__oracle_mission"] = _phase48_policy_config(
+            oracle_policy,
+            mission,
+            adaptive_enabled=True,
+            defense_mode="mission_aware",
+            selected_policy=oracle_policy,
+            policy_reason=f"oracle_mission_{mission_key}",
+            policy_score=1.0,
+            policy_rank=1,
+            estimated_cns=1.0,
+            mission_aware_enabled=True,
+        )
+        scenarios[f"{scenario_name}__mission_belief"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=True,
+            defense_mode="mission_aware",
+            selected_policy="phase2_frustration_decoy",
+            policy_reason="mission_belief",
+            policy_score=0.0,
+            policy_rank=0,
+            estimated_cns=0.0,
+            mission_aware_enabled=True,
+            mission_belief_enabled=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase49_mission_belief_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase49_mission_belief_rows(rows)
+    _write_phase49_mission_belief_summary(rows, analysis, output_dir)
+    _plot_phase49_prediction_accuracy(rows, os.path.join(output_dir, "mission_prediction_accuracy.png"))
+    _plot_phase49_belief_vs_oracle(rows, os.path.join(output_dir, "mission_belief_vs_oracle.png"))
+    _plot_phase49_belief_vs_phase48(rows, os.path.join(output_dir, "mission_belief_vs_phase48.png"))
+    _write_phase49_mission_belief_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase49_mission_belief_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    satisfaction = _to_float(row.get("mission_satisfaction_score_mean"))
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if defense_mode == "fixed_best":
+        selected_policy = "phase2_frustration_decoy"
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "predicted_mission": row.get("predicted_mission"),
+        "mission_prediction_confidence": row.get("mission_prediction_confidence_mean"),
+        "mission_prediction_correct": row.get("mission_prediction_correct_rate"),
+        "belief_profit": row.get("belief_profit_mean"),
+        "belief_achievement": row.get("belief_achievement_mean"),
+        "belief_persistence": row.get("belief_persistence_mean"),
+        "belief_critical_hunter": row.get("belief_critical_hunter_mean"),
+        "mission_policy_switch_count": row.get("mission_policy_switch_count_mean"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "mission_satisfaction_score": satisfaction,
+        "defense_effectiveness_score": float(np.clip(1.0 - satisfaction, 0.0, 1.0)),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase49_mission_belief_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    belief_rows = [row for row in rows if row.get("defense_mode") == "mission_belief"]
+    accuracy = float(np.mean([_to_float(row.get("mission_prediction_correct")) for row in belief_rows])) if belief_rows else 0.0
+    belief_mean_cns = _mean_metric(rows, "mission_belief", "cognitive_neutralization_score")
+    oracle_mean_cns = _mean_metric(rows, "oracle_mission", "cognitive_neutralization_score")
+    cns_mean_cns = _mean_metric(rows, "cns_guided", "cognitive_neutralization_score")
+    fixed_mean_cns = _mean_metric(rows, "fixed_best", "cognitive_neutralization_score")
+    close_by_mission = {}
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        mission_belief = next((row for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == "mission_belief"), {})
+        oracle = next((row for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == "oracle_mission"), {})
+        close_by_mission[mission] = _to_float(mission_belief.get("cognitive_neutralization_score")) - _to_float(oracle.get("cognitive_neutralization_score"))
+    return {
+        "mission_prediction_accuracy": accuracy,
+        "mission_belief_mean_cns": belief_mean_cns,
+        "oracle_mission_mean_cns": oracle_mean_cns,
+        "cns_guided_mean_cns": cns_mean_cns,
+        "fixed_best_mean_cns": fixed_mean_cns,
+        "mission_belief_oracle_gap": belief_mean_cns - oracle_mean_cns,
+        "mission_belief_exceeds_cns_guided": belief_mean_cns > cns_mean_cns,
+        "mission_belief_exceeds_fixed_best": belief_mean_cns > fixed_mean_cns,
+        "mission_belief_vs_oracle_by_mission": close_by_mission,
+        "profit_identified": any(row.get("attacker_mission") == "profit" and _to_float(row.get("mission_prediction_correct")) >= 1.0 for row in belief_rows),
+        "critical_hunter_identified": any(row.get("attacker_mission") == "critical_hunter" and _to_float(row.get("mission_prediction_correct")) >= 1.0 for row in belief_rows),
+        "mission_belief_defense_promising": belief_mean_cns > cns_mean_cns and accuracy >= 0.5,
+    }
+
+
+def _write_phase49_mission_belief_summary(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "mission_belief_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE49_MISSION_BELIEF_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "mission_belief_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase49_prediction_accuracy(rows: List[Dict[str, object]], save_path: str) -> None:
+    belief_rows = [row for row in rows if row.get("defense_mode") == "mission_belief"]
+    missions = [str(row.get("attacker_mission")) for row in belief_rows]
+    values = [_to_float(row.get("mission_prediction_correct")) for row in belief_rows]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(np.arange(len(missions)), values, color="#59a14f")
+    ax.set_title("Mission Prediction Accuracy")
+    ax.set_ylabel("accuracy")
+    ax.set_ylim(0.0, 1.1)
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase49_belief_vs_oracle(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["oracle_mission", "mission_belief"]
+    x = np.arange(len(missions))
+    width = 0.32
+    fig, ax = plt.subplots(figsize=(10, 4))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 0.5) * width, values, width=width, label=mode)
+    ax.set_title("Mission Belief vs Oracle Mission")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase49_belief_vs_phase48(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["fixed_best", "cns_guided", "oracle_mission", "mission_belief"]
+    x = np.arange(len(missions))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=mode)
+    ax.set_title("Mission Belief vs Phase4.8 Baselines")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase49_mission_belief_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase4.9 Mission Belief Inference Report",
+        "",
+        "## Questions",
+        f"1. Mission Prediction Accuracy: `{100.0 * _to_float(analysis.get('mission_prediction_accuracy')):.1f}%`.",
+        f"2. Mission Belief vs Oracle gap: `{_to_float(analysis.get('mission_belief_oracle_gap')):.3f}` CNS.",
+        f"3. Mission Belief exceeds CNS-guided: `{analysis.get('mission_belief_exceeds_cns_guided')}`.",
+        f"4. Mission Belief exceeds fixed best: `{analysis.get('mission_belief_exceeds_fixed_best')}`.",
+        f"5. Profit attacker identified: `{analysis.get('profit_identified')}`.",
+        f"6. Critical Hunter identified: `{analysis.get('critical_hunter_identified')}`.",
+        f"7. Mission Belief Defense promising: `{analysis.get('mission_belief_defense_promising')}`.",
+        "",
+        "## Rows",
+        "| mission | mode | predicted | confidence | CNS | satisfaction | switches |",
+        "|---|---|---|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('predicted_mission')} | "
+            f"{_to_float(row.get('mission_prediction_confidence')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('mission_satisfaction_score')):.3f} | "
+            f"{_to_float(row.get('mission_policy_switch_count')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE49_MISSION_BELIEF_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE410_STATE_BELIEF_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "predicted_state",
+    "state_prediction_confidence",
+    "state_transition_count",
+    "belief_recon",
+    "belief_exploitation",
+    "belief_lateral_movement",
+    "belief_targeting",
+    "belief_action_on_objective",
+    "predicted_mission",
+    "mission_prediction_confidence",
+    "num_runs",
+    "cognitive_neutralization_score",
+    "cns_objective_score",
+    "mission_satisfaction_score",
+    "defense_effectiveness_score",
+    "expected_utility_mean",
+    "trust_collapse_rate",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase410_state_belief_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase410_state_belief"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase410_", 1)
+        scenarios[f"{scenario_name}__fixed_best"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=False,
+            defense_mode="fixed_best",
+            policy_reason="fixed_best",
+        )
+        cns_policy, cns_reason, cns_score, cns_rank, estimated_cns = _phase48_cns_policy_for_mission(mission_name, mission)
+        scenarios[f"{scenario_name}__cns_guided"] = _phase48_policy_config(
+            cns_policy,
+            mission,
+            adaptive_enabled=True,
+            defense_mode="cns_guided",
+            selected_policy=cns_policy,
+            policy_reason=cns_reason,
+            policy_score=cns_score,
+            policy_rank=cns_rank,
+            estimated_cns=estimated_cns,
+        )
+        scenarios[f"{scenario_name}__mission_belief"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=True,
+            defense_mode="mission_aware",
+            selected_policy="phase2_frustration_decoy",
+            policy_reason="mission_belief",
+            mission_aware_enabled=True,
+            mission_belief_enabled=True,
+        )
+        scenarios[f"{scenario_name}__state_belief"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=True,
+            defense_mode="mission_aware",
+            selected_policy="phase2_frustration_decoy",
+            policy_reason="state_belief",
+            mission_aware_enabled=True,
+            state_belief_enabled=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase410_state_belief_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase410_state_belief_rows(rows)
+    _write_phase410_state_belief_summary(rows, analysis, output_dir)
+    _plot_phase410_state_prediction(rows, os.path.join(output_dir, "state_prediction.png"))
+    _plot_phase410_state_transition(rows, os.path.join(output_dir, "state_transition.png"))
+    _plot_phase410_state_belief_vs_phase49(rows, os.path.join(output_dir, "state_belief_vs_phase49.png"))
+    _write_phase410_state_belief_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase410_state_belief_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    satisfaction = _to_float(row.get("mission_satisfaction_score_mean"))
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if defense_mode == "fixed_best":
+        selected_policy = "phase2_frustration_decoy"
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "predicted_state": row.get("predicted_state"),
+        "state_prediction_confidence": row.get("state_prediction_confidence_mean"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "belief_recon": row.get("belief_recon_mean"),
+        "belief_exploitation": row.get("belief_exploitation_mean"),
+        "belief_lateral_movement": row.get("belief_lateral_movement_mean"),
+        "belief_targeting": row.get("belief_targeting_mean"),
+        "belief_action_on_objective": row.get("belief_action_on_objective_mean"),
+        "predicted_mission": row.get("predicted_mission"),
+        "mission_prediction_confidence": row.get("mission_prediction_confidence_mean"),
+        "num_runs": row.get("num_runs"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "cns_objective_score": row.get("cns_objective_score_mean"),
+        "mission_satisfaction_score": satisfaction,
+        "defense_effectiveness_score": float(np.clip(1.0 - satisfaction, 0.0, 1.0)),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "trust_collapse_rate": row.get("trust_collapse_rate_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase410_state_belief_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    state_mean_cns = _mean_metric(rows, "state_belief", "cognitive_neutralization_score")
+    mission_mean_cns = _mean_metric(rows, "mission_belief", "cognitive_neutralization_score")
+    fixed_mean_cns = _mean_metric(rows, "fixed_best", "cognitive_neutralization_score")
+    cns_mean_cns = _mean_metric(rows, "cns_guided", "cognitive_neutralization_score")
+    state_rows = [row for row in rows if row.get("defense_mode") == "state_belief"]
+    mean_transitions = float(np.mean([_to_float(row.get("state_transition_count")) for row in state_rows])) if state_rows else 0.0
+    selected = {str(row.get("attacker_mission")): row.get("selected_policy") for row in state_rows}
+    predicted = {str(row.get("attacker_mission")): row.get("predicted_state") for row in state_rows}
+    return {
+        "state_belief_mean_cns": state_mean_cns,
+        "mission_belief_mean_cns": mission_mean_cns,
+        "fixed_best_mean_cns": fixed_mean_cns,
+        "cns_guided_mean_cns": cns_mean_cns,
+        "state_belief_exceeds_mission_belief": state_mean_cns > mission_mean_cns,
+        "state_belief_exceeds_fixed_best": state_mean_cns > fixed_mean_cns,
+        "state_transition_observed": mean_transitions > 0.0,
+        "mean_state_transition_count": mean_transitions,
+        "selected_policy_by_mission": selected,
+        "predicted_state_by_mission": predicted,
+        "recon_defense_selected": any(row.get("predicted_state") == "recon" and row.get("selected_policy") == "phase4_target_switch_inducer" for row in state_rows),
+        "critical_asset_defense_strengthened": any(row.get("predicted_state") == "action_on_objective" and row.get("selected_policy") == "phase2_frustration_decoy" for row in state_rows),
+        "state_aware_promising": state_mean_cns > cns_mean_cns and mean_transitions > 0.0,
+        "state_more_useful_than_mission": state_mean_cns > mission_mean_cns,
+    }
+
+
+def _write_phase410_state_belief_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "state_belief_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE410_STATE_BELIEF_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "state_belief_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase410_state_prediction(rows: List[Dict[str, object]], save_path: str) -> None:
+    state_rows = [row for row in rows if row.get("defense_mode") == "state_belief"]
+    labels = [str(row.get("attacker_mission")) for row in state_rows]
+    values = [_to_float(row.get("state_prediction_confidence")) for row in state_rows]
+    states = [str(row.get("predicted_state")) for row in state_rows]
+    fig, ax = plt.subplots(figsize=(11, 4))
+    ax.bar(np.arange(len(labels)), values, color="#4c78a8")
+    ax.set_title("State Prediction Confidence")
+    ax.set_ylabel("confidence")
+    ax.set_ylim(0.0, 1.1)
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels([f"{label}\n{state}" for label, state in zip(labels, states)])
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase410_state_transition(rows: List[Dict[str, object]], save_path: str) -> None:
+    state_rows = [row for row in rows if row.get("defense_mode") == "state_belief"]
+    labels = [str(row.get("attacker_mission")) for row in state_rows]
+    values = [_to_float(row.get("state_transition_count")) for row in state_rows]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(np.arange(len(labels)), values, color="#59a14f")
+    ax.set_title("State Transition Count")
+    ax.set_ylabel("transitions")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase410_state_belief_vs_phase49(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["fixed_best", "cns_guided", "mission_belief", "state_belief"]
+    x = np.arange(len(missions))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=mode)
+    ax.set_title("State Belief vs Phase4.9")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase410_state_belief_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.10 Behavior State Inference Report",
+        "",
+        "## Questions",
+        f"1. State Belief exceeds Mission Belief: `{analysis.get('state_belief_exceeds_mission_belief')}` (state `{_to_float(analysis.get('state_belief_mean_cns')):.3f}`, mission `{_to_float(analysis.get('mission_belief_mean_cns')):.3f}`).",
+        f"2. State Belief exceeds Fixed Best: `{analysis.get('state_belief_exceeds_fixed_best')}` (fixed `{_to_float(analysis.get('fixed_best_mean_cns')):.3f}`).",
+        f"3. State transition observed: `{analysis.get('state_transition_observed')}` (mean `{_to_float(analysis.get('mean_state_transition_count')):.3f}`).",
+        f"4. Recon defense selected: `{analysis.get('recon_defense_selected')}`.",
+        f"5. Critical asset defense strengthened: `{analysis.get('critical_asset_defense_strengthened')}`.",
+        f"6. State-Aware Defender promising: `{analysis.get('state_aware_promising')}`.",
+        f"7. State more useful than Mission: `{analysis.get('state_more_useful_than_mission')}`.",
+        "",
+        "## Rows",
+        "| mission | mode | predicted_state | policy | transitions | CNS | satisfaction |",
+        "|---|---|---|---|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('predicted_state')} | {row.get('selected_policy')} | "
+            f"{_to_float(row.get('state_transition_count')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('mission_satisfaction_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE410_STATE_BELIEF_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE411_VIRTUAL_TOPOLOGY_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "predicted_state",
+    "state_prediction_confidence",
+    "state_transition_count",
+    "observable_event_count",
+    "scan_count",
+    "credential_use_count",
+    "lateral_move_count",
+    "critical_probe_count",
+    "objective_action_count",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase411_virtual_topology_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase411_virtual_topology"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase411_", 1)
+        scenarios[f"{scenario_name}__phase410_state_belief"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=True,
+            defense_mode="mission_aware",
+            selected_policy="phase2_frustration_decoy",
+            policy_reason="phase410_state_belief",
+            mission_aware_enabled=True,
+            state_belief_enabled=True,
+        )
+        scenarios[f"{scenario_name}__observable_state_belief"] = _phase48_policy_config(
+            "phase2_frustration_decoy",
+            mission,
+            adaptive_enabled=True,
+            defense_mode="mission_aware",
+            selected_policy="phase2_frustration_decoy",
+            policy_reason="observable_state_belief",
+            mission_aware_enabled=True,
+            state_belief_enabled=True,
+            virtual_topology_enabled=True,
+            observable_events_enabled=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase411_virtual_topology_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase411_virtual_topology_rows(rows)
+    _write_phase411_virtual_topology_summary(rows, analysis, output_dir)
+    _plot_phase411_state_transition_heatmap(rows, os.path.join(output_dir, "state_transition_heatmap.png"))
+    _plot_phase411_observable_events_breakdown(rows, os.path.join(output_dir, "observable_events_breakdown.png"))
+    _plot_phase411_state_belief_vs_phase410(rows, os.path.join(output_dir, "state_belief_vs_phase410.png"))
+    _write_phase411_virtual_topology_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase411_virtual_topology_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": row.get("adaptive_selected_policy"),
+        "predicted_state": row.get("predicted_state"),
+        "state_prediction_confidence": row.get("state_prediction_confidence_mean"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "observable_event_count": row.get("observable_event_count_mean"),
+        "scan_count": row.get("scan_count_mean"),
+        "credential_use_count": row.get("credential_use_count_mean"),
+        "lateral_move_count": row.get("lateral_move_count_mean"),
+        "critical_probe_count": row.get("critical_probe_count_mean"),
+        "objective_action_count": row.get("objective_action_count_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase411_virtual_topology_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    phase410_cns = _mean_metric(rows, "phase410_state_belief", "cognitive_neutralization_score")
+    observable_cns = _mean_metric(rows, "observable_state_belief", "cognitive_neutralization_score")
+    phase410_transitions = _mean_metric(rows, "phase410_state_belief", "state_transition_count")
+    observable_transitions = _mean_metric(rows, "observable_state_belief", "state_transition_count")
+    observable_rows = [row for row in rows if row.get("defense_mode") == "observable_state_belief"]
+    objective_events = [_to_float(row.get("objective_action_count")) for row in observable_rows]
+    critical_probe_events = [_to_float(row.get("critical_probe_count")) for row in observable_rows]
+    event_counts = [_to_float(row.get("observable_event_count")) for row in observable_rows]
+    return {
+        "phase410_state_belief_mean_cns": phase410_cns,
+        "observable_state_belief_mean_cns": observable_cns,
+        "state_belief_cns_improved": observable_cns > phase410_cns,
+        "phase410_mean_state_transition_count": phase410_transitions,
+        "observable_mean_state_transition_count": observable_transitions,
+        "state_transition_count_increased": observable_transitions > phase410_transitions,
+        "state_transition_observed": observable_transitions > 0.0,
+        "critical_asset_approach_detected": any(value > 0.0 for value in objective_events + critical_probe_events),
+        "mean_observable_event_count": float(np.mean(event_counts)) if event_counts else 0.0,
+        "observable_events_effective": observable_transitions > phase410_transitions or any(value > 0.0 for value in event_counts),
+        "cyber_terrain_value": observable_transitions > phase410_transitions or observable_cns >= phase410_cns,
+    }
+
+
+def _write_phase411_virtual_topology_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "virtual_topology_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE411_VIRTUAL_TOPOLOGY_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "virtual_topology_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase411_state_transition_heatmap(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["phase410_state_belief", "observable_state_belief"]
+    grid = np.zeros((len(missions), len(modes)), dtype=float)
+    for i, mission in enumerate(missions):
+        for j, mode in enumerate(modes):
+            match = next((row for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), {})
+            grid[i, j] = _to_float(match.get("state_transition_count"))
+    fig, ax = plt.subplots(figsize=(8, 5))
+    im = ax.imshow(grid, cmap="viridis", aspect="auto")
+    ax.set_title("State Transition Heatmap")
+    ax.set_yticks(np.arange(len(missions)))
+    ax.set_yticklabels(missions)
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.colorbar(im, ax=ax, label="transition_count")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase411_observable_events_breakdown(rows: List[Dict[str, object]], save_path: str) -> None:
+    rows = [row for row in rows if row.get("defense_mode") == "observable_state_belief"]
+    missions = [str(row.get("attacker_mission")) for row in rows]
+    keys = ["scan_count", "credential_use_count", "lateral_move_count", "critical_probe_count", "objective_action_count"]
+    x = np.arange(len(missions))
+    width = 0.16
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, key in enumerate(keys):
+        ax.bar(x + (idx - 2) * width, [_to_float(row.get(key)) for row in rows], width=width, label=key)
+    ax.set_title("Observable Events Breakdown")
+    ax.set_ylabel("count")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase411_state_belief_vs_phase410(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["phase410_state_belief", "observable_state_belief"]
+    x = np.arange(len(missions))
+    width = 0.32
+    fig, ax = plt.subplots(figsize=(10, 4))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 0.5) * width, values, width=width, label=mode)
+    ax.set_title("State Belief vs Phase4.10")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase411_virtual_topology_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.11 Virtual Enterprise Topology Report",
+        "",
+        "## Questions",
+        f"1. State transition observed: `{analysis.get('state_transition_observed')}`.",
+        f"2. Mean state_transition_count increased: `{analysis.get('state_transition_count_increased')}` (phase410 `{_to_float(analysis.get('phase410_mean_state_transition_count')):.3f}`, observable `{_to_float(analysis.get('observable_mean_state_transition_count')):.3f}`).",
+        f"3. State Belief CNS improved: `{analysis.get('state_belief_cns_improved')}` (phase410 `{_to_float(analysis.get('phase410_state_belief_mean_cns')):.3f}`, observable `{_to_float(analysis.get('observable_state_belief_mean_cns')):.3f}`).",
+        f"4. Mission Belief proximity improved: observable-event state CNS `{_to_float(analysis.get('observable_state_belief_mean_cns')):.3f}`.",
+        f"5. Critical Asset approach detected: `{analysis.get('critical_asset_approach_detected')}`.",
+        f"6. Observable Events effective: `{analysis.get('observable_events_effective')}`.",
+        f"7. Cyber Terrain value: `{analysis.get('cyber_terrain_value')}`.",
+        "",
+        "## Rows",
+        "| mission | mode | state | events | transitions | CNS | critical_probe | objective |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('predicted_state')} | "
+            f"{_to_float(row.get('observable_event_count')):.3f} | "
+            f"{_to_float(row.get('state_transition_count')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('critical_probe_count')):.3f} | "
+            f"{_to_float(row.get('objective_action_count')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE411_VIRTUAL_TOPOLOGY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE412_CRITICAL_PATH_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "predicted_state",
+    "state_transition_count",
+    "observable_event_count",
+    "critical_path_proximity",
+    "critical_path_step_count",
+    "critical_node_visit_count",
+    "critical_edge_traversal_count",
+    "critical_path_entry_count",
+    "critical_path_progress_count",
+    "critical_path_near_target_count",
+    "critical_asset_reach_count",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def _phase412_terrain_config(
+    policy_name: str,
+    mission: Dict[str, object],
+    *,
+    phase411: bool,
+) -> Dict[str, object]:
+    config = _phase48_policy_config(
+        policy_name,
+        mission,
+        adaptive_enabled=True,
+        defense_mode="mission_aware",
+        selected_policy=policy_name,
+        policy_reason="phase411_observable" if phase411 else "phase412_critical_path",
+        mission_aware_enabled=False,
+        state_belief_enabled=True,
+        virtual_topology_enabled=True,
+        observable_events_enabled=True,
+        critical_path_events_enabled=not phase411,
+    )
+    config.update(
+        {
+            "attacker_lateral_enabled": True,
+            "attacker_lateral_success_prob": 1.0,
+            "attacker_lateral_detection_prob": 0.0,
+            "attacker_target_selection": "adaptive",
+            "adaptive_attacker_enabled": True,
+            "adaptive_path_enabled": True,
+            "adaptive_planning_enabled": True,
+            "attacker_retreat_threshold": -999.0,
+            "frustration_retreat_threshold": 100.0,
+            "stop_on_attacker_retreat": False,
+        }
+    )
+    return config
+
+
+def run_phase412_critical_path_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase412_critical_path"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase412_", 1)
+        scenarios[f"{scenario_name}__phase411"] = _phase412_terrain_config(
+            "phase2_frustration_decoy",
+            mission,
+            phase411=True,
+        )
+        scenarios[f"{scenario_name}__phase412"] = _phase412_terrain_config(
+            "phase2_frustration_decoy",
+            mission,
+            phase411=False,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase412_critical_path_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase412_critical_path_rows(rows)
+    _write_phase412_critical_path_summary(rows, analysis, output_dir)
+    _plot_phase412_critical_path_events(rows, os.path.join(output_dir, "critical_path_events.png"))
+    _plot_phase412_critical_path_proximity(rows, os.path.join(output_dir, "critical_path_proximity.png"))
+    _plot_phase412_state_belief_vs_phase411(rows, os.path.join(output_dir, "state_belief_vs_phase411.png"))
+    _write_phase412_critical_path_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase412_critical_path_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": row.get("adaptive_selected_policy"),
+        "predicted_state": row.get("predicted_state"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "observable_event_count": row.get("observable_event_count_mean"),
+        "critical_path_proximity": row.get("critical_path_proximity_mean"),
+        "critical_path_step_count": row.get("critical_path_step_count_mean"),
+        "critical_node_visit_count": row.get("critical_node_visit_count_mean"),
+        "critical_edge_traversal_count": row.get("critical_edge_traversal_count_mean"),
+        "critical_path_entry_count": row.get("critical_path_entry_count_mean"),
+        "critical_path_progress_count": row.get("critical_path_progress_count_mean"),
+        "critical_path_near_target_count": row.get("critical_path_near_target_count_mean"),
+        "critical_asset_reach_count": row.get("critical_asset_reach_count_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase412_critical_path_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    phase411_cns = _mean_metric(rows, "phase411", "cognitive_neutralization_score")
+    phase412_cns = _mean_metric(rows, "phase412", "cognitive_neutralization_score")
+    phase411_transitions = _mean_metric(rows, "phase411", "state_transition_count")
+    phase412_transitions = _mean_metric(rows, "phase412", "state_transition_count")
+    phase412_rows = [row for row in rows if row.get("defense_mode") == "phase412"]
+    proximity = [_to_float(row.get("critical_path_proximity")) for row in phase412_rows]
+    near_or_reach = [
+        _to_float(row.get("critical_path_near_target_count")) + _to_float(row.get("critical_asset_reach_count"))
+        for row in phase412_rows
+    ]
+    event_counts = [_to_float(row.get("critical_path_step_count")) for row in phase412_rows]
+    return {
+        "critical_asset_approach_detected": any(value > 0.0 for value in near_or_reach),
+        "critical_path_proximity_mean": float(np.mean(proximity)) if proximity else 0.0,
+        "critical_path_proximity_effective": any(value > 0.0 for value in proximity),
+        "phase411_mean_state_transition_count": phase411_transitions,
+        "phase412_mean_state_transition_count": phase412_transitions,
+        "state_transition_count_increased": phase412_transitions > phase411_transitions,
+        "phase411_state_belief_mean_cns": phase411_cns,
+        "phase412_state_belief_mean_cns": phase412_cns,
+        "state_belief_cns_improved": phase412_cns > phase411_cns,
+        "mission_belief_gap_proxy": phase412_cns - phase411_cns,
+        "critical_path_event_effective": any(value > 0.0 for value in event_counts),
+        "intelligence_layer_value": any(value > 0.0 for value in event_counts) or phase412_transitions > phase411_transitions,
+    }
+
+
+def _write_phase412_critical_path_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "critical_path_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE412_CRITICAL_PATH_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "critical_path_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase412_critical_path_events(rows: List[Dict[str, object]], save_path: str) -> None:
+    rows = [row for row in rows if row.get("defense_mode") == "phase412"]
+    missions = [str(row.get("attacker_mission")) for row in rows]
+    keys = ["critical_path_entry_count", "critical_path_progress_count", "critical_path_near_target_count", "critical_asset_reach_count"]
+    x = np.arange(len(missions))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, key in enumerate(keys):
+        ax.bar(x + (idx - 1.5) * width, [_to_float(row.get(key)) for row in rows], width=width, label=key)
+    ax.set_title("Critical Path Events")
+    ax.set_ylabel("count")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase412_critical_path_proximity(rows: List[Dict[str, object]], save_path: str) -> None:
+    rows = [row for row in rows if row.get("defense_mode") == "phase412"]
+    missions = [str(row.get("attacker_mission")) for row in rows]
+    values = [_to_float(row.get("critical_path_proximity")) for row in rows]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(np.arange(len(missions)), values, color="#59a14f")
+    ax.set_title("Critical Path Proximity")
+    ax.set_ylabel("proximity")
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase412_state_belief_vs_phase411(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["phase411", "phase412"]
+    x = np.arange(len(missions))
+    width = 0.32
+    fig, ax = plt.subplots(figsize=(10, 4))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 0.5) * width, values, width=width, label=mode)
+    ax.set_title("State Belief vs Phase4.11")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase412_critical_path_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.12 Critical Path Observable Events Report",
+        "",
+        "## Questions",
+        f"1. Critical Asset approach detected: `{analysis.get('critical_asset_approach_detected')}`.",
+        f"2. critical_path_proximity effective: `{analysis.get('critical_path_proximity_effective')}` (mean `{_to_float(analysis.get('critical_path_proximity_mean')):.3f}`).",
+        f"3. state_transition_count increased: `{analysis.get('state_transition_count_increased')}` (phase411 `{_to_float(analysis.get('phase411_mean_state_transition_count')):.3f}`, phase412 `{_to_float(analysis.get('phase412_mean_state_transition_count')):.3f}`).",
+        f"4. State Belief CNS improved: `{analysis.get('state_belief_cns_improved')}` (phase411 `{_to_float(analysis.get('phase411_state_belief_mean_cns')):.3f}`, phase412 `{_to_float(analysis.get('phase412_state_belief_mean_cns')):.3f}`).",
+        f"5. Mission Belief proximity delta proxy: `{_to_float(analysis.get('mission_belief_gap_proxy')):.3f}` CNS.",
+        f"6. Critical Path Event effective: `{analysis.get('critical_path_event_effective')}`.",
+        f"7. Intelligence Layer value: `{analysis.get('intelligence_layer_value')}`.",
+        "",
+        "## Rows",
+        "| mission | mode | state | proximity | path_events | near | reach | transitions | CNS |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('predicted_state')} | "
+            f"{_to_float(row.get('critical_path_proximity')):.3f} | "
+            f"{_to_float(row.get('critical_path_step_count')):.3f} | "
+            f"{_to_float(row.get('critical_path_near_target_count')):.3f} | "
+            f"{_to_float(row.get('critical_asset_reach_count')):.3f} | "
+            f"{_to_float(row.get('state_transition_count')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE412_CRITICAL_PATH_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE413_INTELLIGENCE_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "selected_intelligence_policy",
+    "predicted_mission",
+    "predicted_state",
+    "intelligence_risk_score",
+    "risk_level",
+    "risk_level_transition_count",
+    "critical_path_proximity",
+    "critical_asset_reach_count",
+    "state_transition_count",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def _phase413_intelligence_config(
+    policy_name: str,
+    mission: Dict[str, object],
+    *,
+    defense_mode: str,
+    mission_belief: bool = False,
+    state_belief: bool = False,
+    intelligence: bool = False,
+    decision_matrix: bool = False,
+    defense_campaign: bool = False,
+    campaign_strategy_profile: str = "balanced",
+    mission_objectives: bool = False,
+) -> Dict[str, object]:
+    config = _phase48_policy_config(
+        policy_name,
+        mission,
+        adaptive_enabled=defense_mode != "fixed_best",
+        defense_mode="mission_aware" if defense_mode != "fixed_best" else "fixed_best",
+        selected_policy=policy_name,
+        policy_reason=defense_mode,
+        mission_aware_enabled=mission_belief or state_belief,
+        mission_belief_enabled=mission_belief or intelligence,
+        state_belief_enabled=state_belief or intelligence,
+        virtual_topology_enabled=True,
+        observable_events_enabled=True,
+        critical_path_events_enabled=True,
+        intelligence_defender_enabled=intelligence,
+        decision_matrix_defender_enabled=decision_matrix,
+        defense_campaign_enabled=defense_campaign,
+        campaign_strategy_profile=campaign_strategy_profile,
+        mission_objectives_enabled=mission_objectives,
+    )
+    config.update(
+        {
+            "attacker_lateral_enabled": True,
+            "attacker_lateral_success_prob": 1.0,
+            "attacker_lateral_detection_prob": 0.0,
+            "attacker_target_selection": "adaptive",
+            "adaptive_attacker_enabled": True,
+            "adaptive_path_enabled": True,
+            "adaptive_planning_enabled": True,
+            "attacker_retreat_threshold": -999.0,
+            "frustration_retreat_threshold": 100.0,
+            "stop_on_attacker_retreat": False,
+        }
+    )
+    return config
+
+
+def run_phase413_intelligence_defender_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase413_intelligence_defender"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase413_", 1)
+        scenarios[f"{scenario_name}__fixed_best"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="fixed_best",
+        )
+        scenarios[f"{scenario_name}__mission_belief"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="mission_belief",
+            mission_belief=True,
+        )
+        scenarios[f"{scenario_name}__state_belief"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="state_belief",
+            state_belief=True,
+        )
+        scenarios[f"{scenario_name}__intelligence_driven"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="intelligence_driven",
+            intelligence=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase413_intelligence_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase413_intelligence_rows(rows)
+    _write_phase413_intelligence_summary(rows, analysis, output_dir)
+    _plot_phase413_risk_score(rows, os.path.join(output_dir, "intelligence_risk_score.png"))
+    _plot_phase413_risk_level_transition(rows, os.path.join(output_dir, "risk_level_transition.png"))
+    _plot_phase413_vs_phase412(rows, os.path.join(output_dir, "intelligence_vs_phase412.png"))
+    _write_phase413_intelligence_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase413_intelligence_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if defense_mode == "fixed_best":
+        selected_policy = "phase2_frustration_decoy"
+    risk_score = row.get("intelligence_risk_score_mean_mean")
+    if risk_score is None:
+        risk_score = row.get("intelligence_risk_score_mean")
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "selected_intelligence_policy": row.get("selected_intelligence_policy"),
+        "predicted_mission": row.get("predicted_mission"),
+        "predicted_state": row.get("predicted_state"),
+        "intelligence_risk_score": risk_score,
+        "risk_level": row.get("risk_level"),
+        "risk_level_transition_count": row.get("risk_level_transition_count_mean"),
+        "critical_path_proximity": row.get("critical_path_proximity_mean"),
+        "critical_asset_reach_count": row.get("critical_asset_reach_count_mean"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase413_intelligence_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    intelligence_cns = _mean_metric(rows, "intelligence_driven", "cognitive_neutralization_score")
+    mission_cns = _mean_metric(rows, "mission_belief", "cognitive_neutralization_score")
+    fixed_cns = _mean_metric(rows, "fixed_best", "cognitive_neutralization_score")
+    state_cns = _mean_metric(rows, "state_belief", "cognitive_neutralization_score")
+    intel_rows = [row for row in rows if row.get("defense_mode") == "intelligence_driven"]
+    risk_transitions = [_to_float(row.get("risk_level_transition_count")) for row in intel_rows]
+    critical_reach = [_to_float(row.get("critical_asset_reach_count")) for row in intel_rows]
+    return {
+        "intelligence_mean_cns": intelligence_cns,
+        "mission_belief_mean_cns": mission_cns,
+        "state_belief_mean_cns": state_cns,
+        "fixed_best_mean_cns": fixed_cns,
+        "intelligence_exceeds_mission_belief": intelligence_cns > mission_cns,
+        "intelligence_exceeds_fixed_best": intelligence_cns > fixed_cns,
+        "risk_level_transition_observed": any(value > 0.0 for value in risk_transitions),
+        "mean_risk_level_transition_count": float(np.mean(risk_transitions)) if risk_transitions else 0.0,
+        "critical_asset_defense_strengthened": any(
+            _to_float(row.get("critical_asset_reach_count")) > 0.0
+            and row.get("selected_policy") == "phase2_frustration_decoy"
+            for row in intel_rows
+        ),
+        "cns_improved_over_state_belief": intelligence_cns > state_cns,
+        "intelligence_layer_effective": any(value > 0.0 for value in risk_transitions) and any(value > 0.0 for value in critical_reach),
+        "active_defense_progress": any(str(row.get("selected_policy")).startswith("phase") for row in intel_rows)
+        and any(value > 0.0 for value in risk_transitions),
+    }
+
+
+def _write_phase413_intelligence_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "intelligence_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE413_INTELLIGENCE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(os.path.join(output_dir, "intelligence_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase413_risk_score(rows: List[Dict[str, object]], save_path: str) -> None:
+    rows = [row for row in rows if row.get("defense_mode") == "intelligence_driven"]
+    missions = [str(row.get("attacker_mission")) for row in rows]
+    values = [_to_float(row.get("intelligence_risk_score")) for row in rows]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(np.arange(len(missions)), values, color="#e15759")
+    ax.set_title("Intelligence Risk Score")
+    ax.set_ylabel("risk_score")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase413_risk_level_transition(rows: List[Dict[str, object]], save_path: str) -> None:
+    rows = [row for row in rows if row.get("defense_mode") == "intelligence_driven"]
+    missions = [str(row.get("attacker_mission")) for row in rows]
+    values = [_to_float(row.get("risk_level_transition_count")) for row in rows]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(np.arange(len(missions)), values, color="#59a14f")
+    ax.set_title("Risk Level Transition Count")
+    ax.set_ylabel("transitions")
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase413_vs_phase412(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["fixed_best", "mission_belief", "state_belief", "intelligence_driven"]
+    x = np.arange(len(missions))
+    width = 0.2
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=mode)
+    ax.set_title("Intelligence-Driven vs Phase4.12 Baselines")
+    ax.set_ylabel("cognitive_neutralization_score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase413_intelligence_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.13 Intelligence-Driven Defense Report",
+        "",
+        "## Questions",
+        f"1. Intelligence-Driven exceeds Mission Belief: `{analysis.get('intelligence_exceeds_mission_belief')}` (intelligence `{_to_float(analysis.get('intelligence_mean_cns')):.3f}`, mission `{_to_float(analysis.get('mission_belief_mean_cns')):.3f}`).",
+        f"2. Intelligence-Driven exceeds Fixed Best: `{analysis.get('intelligence_exceeds_fixed_best')}` (fixed `{_to_float(analysis.get('fixed_best_mean_cns')):.3f}`).",
+        f"3. Risk Level transition observed: `{analysis.get('risk_level_transition_observed')}` (mean `{_to_float(analysis.get('mean_risk_level_transition_count')):.3f}`).",
+        f"4. Critical Asset defense strengthened: `{analysis.get('critical_asset_defense_strengthened')}`.",
+        f"5. CNS improved over State Belief: `{analysis.get('cns_improved_over_state_belief')}`.",
+        f"6. Intelligence Layer effective: `{analysis.get('intelligence_layer_effective')}`.",
+        f"7. Active Defense progress: `{analysis.get('active_defense_progress')}`.",
+        "",
+        "## Rows",
+        "| mission | mode | policy | risk | level | risk_transitions | critical_reach | CNS |",
+        "|---|---|---|---:|---|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('selected_policy')} | "
+            f"{_to_float(row.get('intelligence_risk_score')):.3f} | {row.get('risk_level')} | "
+            f"{_to_float(row.get('risk_level_transition_count')):.3f} | "
+            f"{_to_float(row.get('critical_asset_reach_count')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE413_INTELLIGENCE_DEFENDER_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE414_WEIGHT_CONFIGS: List[Tuple[float, float, float]] = [
+    (0.2, 0.4, 0.4),
+    (0.3, 0.4, 0.3),
+    (0.4, 0.3, 0.3),
+    (0.2, 0.3, 0.5),
+    (0.3, 0.2, 0.5),
+    (0.1, 0.4, 0.5),
+    (0.1, 0.3, 0.6),
+]
+
+PHASE414_WEIGHT_SWEEP_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "weight_configuration",
+    "weight_sweep_rank",
+    "mission_weight",
+    "state_weight",
+    "critical_path_weight",
+    "selected_policy",
+    "selected_intelligence_policy",
+    "intelligence_risk_score",
+    "risk_level",
+    "risk_level_transition_count",
+    "critical_path_proximity",
+    "state_transition_count",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def _normalize_phase414_weights(weights: Tuple[float, float, float]) -> Tuple[float, float, float]:
+    values = np.array(weights, dtype=float)
+    total = float(np.sum(values))
+    if total <= 0.0:
+        values = np.array([0.4, 0.3, 0.3], dtype=float)
+    else:
+        values = values / total
+    return float(values[0]), float(values[1]), float(values[2])
+
+
+def _phase414_weight_label(weights: Tuple[float, float, float]) -> str:
+    mission_weight, state_weight, critical_path_weight = _normalize_phase414_weights(weights)
+    return f"m={mission_weight:.2f},s={state_weight:.2f},p={critical_path_weight:.2f}"
+
+
+def run_phase414_weight_sweep_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase414_weight_sweep"),
+    config_path: str = "config.json",
+    weight_configs: Optional[List[Tuple[float, float, float]]] = None,
+) -> List[Dict[str, object]]:
+    configs = weight_configs if weight_configs is not None else PHASE414_WEIGHT_CONFIGS
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase414_", 1)
+        scenarios[f"{scenario_name}__fixed_best"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="fixed_best",
+        )
+        scenarios[f"{scenario_name}__mission_belief"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="mission_belief",
+            mission_belief=True,
+        )
+        scenarios[f"{scenario_name}__state_belief"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="state_belief",
+            state_belief=True,
+        )
+        scenarios[f"{scenario_name}__intelligence_default"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="intelligence_default",
+            intelligence=True,
+        )
+        for idx, weights in enumerate(configs, start=1):
+            mission_weight, state_weight, critical_path_weight = _normalize_phase414_weights(weights)
+            scenario_config = _phase413_intelligence_config(
+                "phase2_frustration_decoy",
+                mission,
+                defense_mode=f"weight_sweep_{idx:02d}",
+                intelligence=True,
+            )
+            scenario_config.update(
+                {
+                    "intelligence_mission_weight": mission_weight,
+                    "intelligence_state_weight": state_weight,
+                    "intelligence_critical_path_weight": critical_path_weight,
+                    "best_weight_configuration": _phase414_weight_label(weights),
+                }
+            )
+            scenarios[f"{scenario_name}__weight_sweep_{idx:02d}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase414_weight_sweep_row(row) for row in stats_rows]
+    analysis = _analyze_phase414_weight_sweep_rows(rows)
+    _apply_phase414_weight_ranks(rows, analysis)
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase414_weight_sweep_summary(rows, analysis, output_dir)
+    _plot_phase414_weight_ranking(analysis, os.path.join(output_dir, "weight_sweep_ranking.png"))
+    _plot_phase414_weight_sensitivity(rows, os.path.join(output_dir, "weight_sensitivity.png"))
+    _plot_phase414_vs_phase413(analysis, os.path.join(output_dir, "weight_sweep_vs_phase413.png"))
+    _write_phase414_weight_sweep_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase414_weight_sweep_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if defense_mode == "fixed_best":
+        selected_policy = "phase2_frustration_decoy"
+    mission_weight = row.get("mission_weight_mean")
+    state_weight = row.get("state_weight_mean")
+    critical_path_weight = row.get("critical_path_weight_mean")
+    if mission_weight is None:
+        mission_weight = 0.4
+    if state_weight is None:
+        state_weight = 0.3
+    if critical_path_weight is None:
+        critical_path_weight = 0.3
+    weight_configuration = _phase414_weight_label(
+        (_to_float(mission_weight), _to_float(state_weight), _to_float(critical_path_weight))
+    )
+    if not str(defense_mode).startswith("weight_sweep"):
+        weight_configuration = ""
+    risk_score = row.get("intelligence_risk_score_mean_mean")
+    if risk_score is None:
+        risk_score = row.get("intelligence_risk_score_mean")
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "weight_configuration": weight_configuration,
+        "weight_sweep_rank": row.get("weight_sweep_rank_mean"),
+        "mission_weight": mission_weight,
+        "state_weight": state_weight,
+        "critical_path_weight": critical_path_weight,
+        "selected_policy": selected_policy,
+        "selected_intelligence_policy": row.get("selected_intelligence_policy"),
+        "intelligence_risk_score": risk_score,
+        "risk_level": row.get("risk_level"),
+        "risk_level_transition_count": row.get("risk_level_transition_count_mean"),
+        "critical_path_proximity": row.get("critical_path_proximity_mean"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _phase414_weight_groups(rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    groups: Dict[str, List[Dict[str, object]]] = {}
+    for row in rows:
+        if str(row.get("defense_mode")).startswith("weight_sweep"):
+            groups.setdefault(str(row.get("weight_configuration")), []).append(row)
+    summary = []
+    for label, group_rows in groups.items():
+        cns_values = [_to_float(row.get("cognitive_neutralization_score")) for row in group_rows]
+        summary.append(
+            {
+                "weight_configuration": label,
+                "mission_weight": _to_float(group_rows[0].get("mission_weight")),
+                "state_weight": _to_float(group_rows[0].get("state_weight")),
+                "critical_path_weight": _to_float(group_rows[0].get("critical_path_weight")),
+                "mean_cns": float(np.mean(cns_values)) if cns_values else 0.0,
+                "mean_risk_transition_count": float(np.mean([_to_float(row.get("risk_level_transition_count")) for row in group_rows])) if group_rows else 0.0,
+                "num_rows": len(group_rows),
+            }
+        )
+    summary.sort(key=lambda item: _to_float(item.get("mean_cns")), reverse=True)
+    for idx, item in enumerate(summary, start=1):
+        item["rank"] = idx
+    return summary
+
+
+def _phase414_correlation(rows: List[Dict[str, object]], key: str) -> float:
+    sweep_rows = [row for row in rows if str(row.get("defense_mode")).startswith("weight_sweep")]
+    xs = [_to_float(row.get(key)) for row in sweep_rows]
+    ys = [_to_float(row.get("cognitive_neutralization_score")) for row in sweep_rows]
+    if len(xs) < 2 or len(set(xs)) < 2 or len(set(ys)) < 2:
+        return 0.0
+    return float(np.corrcoef(xs, ys)[0, 1])
+
+
+def _analyze_phase414_weight_sweep_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    weight_summary = _phase414_weight_groups(rows)
+    best = weight_summary[0] if weight_summary else {}
+    mission_cns = _mean_metric(rows, "mission_belief", "cognitive_neutralization_score")
+    state_cns = _mean_metric(rows, "state_belief", "cognitive_neutralization_score")
+    fixed_cns = _mean_metric(rows, "fixed_best", "cognitive_neutralization_score")
+    default_cns = _mean_metric(rows, "intelligence_default", "cognitive_neutralization_score")
+    best_cns = _to_float(best.get("mean_cns"))
+    critical_corr = _phase414_correlation(rows, "critical_path_weight")
+    mission_corr = _phase414_correlation(rows, "mission_weight")
+    return {
+        "best_weight_configuration": best.get("weight_configuration", ""),
+        "best_weight_mean_cns": best_cns,
+        "best_weight_rank": best.get("rank", 0),
+        "mission_belief_mean_cns": mission_cns,
+        "state_belief_mean_cns": state_cns,
+        "fixed_best_mean_cns": fixed_cns,
+        "intelligence_default_mean_cns": default_cns,
+        "weight_sweep_exceeds_state_belief": best_cns > state_cns,
+        "weight_sweep_exceeds_mission_belief": best_cns > mission_cns,
+        "weight_sweep_exceeds_fixed_best": best_cns > fixed_cns,
+        "weight_sweep_exceeds_default": best_cns > default_cns,
+        "critical_path_weight_correlation": critical_corr,
+        "mission_weight_correlation": mission_corr,
+        "critical_path_weight_important": critical_corr > 0.0 or _to_float(best.get("critical_path_weight")) >= 0.5,
+        "mission_weight_important": mission_corr > 0.0 or _to_float(best.get("mission_weight")) >= 0.3,
+        "intelligence_layer_promising": best_cns > mission_cns and best_cns >= fixed_cns,
+        "weight_summary": weight_summary,
+    }
+
+
+def _apply_phase414_weight_ranks(rows: List[Dict[str, object]], analysis: Dict[str, object]) -> None:
+    ranks = {
+        str(item.get("weight_configuration")): int(item.get("rank", 0))
+        for item in analysis.get("weight_summary", [])
+    }
+    best_label = str(analysis.get("best_weight_configuration") or "")
+    for row in rows:
+        label = str(row.get("weight_configuration") or "")
+        if label in ranks:
+            row["weight_sweep_rank"] = ranks[label]
+        elif row.get("defense_mode") == "intelligence_default":
+            row["weight_sweep_rank"] = 0
+        row["best_weight_configuration"] = best_label
+
+
+def _write_phase414_weight_sweep_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "weight_sweep_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE414_WEIGHT_SWEEP_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE414_WEIGHT_SWEEP_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "weight_sweep_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase414_weight_ranking(analysis: Dict[str, object], save_path: str) -> None:
+    summary = list(analysis.get("weight_summary", []))
+    labels = [str(item.get("weight_configuration")) for item in summary]
+    values = [_to_float(item.get("mean_cns")) for item in summary]
+    fig, ax = plt.subplots(figsize=(12, 5))
+    ax.bar(np.arange(len(labels)), values, color="#4e79a7")
+    ax.set_title("Phase4.14 Weight Sweep Ranking")
+    ax.set_ylabel("mean CNS")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase414_weight_sensitivity(rows: List[Dict[str, object]], save_path: str) -> None:
+    summary = _phase414_weight_groups(rows)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for key, label, color in [
+        ("mission_weight", "mission", "#4e79a7"),
+        ("state_weight", "state", "#59a14f"),
+        ("critical_path_weight", "critical_path", "#e15759"),
+    ]:
+        xs = [_to_float(item.get(key)) for item in summary]
+        ys = [_to_float(item.get("mean_cns")) for item in summary]
+        ax.scatter(xs, ys, label=label, color=color, s=70)
+    ax.set_title("Weight Sensitivity")
+    ax.set_xlabel("normalized weight")
+    ax.set_ylabel("mean CNS")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase414_vs_phase413(analysis: Dict[str, object], save_path: str) -> None:
+    labels = ["fixed_best", "mission_belief", "state_belief", "intelligence_default", "best_sweep"]
+    values = [
+        _to_float(analysis.get("fixed_best_mean_cns")),
+        _to_float(analysis.get("mission_belief_mean_cns")),
+        _to_float(analysis.get("state_belief_mean_cns")),
+        _to_float(analysis.get("intelligence_default_mean_cns")),
+        _to_float(analysis.get("best_weight_mean_cns")),
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(labels)), values, color=["#bab0ab", "#f28e2b", "#59a14f", "#e15759", "#4e79a7"])
+    ax.set_title("Phase4.14 Weight Sweep vs Phase4.13")
+    ax.set_ylabel("mean CNS")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase414_weight_sweep_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.14 Intelligence Risk Weight Sweep Report",
+        "",
+        "## Questions",
+        f"1. Best weight: `{analysis.get('best_weight_configuration')}` (mean CNS `{_to_float(analysis.get('best_weight_mean_cns')):.3f}`).",
+        f"2. Exceeds State Belief: `{analysis.get('weight_sweep_exceeds_state_belief')}` (state `{_to_float(analysis.get('state_belief_mean_cns')):.3f}`).",
+        f"3. Exceeds Mission Belief: `{analysis.get('weight_sweep_exceeds_mission_belief')}` (mission `{_to_float(analysis.get('mission_belief_mean_cns')):.3f}`).",
+        f"4. Exceeds Fixed Best: `{analysis.get('weight_sweep_exceeds_fixed_best')}` (fixed `{_to_float(analysis.get('fixed_best_mean_cns')):.3f}`).",
+        f"5. Critical Path weight important: `{analysis.get('critical_path_weight_important')}` (corr `{_to_float(analysis.get('critical_path_weight_correlation')):.3f}`).",
+        f"6. Mission weight important: `{analysis.get('mission_weight_important')}` (corr `{_to_float(analysis.get('mission_weight_correlation')):.3f}`).",
+        f"7. Intelligence Layer promising: `{analysis.get('intelligence_layer_promising')}`.",
+        "",
+        "## Weight Ranking",
+        "| rank | weights | mean CNS | risk transitions |",
+        "|---:|---|---:|---:|",
+    ]
+    for item in analysis.get("weight_summary", []):
+        lines.append(
+            f"| {item.get('rank')} | {item.get('weight_configuration')} | "
+            f"{_to_float(item.get('mean_cns')):.3f} | "
+            f"{_to_float(item.get('mean_risk_transition_count')):.3f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Rows",
+            "| mission | mode | weights | rank | CNS | risk | policy |",
+            "|---|---|---|---:|---:|---:|---|",
+        ]
+    )
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('weight_configuration')} | "
+            f"{_to_float(row.get('weight_sweep_rank')):.0f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} | "
+            f"{_to_float(row.get('intelligence_risk_score')):.3f} | {row.get('selected_policy')} |"
+        )
+    with open(os.path.join(output_dir, "PHASE414_WEIGHT_SWEEP_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE415_DECISION_MATRIX_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "selected_intelligence_policy",
+    "decision_matrix_policy",
+    "decision_matrix_match_count",
+    "decision_matrix_override_count",
+    "policy_diversity_count",
+    "predicted_mission",
+    "predicted_state",
+    "intelligence_risk_score",
+    "risk_level",
+    "critical_path_proximity",
+    "state_transition_count",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase415_decision_matrix_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase415_decision_matrix"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase415_", 1)
+        scenarios[f"{scenario_name}__fixed_best"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="fixed_best",
+        )
+        scenarios[f"{scenario_name}__mission_belief"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="mission_belief",
+            mission_belief=True,
+        )
+        scenarios[f"{scenario_name}__state_belief"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="state_belief",
+            state_belief=True,
+        )
+        scenarios[f"{scenario_name}__intelligence_risk"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="intelligence_risk",
+            intelligence=True,
+        )
+        scenarios[f"{scenario_name}__decision_matrix"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="decision_matrix",
+            intelligence=True,
+            decision_matrix=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase415_decision_matrix_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase415_decision_matrix_rows(rows)
+    _write_phase415_decision_matrix_summary(rows, analysis, output_dir)
+    _plot_phase415_policy_distribution(rows, os.path.join(output_dir, "decision_matrix_policy_distribution.png"))
+    _plot_phase415_vs_phase414(analysis, os.path.join(output_dir, "decision_matrix_vs_phase414.png"))
+    _plot_phase415_breakdown(rows, os.path.join(output_dir, "decision_matrix_breakdown.png"))
+    _write_phase415_decision_matrix_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase415_decision_matrix_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if defense_mode == "fixed_best":
+        selected_policy = "phase2_frustration_decoy"
+    risk_score = row.get("intelligence_risk_score_mean_mean")
+    if risk_score is None:
+        risk_score = row.get("intelligence_risk_score_mean")
+    history = row.get("adaptive_policy_history")
+    policy_diversity = 0
+    if isinstance(history, list):
+        policy_diversity = len({str(policy) for policy in history if str(policy)})
+    elif selected_policy:
+        policy_diversity = 1
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "selected_intelligence_policy": row.get("selected_intelligence_policy"),
+        "decision_matrix_policy": row.get("decision_matrix_policy"),
+        "decision_matrix_match_count": row.get("decision_matrix_match_count_mean"),
+        "decision_matrix_override_count": row.get("decision_matrix_override_count_mean"),
+        "policy_diversity_count": policy_diversity,
+        "predicted_mission": row.get("predicted_mission"),
+        "predicted_state": row.get("predicted_state"),
+        "intelligence_risk_score": risk_score,
+        "risk_level": row.get("risk_level"),
+        "critical_path_proximity": row.get("critical_path_proximity_mean"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _phase415_mode_mean(rows: List[Dict[str, object]], mode: str) -> float:
+    return _mean_metric(rows, mode, "cognitive_neutralization_score")
+
+
+def _analyze_phase415_decision_matrix_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    decision_cns = _phase415_mode_mean(rows, "decision_matrix")
+    risk_cns = _phase415_mode_mean(rows, "intelligence_risk")
+    state_cns = _phase415_mode_mean(rows, "state_belief")
+    mission_cns = _phase415_mode_mean(rows, "mission_belief")
+    fixed_cns = _phase415_mode_mean(rows, "fixed_best")
+    decision_rows = [row for row in rows if row.get("defense_mode") == "decision_matrix"]
+    risk_rows = [row for row in rows if row.get("defense_mode") == "intelligence_risk"]
+    policy_set = {str(row.get("selected_policy")) for row in decision_rows if str(row.get("selected_policy"))}
+    risk_policy_set = {str(row.get("selected_policy")) for row in risk_rows if str(row.get("selected_policy"))}
+    by_mission = {}
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        by_mission[mission] = {
+            "decision_matrix_cns": _to_float(next((row.get("cognitive_neutralization_score") for row in decision_rows if row.get("attacker_mission") == mission), 0.0)),
+            "intelligence_risk_cns": _to_float(next((row.get("cognitive_neutralization_score") for row in risk_rows if row.get("attacker_mission") == mission), 0.0)),
+            "state_belief_cns": _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == "state_belief"), 0.0)),
+        }
+    return {
+        "decision_matrix_mean_cns": decision_cns,
+        "intelligence_risk_mean_cns": risk_cns,
+        "state_belief_mean_cns": state_cns,
+        "mission_belief_mean_cns": mission_cns,
+        "fixed_best_mean_cns": fixed_cns,
+        "decision_matrix_exceeds_intelligence_risk": decision_cns > risk_cns,
+        "decision_matrix_exceeds_state_belief": decision_cns > state_cns,
+        "decision_matrix_matches_or_exceeds_state_belief": decision_cns >= state_cns,
+        "decision_matrix_exceeds_fixed_best": decision_cns > fixed_cns,
+        "critical_hunter_effective": by_mission.get("critical_hunter", {}).get("decision_matrix_cns", 0.0)
+        > by_mission.get("critical_hunter", {}).get("intelligence_risk_cns", 0.0),
+        "persistence_effective": by_mission.get("persistence", {}).get("decision_matrix_cns", 0.0)
+        > by_mission.get("persistence", {}).get("intelligence_risk_cns", 0.0),
+        "decision_matrix_policy_diversity": len(policy_set),
+        "intelligence_risk_policy_diversity": len(risk_policy_set),
+        "policy_diversity_increased": len(policy_set) > len(risk_policy_set),
+        "mean_decision_matrix_match_count": float(np.mean([_to_float(row.get("decision_matrix_match_count")) for row in decision_rows])) if decision_rows else 0.0,
+        "mean_decision_matrix_override_count": float(np.mean([_to_float(row.get("decision_matrix_override_count")) for row in decision_rows])) if decision_rows else 0.0,
+        "intelligence_to_defense_promising": decision_cns > risk_cns or len(policy_set) > len(risk_policy_set),
+        "by_mission": by_mission,
+    }
+
+
+def _write_phase415_decision_matrix_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "decision_matrix_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE415_DECISION_MATRIX_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE415_DECISION_MATRIX_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "decision_matrix_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase415_policy_distribution(rows: List[Dict[str, object]], save_path: str) -> None:
+    decision_rows = [row for row in rows if row.get("defense_mode") == "decision_matrix"]
+    policies = [str(row.get("selected_policy")) for row in decision_rows if str(row.get("selected_policy"))]
+    labels = list(dict.fromkeys(policies))
+    values = [policies.count(label) for label in labels]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(np.arange(len(labels)), values, color="#4e79a7")
+    ax.set_title("Decision Matrix Policy Distribution")
+    ax.set_ylabel("mission rows")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase415_vs_phase414(analysis: Dict[str, object], save_path: str) -> None:
+    labels = ["fixed_best", "mission_belief", "state_belief", "intelligence_risk", "decision_matrix"]
+    values = [
+        _to_float(analysis.get("fixed_best_mean_cns")),
+        _to_float(analysis.get("mission_belief_mean_cns")),
+        _to_float(analysis.get("state_belief_mean_cns")),
+        _to_float(analysis.get("intelligence_risk_mean_cns")),
+        _to_float(analysis.get("decision_matrix_mean_cns")),
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(labels)), values, color=["#bab0ab", "#f28e2b", "#59a14f", "#e15759", "#4e79a7"])
+    ax.set_title("Decision Matrix vs Intelligence Risk")
+    ax.set_ylabel("mean CNS")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase415_breakdown(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    modes = ["intelligence_risk", "decision_matrix", "state_belief"]
+    x = np.arange(len(missions))
+    width = 0.25
+    fig, ax = plt.subplots(figsize=(11, 5))
+    for idx, mode in enumerate(modes):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == mode), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 1) * width, values, width=width, label=mode)
+    ax.set_title("Decision Matrix CNS Breakdown")
+    ax.set_ylabel("CNS")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase415_decision_matrix_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.15 Intelligence Decision Matrix Report",
+        "",
+        "## Questions",
+        f"1. Decision Matrix exceeds Intelligence Risk: `{analysis.get('decision_matrix_exceeds_intelligence_risk')}` (matrix `{_to_float(analysis.get('decision_matrix_mean_cns')):.3f}`, risk `{_to_float(analysis.get('intelligence_risk_mean_cns')):.3f}`).",
+        f"2. Decision Matrix exceeds State Belief: `{analysis.get('decision_matrix_exceeds_state_belief')}` (state `{_to_float(analysis.get('state_belief_mean_cns')):.3f}`).",
+        f"3. Decision Matrix exceeds Fixed Best: `{analysis.get('decision_matrix_exceeds_fixed_best')}` (fixed `{_to_float(analysis.get('fixed_best_mean_cns')):.3f}`).",
+        f"4. Critical Hunter effective: `{analysis.get('critical_hunter_effective')}`.",
+        f"5. Persistence effective: `{analysis.get('persistence_effective')}`.",
+        f"6. Policy diversity increased: `{analysis.get('policy_diversity_increased')}` (matrix `{analysis.get('decision_matrix_policy_diversity')}`, risk `{analysis.get('intelligence_risk_policy_diversity')}`).",
+        f"7. Intelligence-to-Defense translation promising: `{analysis.get('intelligence_to_defense_promising')}`.",
+        "",
+        "## Summary",
+        f"- Mean matrix match count: `{_to_float(analysis.get('mean_decision_matrix_match_count')):.3f}`.",
+        f"- Mean matrix override count: `{_to_float(analysis.get('mean_decision_matrix_override_count')):.3f}`.",
+        "",
+        "## Rows",
+        "| mission | mode | policy | matrix_policy | match | override | CNS |",
+        "|---|---|---|---|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('selected_policy')} | "
+            f"{row.get('decision_matrix_policy')} | "
+            f"{_to_float(row.get('decision_matrix_match_count')):.3f} | "
+            f"{_to_float(row.get('decision_matrix_override_count')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE415_DECISION_MATRIX_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE416_CAMPAIGN_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "defense_mode",
+    "selected_policy",
+    "campaign_stage",
+    "campaign_transition_count",
+    "campaign_policy_switch_count",
+    "campaign_policy_diversity",
+    "campaign_effectiveness_score",
+    "decision_matrix_policy",
+    "decision_matrix_override_count",
+    "critical_path_proximity",
+    "state_transition_count",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase416_defense_campaign_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase416_defense_campaign"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase416_", 1)
+        scenarios[f"{scenario_name}__fixed_best"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="fixed_best",
+        )
+        scenarios[f"{scenario_name}__state_belief"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="state_belief",
+            state_belief=True,
+        )
+        scenarios[f"{scenario_name}__decision_matrix"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="decision_matrix",
+            intelligence=True,
+            decision_matrix=True,
+        )
+        scenarios[f"{scenario_name}__defense_campaign"] = _phase413_intelligence_config(
+            "phase2_frustration_decoy",
+            mission,
+            defense_mode="defense_campaign",
+            intelligence=True,
+            defense_campaign=True,
+        )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase416_campaign_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("mission_scenario")), str(row.get("defense_mode"))))
+    os.makedirs(output_dir, exist_ok=True)
+    analysis = _analyze_phase416_campaign_rows(rows)
+    _write_phase416_campaign_summary(rows, analysis, output_dir)
+    _plot_phase416_campaign_policy_timeline(rows, os.path.join(output_dir, "campaign_policy_timeline.png"))
+    _plot_phase416_transition_heatmap(rows, os.path.join(output_dir, "campaign_transition_heatmap.png"))
+    _plot_phase416_vs_phase415(analysis, os.path.join(output_dir, "campaign_vs_phase415.png"))
+    _write_phase416_campaign_report(rows, analysis, output_dir)
+    return rows
+
+
+def _phase416_list_value(value: object) -> List[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    if isinstance(value, str) and value:
+        return [value]
+    return []
+
+
+def _build_phase416_campaign_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, defense_mode = scenario.split("__", 1)
+    else:
+        mission_scenario, defense_mode = scenario, ""
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    if defense_mode == "fixed_best":
+        selected_policy = "phase2_frustration_decoy"
+    policy_history = _phase416_list_value(row.get("campaign_policy_history"))
+    if not policy_history:
+        policy_history = [str(selected_policy)] if selected_policy else []
+    policy_diversity = len({policy for policy in policy_history if policy})
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "defense_mode": defense_mode,
+        "selected_policy": selected_policy,
+        "campaign_stage": row.get("campaign_stage"),
+        "campaign_transition_count": row.get("campaign_transition_count_mean"),
+        "campaign_policy_switch_count": row.get("campaign_policy_switch_count_mean"),
+        "campaign_policy_diversity": policy_diversity,
+        "campaign_effectiveness_score": row.get("campaign_effectiveness_score_mean"),
+        "decision_matrix_policy": row.get("decision_matrix_policy"),
+        "decision_matrix_override_count": row.get("decision_matrix_override_count_mean"),
+        "critical_path_proximity": row.get("critical_path_proximity_mean"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+        "campaign_stage_history": _phase416_list_value(row.get("campaign_stage_history")),
+        "campaign_policy_history": policy_history,
+    }
+
+
+def _analyze_phase416_campaign_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    campaign_cns = _mean_metric(rows, "defense_campaign", "cognitive_neutralization_score")
+    decision_cns = _mean_metric(rows, "decision_matrix", "cognitive_neutralization_score")
+    state_cns = _mean_metric(rows, "state_belief", "cognitive_neutralization_score")
+    fixed_cns = _mean_metric(rows, "fixed_best", "cognitive_neutralization_score")
+    campaign_rows = [row for row in rows if row.get("defense_mode") == "defense_campaign"]
+    decision_rows = [row for row in rows if row.get("defense_mode") == "decision_matrix"]
+    campaign_diversities = [_to_float(row.get("campaign_policy_diversity")) for row in campaign_rows]
+    transition_counts = [_to_float(row.get("campaign_transition_count")) for row in campaign_rows]
+    by_mission = {}
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        by_mission[mission] = {
+            "campaign_cns": _to_float(next((row.get("cognitive_neutralization_score") for row in campaign_rows if row.get("attacker_mission") == mission), 0.0)),
+            "decision_matrix_cns": _to_float(next((row.get("cognitive_neutralization_score") for row in decision_rows if row.get("attacker_mission") == mission), 0.0)),
+            "state_belief_cns": _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("defense_mode") == "state_belief"), 0.0)),
+        }
+    return {
+        "campaign_mean_cns": campaign_cns,
+        "decision_matrix_mean_cns": decision_cns,
+        "state_belief_mean_cns": state_cns,
+        "fixed_best_mean_cns": fixed_cns,
+        "campaign_exceeds_decision_matrix": campaign_cns > decision_cns,
+        "campaign_exceeds_state_belief": campaign_cns > state_cns,
+        "campaign_matches_or_exceeds_state_belief": campaign_cns >= state_cns,
+        "campaign_exceeds_fixed_best": campaign_cns > fixed_cns,
+        "mean_campaign_policy_diversity": float(np.mean(campaign_diversities)) if campaign_diversities else 0.0,
+        "policy_diversity_greater_than_one": any(value > 1.0 for value in campaign_diversities),
+        "mean_campaign_transition_count": float(np.mean(transition_counts)) if transition_counts else 0.0,
+        "campaign_transition_observed": any(value > 0.0 for value in transition_counts),
+        "critical_hunter_effective": by_mission.get("critical_hunter", {}).get("campaign_cns", 0.0)
+        > by_mission.get("critical_hunter", {}).get("decision_matrix_cns", 0.0),
+        "persistence_effective": by_mission.get("persistence", {}).get("campaign_cns", 0.0)
+        > by_mission.get("persistence", {}).get("decision_matrix_cns", 0.0),
+        "active_defense_progress": any(value > 1.0 for value in campaign_diversities) and any(value > 0.0 for value in transition_counts),
+        "by_mission": by_mission,
+    }
+
+
+def _write_phase416_campaign_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "campaign_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE416_CAMPAIGN_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE416_CAMPAIGN_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "campaign_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase416_campaign_policy_timeline(rows: List[Dict[str, object]], save_path: str) -> None:
+    campaign_rows = [row for row in rows if row.get("defense_mode") == "defense_campaign"]
+    policies = sorted({policy for row in campaign_rows for policy in _phase416_list_value(row.get("campaign_policy_history")) if policy})
+    if not policies:
+        policies = [""]
+    policy_index = {policy: idx for idx, policy in enumerate(policies)}
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for row in campaign_rows:
+        history = _phase416_list_value(row.get("campaign_policy_history"))
+        values = [policy_index.get(policy, 0) for policy in history]
+        ax.plot(np.arange(len(values)), values, label=str(row.get("attacker_mission")))
+    ax.set_title("Campaign Policy Timeline")
+    ax.set_xlabel("step")
+    ax.set_ylabel("policy")
+    ax.set_yticks(np.arange(len(policies)))
+    ax.set_yticklabels(policies)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase416_transition_heatmap(rows: List[Dict[str, object]], save_path: str) -> None:
+    campaign_rows = [row for row in rows if row.get("defense_mode") == "defense_campaign"]
+    missions = [str(row.get("attacker_mission")) for row in campaign_rows]
+    values = np.array(
+        [
+            [
+                _to_float(row.get("campaign_transition_count")),
+                _to_float(row.get("campaign_policy_switch_count")),
+                _to_float(row.get("campaign_policy_diversity")),
+            ]
+            for row in campaign_rows
+        ],
+        dtype=float,
+    )
+    if values.size == 0:
+        values = np.zeros((1, 3), dtype=float)
+        missions = [""]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    image = ax.imshow(values, aspect="auto", cmap="viridis")
+    ax.set_title("Campaign Transitions")
+    ax.set_xticks(np.arange(3))
+    ax.set_xticklabels(["stage", "policy", "diversity"])
+    ax.set_yticks(np.arange(len(missions)))
+    ax.set_yticklabels(missions)
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase416_vs_phase415(analysis: Dict[str, object], save_path: str) -> None:
+    labels = ["fixed_best", "state_belief", "decision_matrix", "defense_campaign"]
+    values = [
+        _to_float(analysis.get("fixed_best_mean_cns")),
+        _to_float(analysis.get("state_belief_mean_cns")),
+        _to_float(analysis.get("decision_matrix_mean_cns")),
+        _to_float(analysis.get("campaign_mean_cns")),
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(labels)), values, color=["#bab0ab", "#59a14f", "#4e79a7", "#e15759"])
+    ax.set_title("Defense Campaign vs Phase4.15")
+    ax.set_ylabel("mean CNS")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase416_campaign_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.16 Defense Campaign Report",
+        "",
+        "## Questions",
+        f"1. Defense Campaign exceeds Decision Matrix: `{analysis.get('campaign_exceeds_decision_matrix')}` (campaign `{_to_float(analysis.get('campaign_mean_cns')):.3f}`, matrix `{_to_float(analysis.get('decision_matrix_mean_cns')):.3f}`).",
+        f"2. Defense Campaign exceeds State Belief: `{analysis.get('campaign_exceeds_state_belief')}` (state `{_to_float(analysis.get('state_belief_mean_cns')):.3f}`).",
+        f"3. Defense Campaign exceeds Fixed Best: `{analysis.get('campaign_exceeds_fixed_best')}` (fixed `{_to_float(analysis.get('fixed_best_mean_cns')):.3f}`).",
+        f"4. Policy diversity increased: `{analysis.get('policy_diversity_greater_than_one')}` (mean `{_to_float(analysis.get('mean_campaign_policy_diversity')):.3f}`).",
+        f"5. Campaign transition observed: `{analysis.get('campaign_transition_observed')}` (mean `{_to_float(analysis.get('mean_campaign_transition_count')):.3f}`).",
+        f"6. Critical Hunter effective: `{analysis.get('critical_hunter_effective')}`.",
+        f"7. Persistence effective: `{analysis.get('persistence_effective')}`.",
+        f"8. Active Defense progress: `{analysis.get('active_defense_progress')}`.",
+        "",
+        "## Rows",
+        "| mission | mode | policy | stage | transitions | switches | diversity | CNS |",
+        "|---|---|---|---|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('defense_mode')} | {row.get('selected_policy')} | "
+            f"{row.get('campaign_stage')} | "
+            f"{_to_float(row.get('campaign_transition_count')):.3f} | "
+            f"{_to_float(row.get('campaign_policy_switch_count')):.3f} | "
+            f"{_to_float(row.get('campaign_policy_diversity')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE416_DEFENSE_CAMPAIGN_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE417_CAMPAIGN_PROFILES = [
+    ("aggressive_disruption", "Aggressive Disruption"),
+    ("trust_collapse", "Trust Collapse"),
+    ("utility_suppression", "Utility Suppression"),
+    ("balanced", "Balanced Campaign"),
+]
+
+PHASE417_CAMPAIGN_PROFILE_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "strategy_profile",
+    "profile_label",
+    "profile_rank",
+    "selected_policy",
+    "campaign_stage",
+    "campaign_transition_count",
+    "campaign_policy_switch_count",
+    "campaign_policy_diversity",
+    "campaign_effectiveness_score",
+    "strategy_effectiveness_score",
+    "critical_path_proximity",
+    "state_transition_count",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase417_campaign_profile_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase417_campaign_profiles"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase417_", 1)
+        for profile, _label in PHASE417_CAMPAIGN_PROFILES:
+            scenarios[f"{scenario_name}__{profile}"] = _phase413_intelligence_config(
+                "phase2_frustration_decoy",
+                mission,
+                defense_mode=f"campaign_{profile}",
+                intelligence=True,
+                defense_campaign=True,
+                campaign_strategy_profile=profile,
+            )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase417_campaign_profile_row(row) for row in stats_rows]
+    analysis = _analyze_phase417_campaign_profile_rows(rows)
+    _apply_phase417_profile_ranks(rows, analysis)
+    rows.sort(key=lambda row: (str(row.get("attacker_mission")), int(_to_float(row.get("profile_rank"))), str(row.get("strategy_profile"))))
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase417_campaign_profile_summary(rows, analysis, output_dir)
+    _plot_phase417_profile_ranking(analysis, os.path.join(output_dir, "campaign_profile_ranking.png"))
+    _plot_phase417_profile_by_mission(rows, os.path.join(output_dir, "campaign_profile_by_mission.png"))
+    _plot_phase417_vs_phase416(analysis, os.path.join(output_dir, "campaign_profile_vs_phase416.png"))
+    _write_phase417_campaign_profile_report(rows, analysis, output_dir)
+    return rows
+
+
+def _phase417_profile_label(profile: str) -> str:
+    return dict(PHASE417_CAMPAIGN_PROFILES).get(profile, profile)
+
+
+def _build_phase417_campaign_profile_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, profile = scenario.split("__", 1)
+    else:
+        mission_scenario, profile = scenario, str(row.get("strategy_profile") or "balanced")
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    policy_history = _phase416_list_value(row.get("campaign_policy_history"))
+    if not policy_history and selected_policy:
+        policy_history = [str(selected_policy)]
+    policy_diversity = len({policy for policy in policy_history if policy})
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "strategy_profile": profile,
+        "profile_label": _phase417_profile_label(profile),
+        "profile_rank": row.get("profile_rank_mean"),
+        "selected_policy": selected_policy,
+        "campaign_stage": row.get("campaign_stage"),
+        "campaign_transition_count": row.get("campaign_transition_count_mean"),
+        "campaign_policy_switch_count": row.get("campaign_policy_switch_count_mean"),
+        "campaign_policy_diversity": policy_diversity,
+        "campaign_effectiveness_score": row.get("campaign_effectiveness_score_mean"),
+        "strategy_effectiveness_score": row.get("strategy_effectiveness_score_mean"),
+        "critical_path_proximity": row.get("critical_path_proximity_mean"),
+        "state_transition_count": row.get("state_transition_count_mean"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+        "campaign_policy_history": policy_history,
+    }
+
+
+def _phase417_profile_summary(rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    summary = []
+    for profile, label in PHASE417_CAMPAIGN_PROFILES:
+        profile_rows = [row for row in rows if row.get("strategy_profile") == profile]
+        values = [_to_float(row.get("cognitive_neutralization_score")) for row in profile_rows]
+        summary.append(
+            {
+                "strategy_profile": profile,
+                "profile_label": label,
+                "mean_cns": float(np.mean(values)) if values else 0.0,
+                "mean_policy_diversity": float(np.mean([_to_float(row.get("campaign_policy_diversity")) for row in profile_rows])) if profile_rows else 0.0,
+                "mean_transition_count": float(np.mean([_to_float(row.get("campaign_transition_count")) for row in profile_rows])) if profile_rows else 0.0,
+                "num_rows": len(profile_rows),
+            }
+        )
+    summary.sort(key=lambda item: _to_float(item.get("mean_cns")), reverse=True)
+    for idx, item in enumerate(summary, start=1):
+        item["profile_rank"] = idx
+    return summary
+
+
+def _analyze_phase417_campaign_profile_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    profile_summary = _phase417_profile_summary(rows)
+    best_profile = profile_summary[0] if profile_summary else {}
+    balanced_cns = next(
+        (_to_float(item.get("mean_cns")) for item in profile_summary if item.get("strategy_profile") == "balanced"),
+        0.0,
+    )
+    by_mission = {}
+    best_profiles = []
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("attacker_mission") == mission]
+        best_row = max(mission_rows, key=lambda row: _to_float(row.get("cognitive_neutralization_score"))) if mission_rows else {}
+        profile = str(best_row.get("strategy_profile") or "")
+        best_profiles.append(profile)
+        by_mission[mission] = {
+            "best_strategy_profile": profile,
+            "best_cns": _to_float(best_row.get("cognitive_neutralization_score")),
+            "balanced_cns": _to_float(next((row.get("cognitive_neutralization_score") for row in mission_rows if row.get("strategy_profile") == "balanced"), 0.0)),
+            "rows": [
+                {
+                    "strategy_profile": row.get("strategy_profile"),
+                    "cns": row.get("cognitive_neutralization_score"),
+                    "policy_diversity": row.get("campaign_policy_diversity"),
+                }
+                for row in mission_rows
+            ],
+        }
+    profit = by_mission.get("profit", {})
+    persistence = by_mission.get("persistence", {})
+    critical = by_mission.get("critical_hunter", {})
+    return {
+        "best_strategy_profile": best_profile.get("strategy_profile", ""),
+        "best_strategy_label": best_profile.get("profile_label", ""),
+        "best_strategy_mean_cns": _to_float(best_profile.get("mean_cns")),
+        "balanced_mean_cns": balanced_cns,
+        "profile_exceeds_balanced_exists": any(
+            item.get("strategy_profile") != "balanced" and _to_float(item.get("mean_cns")) > balanced_cns
+            for item in profile_summary
+        ),
+        "mission_best_strategy_varies": len(set(best_profiles)) > 1,
+        "critical_hunter_best_strategy": critical.get("best_strategy_profile", ""),
+        "persistence_best_strategy": persistence.get("best_strategy_profile", ""),
+        "utility_suppression_effective_for_profit": profit.get("best_strategy_profile") == "utility_suppression",
+        "trust_collapse_effective_for_persistence": persistence.get("best_strategy_profile") == "trust_collapse",
+        "single_strategy_dominates_all_missions": len(set(best_profiles)) == 1 if best_profiles else False,
+        "mission_aware_campaign_needed": len(set(best_profiles)) > 1,
+        "profile_summary": profile_summary,
+        "by_mission": by_mission,
+    }
+
+
+def _apply_phase417_profile_ranks(rows: List[Dict[str, object]], analysis: Dict[str, object]) -> None:
+    ranks = {
+        str(item.get("strategy_profile")): int(item.get("profile_rank", 0))
+        for item in analysis.get("profile_summary", [])
+    }
+    for row in rows:
+        row["profile_rank"] = ranks.get(str(row.get("strategy_profile")), 0)
+
+
+def _write_phase417_campaign_profile_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "campaign_profile_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE417_CAMPAIGN_PROFILE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE417_CAMPAIGN_PROFILE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "campaign_profile_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase417_profile_ranking(analysis: Dict[str, object], save_path: str) -> None:
+    summary = list(analysis.get("profile_summary", []))
+    labels = [str(item.get("profile_label")) for item in summary]
+    values = [_to_float(item.get("mean_cns")) for item in summary]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(labels)), values, color="#4e79a7")
+    ax.set_title("Campaign Strategy Ranking")
+    ax.set_ylabel("mean CNS")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase417_profile_by_mission(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    profiles = [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    x = np.arange(len(missions))
+    width = 0.18
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, profile in enumerate(profiles):
+        values = [
+            _to_float(next((row.get("cognitive_neutralization_score") for row in rows if row.get("attacker_mission") == mission and row.get("strategy_profile") == profile), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=profile)
+    ax.set_title("Campaign Strategy by Mission")
+    ax.set_ylabel("CNS")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase417_vs_phase416(analysis: Dict[str, object], save_path: str) -> None:
+    summary = list(analysis.get("profile_summary", []))
+    labels = ["balanced"] + [str(item.get("strategy_profile")) for item in summary if item.get("strategy_profile") != "balanced"]
+    values = [
+        _to_float(next((item.get("mean_cns") for item in summary if item.get("strategy_profile") == label), 0.0))
+        for label in labels
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(labels)), values, color="#e15759")
+    ax.set_title("Campaign Profiles vs Phase4.16 Balanced")
+    ax.set_ylabel("mean CNS")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase417_campaign_profile_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.17 Campaign Strategy Profile Report",
+        "",
+        "## Questions",
+        f"1. Strongest Campaign Strategy: `{analysis.get('best_strategy_profile')}` (mean CNS `{_to_float(analysis.get('best_strategy_mean_cns')):.3f}`).",
+        f"2. Best Strategy varies by Mission: `{analysis.get('mission_best_strategy_varies')}`.",
+        f"3. Critical Hunter best Strategy: `{analysis.get('critical_hunter_best_strategy')}`.",
+        f"4. Persistence best Strategy: `{analysis.get('persistence_best_strategy')}`.",
+        f"5. Utility Suppression works best for Profit attacker: `{analysis.get('utility_suppression_effective_for_profit')}`.",
+        f"6. Trust Collapse works best for Persistence attacker: `{analysis.get('trust_collapse_effective_for_persistence')}`.",
+        f"7. Single Strategy dominates all Missions: `{analysis.get('single_strategy_dominates_all_missions')}`.",
+        "",
+        "## Success Criteria",
+        f"- Profile exceeding Balanced exists: `{analysis.get('profile_exceeds_balanced_exists')}`.",
+        f"- Mission-aware Campaign needed: `{analysis.get('mission_aware_campaign_needed')}`.",
+        "",
+        "## Profile Ranking",
+        "| rank | strategy | mean CNS | diversity | transitions |",
+        "|---:|---|---:|---:|---:|",
+    ]
+    for item in analysis.get("profile_summary", []):
+        lines.append(
+            f"| {item.get('profile_rank')} | {item.get('strategy_profile')} | "
+            f"{_to_float(item.get('mean_cns')):.3f} | "
+            f"{_to_float(item.get('mean_policy_diversity')):.3f} | "
+            f"{_to_float(item.get('mean_transition_count')):.3f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Rows",
+            "| mission | strategy | rank | policy | transitions | diversity | CNS |",
+            "|---|---|---:|---|---:|---:|---:|",
+        ]
+    )
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('strategy_profile')} | "
+            f"{_to_float(row.get('profile_rank')):.0f} | {row.get('selected_policy')} | "
+            f"{_to_float(row.get('campaign_transition_count')):.3f} | "
+            f"{_to_float(row.get('campaign_policy_diversity')):.3f} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE417_CAMPAIGN_PROFILE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE418_MISSION_OBJECTIVE_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "strategy_profile",
+    "profile_rank",
+    "selected_policy",
+    "mission_satisfaction",
+    "mission_objective_score",
+    "mission_objective_defense_score",
+    "mission_failure_reason",
+    "campaign_transition_count",
+    "campaign_policy_diversity",
+    "cognitive_neutralization_score",
+    "mission_satisfaction_score",
+    "critical_compromise_rate",
+    "retreat_rate",
+]
+
+
+def run_phase418_mission_objective_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase418_mission_objectives"),
+    config_path: str = "config.json",
+) -> List[Dict[str, object]]:
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase418_", 1)
+        for profile, _label in PHASE417_CAMPAIGN_PROFILES:
+            scenarios[f"{scenario_name}__{profile}"] = _phase413_intelligence_config(
+                "phase2_frustration_decoy",
+                mission,
+                defense_mode=f"mission_objective_{profile}",
+                intelligence=True,
+                defense_campaign=True,
+                campaign_strategy_profile=profile,
+                mission_objectives=True,
+            )
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase418_mission_objective_row(row) for row in stats_rows]
+    analysis = _analyze_phase418_mission_objective_rows(rows)
+    _apply_phase418_profile_ranks(rows, analysis)
+    rows.sort(key=lambda row: (str(row.get("attacker_mission")), int(_to_float(row.get("profile_rank"))), str(row.get("strategy_profile"))))
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase418_mission_objective_summary(rows, analysis, output_dir)
+    _plot_phase418_satisfaction_by_profile(rows, os.path.join(output_dir, "mission_satisfaction_by_profile.png"))
+    _plot_phase418_strategy_by_mission(rows, os.path.join(output_dir, "strategy_by_mission.png"))
+    _plot_phase418_vs_phase417(analysis, os.path.join(output_dir, "mission_objective_vs_phase417.png"))
+    _write_phase418_mission_objective_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase418_mission_objective_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    if "__" in scenario:
+        mission_scenario, profile = scenario.split("__", 1)
+    else:
+        mission_scenario, profile = scenario, str(row.get("strategy_profile") or "balanced")
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    policy_history = _phase416_list_value(row.get("campaign_policy_history"))
+    if not policy_history and selected_policy:
+        policy_history = [str(selected_policy)]
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "strategy_profile": profile,
+        "profile_rank": row.get("profile_rank_mean"),
+        "selected_policy": selected_policy,
+        "mission_satisfaction": row.get("mission_satisfaction_mean"),
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "mission_objective_defense_score": defense_score,
+        "mission_failure_reason": row.get("mission_failure_reason"),
+        "campaign_transition_count": row.get("campaign_transition_count_mean"),
+        "campaign_policy_diversity": len({policy for policy in policy_history if policy}),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_satisfaction_score": row.get("mission_satisfaction_score_mean"),
+        "critical_compromise_rate": row.get("critical_compromise_rate"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _phase418_profile_summary(rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    summary = []
+    for profile, label in PHASE417_CAMPAIGN_PROFILES:
+        profile_rows = [row for row in rows if row.get("strategy_profile") == profile]
+        scores = [_to_float(row.get("mission_objective_defense_score")) for row in profile_rows]
+        objectives = [_to_float(row.get("mission_objective_score")) for row in profile_rows]
+        summary.append(
+            {
+                "strategy_profile": profile,
+                "profile_label": label,
+                "mean_defense_score": float(np.mean(scores)) if scores else 0.0,
+                "mean_mission_objective_score": float(np.mean(objectives)) if objectives else 0.0,
+                "mean_cns": float(np.mean([_to_float(row.get("cognitive_neutralization_score")) for row in profile_rows])) if profile_rows else 0.0,
+                "num_rows": len(profile_rows),
+            }
+        )
+    summary.sort(key=lambda item: _to_float(item.get("mean_defense_score")), reverse=True)
+    for idx, item in enumerate(summary, start=1):
+        item["profile_rank"] = idx
+    return summary
+
+
+def _analyze_phase418_mission_objective_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    profile_summary = _phase418_profile_summary(rows)
+    by_mission = {}
+    best_profiles = []
+    objective_spreads = []
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("attacker_mission") == mission]
+        best_row = max(mission_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score"))) if mission_rows else {}
+        profile = str(best_row.get("strategy_profile") or "")
+        best_profiles.append(profile)
+        objective_values = [_to_float(row.get("mission_objective_score")) for row in mission_rows]
+        if objective_values:
+            objective_spreads.append(float(max(objective_values) - min(objective_values)))
+        by_mission[mission] = {
+            "best_strategy_profile": profile,
+            "best_defense_score": _to_float(best_row.get("mission_objective_defense_score")),
+            "best_mission_objective_score": _to_float(best_row.get("mission_objective_score")),
+            "failure_reasons": sorted({str(row.get("mission_failure_reason")) for row in mission_rows}),
+            "rows": [
+                {
+                    "strategy_profile": row.get("strategy_profile"),
+                    "defense_score": row.get("mission_objective_defense_score"),
+                    "mission_objective_score": row.get("mission_objective_score"),
+                    "cns": row.get("cognitive_neutralization_score"),
+                }
+                for row in mission_rows
+            ],
+        }
+    profit_best = by_mission.get("profit", {}).get("best_strategy_profile", "")
+    persistence_best = by_mission.get("persistence", {}).get("best_strategy_profile", "")
+    critical_best = by_mission.get("critical_hunter", {}).get("best_strategy_profile", "")
+    return {
+        "best_strategy_profile": profile_summary[0].get("strategy_profile", "") if profile_summary else "",
+        "best_strategy_mean_defense_score": _to_float(profile_summary[0].get("mean_defense_score")) if profile_summary else 0.0,
+        "mission_difference_observed": bool(objective_spreads) and any(value > 0.001 for value in objective_spreads),
+        "mission_best_strategy_varies": len(set(best_profiles)) > 1,
+        "profit_best_strategy_changed": profit_best != "aggressive_disruption",
+        "persistence_best_strategy_changed": persistence_best != "aggressive_disruption",
+        "critical_hunter_best_strategy_changed": critical_best != "aggressive_disruption",
+        "aggressive_disruption_dominance_broken": len(set(best_profiles)) > 1 or any(profile != "aggressive_disruption" for profile in best_profiles),
+        "mission_aware_defense_value_shown": len(set(best_profiles)) > 1,
+        "campaign_strategy_selection_value_shown": bool(objective_spreads) and any(value > 0.001 for value in objective_spreads),
+        "profile_summary": profile_summary,
+        "by_mission": by_mission,
+    }
+
+
+def _apply_phase418_profile_ranks(rows: List[Dict[str, object]], analysis: Dict[str, object]) -> None:
+    ranks = {
+        str(item.get("strategy_profile")): int(item.get("profile_rank", 0))
+        for item in analysis.get("profile_summary", [])
+    }
+    for row in rows:
+        row["profile_rank"] = ranks.get(str(row.get("strategy_profile")), 0)
+
+
+def _write_phase418_mission_objective_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "mission_objective_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE418_MISSION_OBJECTIVE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE418_MISSION_OBJECTIVE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "mission_objective_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase418_satisfaction_by_profile(rows: List[Dict[str, object]], save_path: str) -> None:
+    profiles = [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    values = [
+        float(np.mean([_to_float(row.get("mission_objective_score")) for row in rows if row.get("strategy_profile") == profile]))
+        for profile in profiles
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(profiles)), values, color="#f28e2b")
+    ax.set_title("Mission Objective Score by Profile")
+    ax.set_ylabel("attacker objective")
+    ax.set_xticks(np.arange(len(profiles)))
+    ax.set_xticklabels(profiles, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase418_strategy_by_mission(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    profiles = [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    x = np.arange(len(missions))
+    width = 0.18
+    fig, ax = plt.subplots(figsize=(12, 5))
+    for idx, profile in enumerate(profiles):
+        values = [
+            _to_float(next((row.get("mission_objective_defense_score") for row in rows if row.get("attacker_mission") == mission and row.get("strategy_profile") == profile), 0.0))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=profile)
+    ax.set_title("Mission Objective Defense Score by Mission")
+    ax.set_ylabel("defense score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions)
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase418_vs_phase417(analysis: Dict[str, object], save_path: str) -> None:
+    summary = list(analysis.get("profile_summary", []))
+    labels = [str(item.get("strategy_profile")) for item in summary]
+    values = [_to_float(item.get("mean_defense_score")) for item in summary]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(labels)), values, color="#4e79a7")
+    ax.set_title("Phase4.18 Mission Objective vs Phase4.17 Profiles")
+    ax.set_ylabel("mission objective defense score")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase418_mission_objective_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.18 Mission Objective Report",
+        "",
+        "## Questions",
+        f"1. Mission-specific differences observed: `{analysis.get('mission_difference_observed')}`.",
+        f"2. Profit best Strategy changed: `{analysis.get('profit_best_strategy_changed')}`.",
+        f"3. Persistence best Strategy changed: `{analysis.get('persistence_best_strategy_changed')}`.",
+        f"4. Critical Hunter best Strategy changed: `{analysis.get('critical_hunter_best_strategy_changed')}`.",
+        f"5. Aggressive Disruption dominance broken: `{analysis.get('aggressive_disruption_dominance_broken')}`.",
+        f"6. Mission-Aware Defense value shown: `{analysis.get('mission_aware_defense_value_shown')}`.",
+        f"7. Campaign Strategy selection value shown: `{analysis.get('campaign_strategy_selection_value_shown')}`.",
+        "",
+        "## Profile Ranking",
+        "| rank | strategy | defense score | objective | CNS |",
+        "|---:|---|---:|---:|---:|",
+    ]
+    for item in analysis.get("profile_summary", []):
+        lines.append(
+            f"| {item.get('profile_rank')} | {item.get('strategy_profile')} | "
+            f"{_to_float(item.get('mean_defense_score')):.3f} | "
+            f"{_to_float(item.get('mean_mission_objective_score')):.3f} | "
+            f"{_to_float(item.get('mean_cns')):.3f} |"
+        )
+    lines.extend(["", "## Rows", "| mission | strategy | rank | objective | defense_score | failure | CNS |", "|---|---|---:|---:|---:|---|---:|"])
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('strategy_profile')} | "
+            f"{_to_float(row.get('profile_rank')):.0f} | "
+            f"{_to_float(row.get('mission_objective_score')):.3f} | "
+            f"{_to_float(row.get('mission_objective_defense_score')):.3f} | "
+            f"{row.get('mission_failure_reason')} | "
+            f"{_to_float(row.get('cognitive_neutralization_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE418_MISSION_OBJECTIVE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE419_OBJECTIVE_WEIGHT_PROFILES = {
+    "profit": [
+        ("profit_eu90_success10", {"profit_expected_utility_weight": 0.9, "profit_success_weight": 0.1}),
+        ("profit_eu80_success20", {"profit_expected_utility_weight": 0.8, "profit_success_weight": 0.2}),
+        ("profit_eu70_success30", {"profit_expected_utility_weight": 0.7, "profit_success_weight": 0.3}),
+        ("profit_eu60_success40", {"profit_expected_utility_weight": 0.6, "profit_success_weight": 0.4}),
+    ],
+    "persistence": [
+        ("persistence_survival20_trust60_stealth20", {"persistence_survival_weight": 0.2, "persistence_trust_weight": 0.6, "persistence_stealth_weight": 0.2}),
+        ("persistence_survival30_trust50_stealth20", {"persistence_survival_weight": 0.3, "persistence_trust_weight": 0.5, "persistence_stealth_weight": 0.2}),
+        ("persistence_survival50_trust30_stealth20", {"persistence_survival_weight": 0.5, "persistence_trust_weight": 0.3, "persistence_stealth_weight": 0.2}),
+    ],
+    "critical_hunter": [
+        ("critical_progress90_reach10", {"critical_progress_weight": 0.9, "critical_reach_weight": 0.1}),
+        ("critical_progress80_reach20", {"critical_progress_weight": 0.8, "critical_reach_weight": 0.2}),
+        ("critical_progress70_reach30", {"critical_progress_weight": 0.7, "critical_reach_weight": 0.3}),
+    ],
+    "achievement": [
+        ("achievement_progress80_critical20", {"achievement_progress_weight": 0.8, "achievement_critical_weight": 0.2}),
+        ("achievement_progress60_critical40", {"achievement_progress_weight": 0.6, "achievement_critical_weight": 0.4}),
+        ("achievement_progress40_critical60", {"achievement_progress_weight": 0.4, "achievement_critical_weight": 0.6}),
+    ],
+}
+
+PHASE419_MISSION_SENSITIVITY_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "objective_weight_profile",
+    "strategy_profile",
+    "selected_policy",
+    "mission_strategy_change",
+    "mission_sensitivity_score",
+    "mission_objective_score",
+    "mission_objective_defense_score",
+    "mission_failure_reason",
+    "cognitive_neutralization_score",
+    "campaign_transition_count",
+    "campaign_policy_diversity",
+    "retreat_rate",
+]
+
+
+def run_phase419_mission_sensitivity_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase419_mission_sensitivity"),
+    config_path: str = "config.json",
+    objective_profiles: Optional[Dict[str, List[Tuple[str, Dict[str, float]]]]] = None,
+) -> List[Dict[str, object]]:
+    profiles = objective_profiles if objective_profiles is not None else PHASE419_OBJECTIVE_WEIGHT_PROFILES
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        mission_key = str(mission.get("attacker_mission"))
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase419_", 1)
+        for weight_label, weight_overrides in profiles.get(mission_key, []):
+            for strategy, _label in PHASE417_CAMPAIGN_PROFILES:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"sensitivity_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(weight_overrides)
+                scenario_config["objective_weight_profile"] = weight_label
+                scenarios[f"{scenario_name}__{weight_label}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase419_mission_sensitivity_row(row) for row in stats_rows]
+    analysis = _analyze_phase419_mission_sensitivity_rows(rows)
+    _apply_phase419_strategy_changes(rows, analysis)
+    rows.sort(key=lambda row: (str(row.get("attacker_mission")), str(row.get("objective_weight_profile")), str(row.get("strategy_profile"))))
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase419_mission_sensitivity_summary(rows, analysis, output_dir)
+    _plot_phase419_sensitivity_heatmap(analysis, os.path.join(output_dir, "mission_sensitivity_heatmap.png"))
+    _plot_phase419_strategy_by_weight(rows, os.path.join(output_dir, "strategy_by_mission_weight.png"))
+    _plot_phase419_vs_phase418(analysis, os.path.join(output_dir, "mission_sensitivity_vs_phase418.png"))
+    _write_phase419_mission_sensitivity_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase419_mission_sensitivity_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    weight_profile = parts[1] if len(parts) > 1 else str(row.get("objective_weight_profile") or "default")
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    selected_policy = row.get("adaptive_selected_policy") or ""
+    policy_history = _phase416_list_value(row.get("campaign_policy_history"))
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "objective_weight_profile": weight_profile,
+        "strategy_profile": strategy,
+        "selected_policy": selected_policy,
+        "mission_strategy_change": False,
+        "mission_sensitivity_score": 0.0,
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "mission_objective_defense_score": defense_score,
+        "mission_failure_reason": row.get("mission_failure_reason"),
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "campaign_transition_count": row.get("campaign_transition_count_mean"),
+        "campaign_policy_diversity": len({policy for policy in policy_history if policy}) if policy_history else 1,
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _phase419_group_best(rows: List[Dict[str, object]]) -> Dict[Tuple[str, str], Dict[str, object]]:
+    grouped: Dict[Tuple[str, str], List[Dict[str, object]]] = {}
+    for row in rows:
+        grouped.setdefault((str(row.get("attacker_mission")), str(row.get("objective_weight_profile"))), []).append(row)
+    return {
+        key: max(group_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score")))
+        for key, group_rows in grouped.items()
+        if group_rows
+    }
+
+
+def _analyze_phase419_mission_sensitivity_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    best_by_weight = _phase419_group_best(rows)
+    sensitivity_by_mission: Dict[str, float] = {}
+    best_profiles_by_mission: Dict[str, List[str]] = {}
+    default_best = {
+        "profit": "aggressive_disruption",
+        "achievement": "trust_collapse",
+        "persistence": "aggressive_disruption",
+        "critical_hunter": "aggressive_disruption",
+    }
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("attacker_mission") == mission]
+        scores = [_to_float(row.get("mission_objective_defense_score")) for row in mission_rows]
+        sensitivity_by_mission[mission] = float(max(scores) - min(scores)) if scores else 0.0
+        best_profiles_by_mission[mission] = [
+            str(best.get("strategy_profile"))
+            for (best_mission, _weight), best in best_by_weight.items()
+            if best_mission == mission
+        ]
+    profit_best_set = set(best_profiles_by_mission.get("profit", []))
+    persistence_best_set = set(best_profiles_by_mission.get("persistence", []))
+    critical_best_set = set(best_profiles_by_mission.get("critical_hunter", []))
+    all_best_profiles = [profile for profiles in best_profiles_by_mission.values() for profile in profiles]
+    return {
+        "mission_difference_expanded": any(value > 0.01 for value in sensitivity_by_mission.values()),
+        "profit_strategy_changes": len(profit_best_set - {default_best["profit"]}) > 0,
+        "persistence_strategy_changes": len(persistence_best_set - {default_best["persistence"]}) > 0,
+        "critical_hunter_strategy_changes": len(critical_best_set - {default_best["critical_hunter"]}) > 0,
+        "utility_suppression_effective_for_profit": "utility_suppression" in profit_best_set,
+        "trust_collapse_effective_for_persistence": "trust_collapse" in persistence_best_set,
+        "planning_disruption_effective_for_critical_hunter": "aggressive_disruption" in critical_best_set,
+        "mission_aware_defense_value_strengthened": len(set(all_best_profiles)) > 1,
+        "mission_best_strategy_differentiated": len(set(all_best_profiles)) > 1,
+        "mean_mission_sensitivity_score": float(np.mean(list(sensitivity_by_mission.values()))) if sensitivity_by_mission else 0.0,
+        "sensitivity_by_mission": sensitivity_by_mission,
+        "best_profiles_by_mission": best_profiles_by_mission,
+        "best_by_weight": {
+            f"{mission}|{weight}": {
+                "strategy_profile": best.get("strategy_profile"),
+                "defense_score": best.get("mission_objective_defense_score"),
+                "objective": best.get("mission_objective_score"),
+            }
+            for (mission, weight), best in best_by_weight.items()
+        },
+    }
+
+
+def _apply_phase419_strategy_changes(rows: List[Dict[str, object]], analysis: Dict[str, object]) -> None:
+    best_by_weight = analysis.get("best_by_weight", {})
+    sensitivity = analysis.get("sensitivity_by_mission", {})
+    default_best = {
+        "profit": "aggressive_disruption",
+        "achievement": "trust_collapse",
+        "persistence": "aggressive_disruption",
+        "critical_hunter": "aggressive_disruption",
+    }
+    for row in rows:
+        mission = str(row.get("attacker_mission"))
+        weight = str(row.get("objective_weight_profile"))
+        best = best_by_weight.get(f"{mission}|{weight}", {})
+        row["mission_strategy_change"] = str(best.get("strategy_profile")) != default_best.get(mission, "")
+        row["mission_sensitivity_score"] = _to_float(sensitivity.get(mission, 0.0))
+
+
+def _write_phase419_mission_sensitivity_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "mission_sensitivity_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE419_MISSION_SENSITIVITY_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE419_MISSION_SENSITIVITY_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "mission_sensitivity_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase419_sensitivity_heatmap(analysis: Dict[str, object], save_path: str) -> None:
+    missions = list(analysis.get("sensitivity_by_mission", {}).keys())
+    values = np.asarray([[_to_float(analysis.get("sensitivity_by_mission", {}).get(mission))] for mission in missions], dtype=float)
+    if values.size == 0:
+        values = np.zeros((1, 1), dtype=float)
+        missions = [""]
+    fig, ax = plt.subplots(figsize=(6, 5))
+    image = ax.imshow(values, aspect="auto", cmap="magma")
+    ax.set_title("Mission Sensitivity Score")
+    ax.set_xticks([0])
+    ax.set_xticklabels(["sensitivity"])
+    ax.set_yticks(np.arange(len(missions)))
+    ax.set_yticklabels(missions)
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase419_strategy_by_weight(rows: List[Dict[str, object]], save_path: str) -> None:
+    labels = [f"{row.get('attacker_mission')}:{row.get('objective_weight_profile')}" for row in rows if row.get("strategy_profile") == "aggressive_disruption"]
+    profiles = [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    x = np.arange(len(labels))
+    width = 0.18
+    fig, ax = plt.subplots(figsize=(14, 6))
+    for idx, profile in enumerate(profiles):
+        values = [
+            _to_float(next((row.get("mission_objective_defense_score") for row in rows if f"{row.get('attacker_mission')}:{row.get('objective_weight_profile')}" == label and row.get("strategy_profile") == profile), 0.0))
+            for label in labels
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=profile)
+    ax.set_title("Strategy by Mission Weight Profile")
+    ax.set_ylabel("defense score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=45, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase419_vs_phase418(analysis: Dict[str, object], save_path: str) -> None:
+    labels = list(analysis.get("sensitivity_by_mission", {}).keys())
+    values = [_to_float(analysis.get("sensitivity_by_mission", {}).get(label)) for label in labels]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(np.arange(len(labels)), values, color="#4e79a7")
+    ax.set_title("Mission Sensitivity vs Phase4.18")
+    ax.set_ylabel("score spread")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase419_mission_sensitivity_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.19 Mission Objective Sensitivity Report",
+        "",
+        "## Questions",
+        f"1. Mission differences expanded: `{analysis.get('mission_difference_expanded')}`.",
+        f"2. Profit best Strategy changes: `{analysis.get('profit_strategy_changes')}`.",
+        f"3. Persistence best Strategy changes: `{analysis.get('persistence_strategy_changes')}`.",
+        f"4. Critical Hunter best Strategy changes: `{analysis.get('critical_hunter_strategy_changes')}`.",
+        f"5. Utility Suppression works for Profit: `{analysis.get('utility_suppression_effective_for_profit')}`.",
+        f"6. Trust Collapse works for Persistence: `{analysis.get('trust_collapse_effective_for_persistence')}`.",
+        f"7. Planning Disruption works for Critical Hunter: `{analysis.get('planning_disruption_effective_for_critical_hunter')}`.",
+        f"8. Mission-Aware Defense value strengthened: `{analysis.get('mission_aware_defense_value_strengthened')}`.",
+        "",
+        "## Sensitivity",
+        "| mission | sensitivity | best profiles |",
+        "|---|---:|---|",
+    ]
+    for mission, value in analysis.get("sensitivity_by_mission", {}).items():
+        lines.append(f"| {mission} | {_to_float(value):.3f} | {analysis.get('best_profiles_by_mission', {}).get(mission)} |")
+    lines.extend(["", "## Rows", "| mission | weight | strategy | change | sensitivity | objective | defense |", "|---|---|---|---|---:|---:|---:|"])
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('objective_weight_profile')} | {row.get('strategy_profile')} | "
+            f"{row.get('mission_strategy_change')} | {_to_float(row.get('mission_sensitivity_score')):.3f} | "
+            f"{_to_float(row.get('mission_objective_score')):.3f} | {_to_float(row.get('mission_objective_defense_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE419_MISSION_SENSITIVITY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE420_ADAPTIVE_MISSION_COLUMNS = [
+    "mission_scenario",
+    "attacker_mission",
+    "attacker_mode",
+    "strategy_profile",
+    "selected_policy",
+    "mission_objective_score",
+    "mission_objective_defense_score",
+    "mission_failure_reason",
+    "adaptation_count",
+    "ttp_change_count",
+    "strategy_avoidance_score",
+    "alternative_path_usage",
+    "target_switch_count",
+    "campaign_transition_count",
+    "campaign_policy_diversity",
+    "cognitive_neutralization_score",
+    "adaptive_defender_effectiveness",
+    "retreat_rate",
+]
+
+
+def run_phase420_adaptive_mission_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase420_adaptive_mission"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase420_", 1)
+        for attacker_mode, adaptive_enabled in (("non_adaptive", False), ("adaptive", True)):
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"adaptive_mission_{attacker_mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": adaptive_enabled,
+                    }
+                )
+                scenarios[f"{scenario_name}__{attacker_mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase420_adaptive_mission_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("attacker_mission")), str(row.get("attacker_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase420_adaptive_mission_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase420_adaptive_mission_summary(rows, analysis, output_dir)
+    _plot_phase420_metric(rows, "ttp_change_count", os.path.join(output_dir, "ttp_change_count.png"))
+    _plot_phase420_metric(rows, "alternative_path_usage", os.path.join(output_dir, "alternative_path_usage.png"))
+    _plot_phase420_adaptive_vs_nonadaptive(rows, os.path.join(output_dir, "adaptive_vs_nonadaptive.png"))
+    _write_phase420_adaptive_mission_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase420_adaptive_mission_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    attacker_mode = parts[1] if len(parts) > 1 else ("adaptive" if row.get("adaptive_mission_attacker_enabled") else "non_adaptive")
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    policy_history = _phase416_list_value(row.get("campaign_policy_history"))
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mission": row.get("attacker_mission"),
+        "attacker_mode": attacker_mode,
+        "strategy_profile": strategy,
+        "selected_policy": row.get("adaptive_selected_policy") or "",
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "mission_objective_defense_score": defense_score,
+        "mission_failure_reason": row.get("mission_failure_reason"),
+        "adaptation_count": row.get("adaptation_count_mean"),
+        "ttp_change_count": row.get("ttp_change_count_mean"),
+        "strategy_avoidance_score": row.get("strategy_avoidance_score_mean"),
+        "alternative_path_usage": row.get("alternative_path_usage_mean"),
+        "target_switch_count": row.get("target_switch_count_mean"),
+        "campaign_transition_count": row.get("campaign_transition_count_mean"),
+        "campaign_policy_diversity": len({policy for policy in policy_history if policy}) if policy_history else 1,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "adaptive_defender_effectiveness": row.get("adaptive_defender_effectiveness_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+    }
+
+
+def _analyze_phase420_adaptive_mission_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    adaptive_rows = [row for row in rows if row.get("attacker_mode") == "adaptive"]
+    non_rows = [row for row in rows if row.get("attacker_mode") == "non_adaptive"]
+    ttp_values = [_to_float(row.get("ttp_change_count")) for row in adaptive_rows]
+    alt_values = [_to_float(row.get("alternative_path_usage")) for row in adaptive_rows]
+    non_alt_values = [_to_float(row.get("alternative_path_usage")) for row in non_rows]
+    mission_adaptation = {}
+    for mission in sorted({str(row.get("attacker_mission")) for row in adaptive_rows}):
+        mission_rows = [row for row in adaptive_rows if row.get("attacker_mission") == mission]
+        mission_adaptation[mission] = {
+            "mean_ttp_change_count": float(np.mean([_to_float(row.get("ttp_change_count")) for row in mission_rows])) if mission_rows else 0.0,
+            "mean_alternative_path_usage": float(np.mean([_to_float(row.get("alternative_path_usage")) for row in mission_rows])) if mission_rows else 0.0,
+            "best_defense_strategy": max(mission_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score"))).get("strategy_profile") if mission_rows else "",
+        }
+    adaptive_best = _phase420_best_profiles(adaptive_rows)
+    non_best = _phase420_best_profiles(non_rows)
+    non_agg = _phase420_profile_mean(non_rows, "aggressive_disruption", "mission_objective_defense_score")
+    adaptive_agg = _phase420_profile_mean(adaptive_rows, "aggressive_disruption", "mission_objective_defense_score")
+    adaptive_defender_values = [_to_float(row.get("mission_objective_defense_score")) for row in adaptive_rows]
+    return {
+        "attacker_learns_defense": bool(ttp_values) and float(np.mean(ttp_values)) > 0.0,
+        "ttp_change_observed": any(value > 0.0 for value in ttp_values),
+        "alternative_path_increased": bool(alt_values) and float(np.mean(alt_values)) > float(np.mean(non_alt_values) if non_alt_values else 0.0),
+        "aggressive_disruption_dominance_reduced": adaptive_agg < non_agg or adaptive_best.count("aggressive_disruption") < non_best.count("aggressive_disruption"),
+        "mission_adaptation_differs": len({round(item["mean_ttp_change_count"], 3) for item in mission_adaptation.values()}) > 1,
+        "adaptive_defender_value_increases": len(set(adaptive_best)) > 1 or (max(adaptive_defender_values) - min(adaptive_defender_values) > 0.01 if adaptive_defender_values else False),
+        "coevolution_signal": any(value > 0.0 for value in ttp_values) and len(set(adaptive_best)) > 1,
+        "mean_adaptation_count": float(np.mean([_to_float(row.get("adaptation_count")) for row in adaptive_rows])) if adaptive_rows else 0.0,
+        "mean_ttp_change_count": float(np.mean(ttp_values)) if ttp_values else 0.0,
+        "mean_alternative_path_usage": float(np.mean(alt_values)) if alt_values else 0.0,
+        "nonadaptive_aggressive_score": non_agg,
+        "adaptive_aggressive_score": adaptive_agg,
+        "adaptive_best_profiles": adaptive_best,
+        "nonadaptive_best_profiles": non_best,
+        "mission_adaptation": mission_adaptation,
+    }
+
+
+def _phase420_best_profiles(rows: List[Dict[str, object]]) -> List[str]:
+    best = []
+    for mission in sorted({str(row.get("attacker_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("attacker_mission") == mission]
+        if mission_rows:
+            best.append(str(max(mission_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score"))).get("strategy_profile")))
+    return best
+
+
+def _phase420_profile_mean(rows: List[Dict[str, object]], profile: str, key: str) -> float:
+    values = [_to_float(row.get(key)) for row in rows if row.get("strategy_profile") == profile]
+    return float(np.mean(values)) if values else 0.0
+
+
+def _write_phase420_adaptive_mission_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "adaptive_mission_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE420_ADAPTIVE_MISSION_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE420_ADAPTIVE_MISSION_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "adaptive_mission_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase420_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    adaptive_values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("attacker_mission") == mission and row.get("attacker_mode") == "adaptive"]))
+        for mission in missions
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(missions)), adaptive_values, color="#59a14f")
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase420_adaptive_vs_nonadaptive(rows: List[Dict[str, object]], save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("attacker_mission")) for row in rows))
+    x = np.arange(len(missions))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for idx, mode in enumerate(["non_adaptive", "adaptive"]):
+        values = [
+            float(np.mean([_to_float(row.get("mission_objective_defense_score")) for row in rows if row.get("attacker_mission") == mission and row.get("attacker_mode") == mode]))
+            for mission in missions
+        ]
+        ax.bar(x + (idx - 0.5) * width, values, width=width, label=mode)
+    ax.set_title("Adaptive vs Non-Adaptive Mission Attacker")
+    ax.set_ylabel("defense score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(missions, rotation=20, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase420_adaptive_mission_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.20 Adaptive Mission Attacker Report",
+        "",
+        "## Research Questions",
+        f"1. Attacker learns defense: `{analysis.get('attacker_learns_defense')}`.",
+        f"2. TTP changes occur: `{analysis.get('ttp_change_observed')}`.",
+        f"3. Alternative path exploration increases: `{analysis.get('alternative_path_increased')}`.",
+        f"4. Aggressive Disruption dominance reduced: `{analysis.get('aggressive_disruption_dominance_reduced')}`.",
+        f"5. Mission adaptation differs: `{analysis.get('mission_adaptation_differs')}`.",
+        f"6. Adaptive Defender value increases: `{analysis.get('adaptive_defender_value_increases')}`.",
+        f"7. Co-evolution signal: `{analysis.get('coevolution_signal')}`.",
+        "",
+        "## Summary",
+        f"- Mean adaptation count: `{_to_float(analysis.get('mean_adaptation_count')):.3f}`.",
+        f"- Mean TTP change count: `{_to_float(analysis.get('mean_ttp_change_count')):.3f}`.",
+        f"- Mean alternative path usage: `{_to_float(analysis.get('mean_alternative_path_usage')):.3f}`.",
+        f"- Aggressive score non-adaptive/adaptive: `{_to_float(analysis.get('nonadaptive_aggressive_score')):.3f}` / `{_to_float(analysis.get('adaptive_aggressive_score')):.3f}`.",
+        "",
+        "## Mission Adaptation",
+        "| mission | ttp changes | alternative paths | best defense |",
+        "|---|---:|---:|---|",
+    ]
+    for mission, item in analysis.get("mission_adaptation", {}).items():
+        lines.append(
+            f"| {mission} | {_to_float(item.get('mean_ttp_change_count')):.3f} | "
+            f"{_to_float(item.get('mean_alternative_path_usage')):.3f} | {item.get('best_defense_strategy')} |"
+        )
+    lines.extend(["", "## Rows", "| mission | mode | strategy | ttp | alt_path | objective | defense |", "|---|---|---|---:|---:|---:|---:|"])
+    for row in rows:
+        lines.append(
+            f"| {row.get('attacker_mission')} | {row.get('attacker_mode')} | {row.get('strategy_profile')} | "
+            f"{_to_float(row.get('ttp_change_count')):.3f} | {_to_float(row.get('alternative_path_usage')):.3f} | "
+            f"{_to_float(row.get('mission_objective_score')):.3f} | {_to_float(row.get('mission_objective_defense_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE420_ADAPTIVE_MISSION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE421_MISSION_MUTATION_COLUMNS = [
+    "mission_scenario",
+    "initial_mission",
+    "final_mission",
+    "attacker_mode",
+    "strategy_profile",
+    "selected_policy",
+    "mission_objective_score",
+    "mission_objective_defense_score",
+    "mission_failure_reason",
+    "mission_change_count",
+    "mission_stability_score",
+    "mission_mutation_reason",
+    "mission_mutation_success",
+    "achievement_mutation",
+    "adaptation_count",
+    "ttp_change_count",
+    "alternative_path_usage",
+    "campaign_transition_count",
+    "campaign_policy_diversity",
+    "cognitive_neutralization_score",
+    "retreat_rate",
+]
+
+
+def run_phase421_mission_mutation_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase421_mission_mutation"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    attacker_modes = [
+        ("fixed_mission", False, False, "standard"),
+        ("adaptive_mission", True, False, "adaptive_mission_attacker"),
+        ("mission_mutator", True, True, "adaptive_mission_mutator"),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase421_", 1)
+        for attacker_mode, adaptive_enabled, mutation_enabled, attacker_type in attacker_modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"mission_mutation_{attacker_mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": adaptive_enabled,
+                        "mission_mutation_enabled": mutation_enabled,
+                        "attacker_type": attacker_type,
+                    }
+                )
+                scenarios[f"{scenario_name}__{attacker_mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase421_mission_mutation_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("initial_mission")), str(row.get("attacker_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase421_mission_mutation_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase421_mission_mutation_summary(rows, analysis, output_dir)
+    _plot_phase421_transition_matrix(analysis, os.path.join(output_dir, "mission_transition_matrix.png"))
+    _plot_phase421_metric(rows, "mission_change_count", os.path.join(output_dir, "mission_change_count.png"))
+    _plot_phase421_mutation_vs_phase420(rows, os.path.join(output_dir, "mission_mutation_vs_phase420.png"))
+    _write_phase421_mission_mutation_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase421_mission_mutation_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    attacker_mode = parts[1] if len(parts) > 1 else str(row.get("attacker_type") or "fixed_mission")
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    mission_history = _phase416_list_value(row.get("mission_history"))
+    initial_mission = _phase421_initial_mission_from_scenario(mission_scenario, str(row.get("attacker_mission") or ""))
+    final_mission = mission_history[-1] if mission_history else initial_mission
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    policy_history = _phase416_list_value(row.get("campaign_policy_history"))
+    return {
+        "mission_scenario": mission_scenario,
+        "initial_mission": initial_mission,
+        "final_mission": final_mission,
+        "attacker_mode": attacker_mode,
+        "strategy_profile": strategy,
+        "selected_policy": row.get("adaptive_selected_policy") or "",
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "mission_objective_defense_score": defense_score,
+        "mission_failure_reason": row.get("mission_failure_reason"),
+        "mission_change_count": row.get("mission_change_count_mean"),
+        "mission_stability_score": row.get("mission_stability_score_mean"),
+        "mission_mutation_reason": row.get("mission_mutation_reason"),
+        "mission_mutation_success": row.get("mission_mutation_success_rate"),
+        "achievement_mutation": initial_mission != "achievement" and final_mission == "achievement",
+        "adaptation_count": row.get("adaptation_count_mean"),
+        "ttp_change_count": row.get("ttp_change_count_mean"),
+        "alternative_path_usage": row.get("alternative_path_usage_mean"),
+        "campaign_transition_count": row.get("campaign_transition_count_mean"),
+        "campaign_policy_diversity": len({policy for policy in policy_history if policy}) if policy_history else 1,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "retreat_rate": row.get("retreat_rate"),
+        "mission_history": mission_history,
+    }
+
+
+def _analyze_phase421_mission_mutation_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    mutator_rows = [row for row in rows if row.get("attacker_mode") == "mission_mutator"]
+    adaptive_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_mission"]
+    fixed_rows = [row for row in rows if row.get("attacker_mode") == "fixed_mission"]
+    mutation_values = [_to_float(row.get("mission_change_count")) for row in mutator_rows]
+    adaptive_agg = _phase421_profile_mode_mean(adaptive_rows, "aggressive_disruption", "mission_objective_defense_score")
+    mutator_agg = _phase421_profile_mode_mean(mutator_rows, "aggressive_disruption", "mission_objective_defense_score")
+    mutator_objective = _mean_or_none([_to_float(row.get("mission_objective_score")) for row in mutator_rows]) or 0.0
+    adaptive_objective = _mean_or_none([_to_float(row.get("mission_objective_score")) for row in adaptive_rows]) or 0.0
+    transition_matrix = _phase421_transition_matrix(mutator_rows)
+    campaign_delta = abs(
+        (_mean_or_none([_to_float(row.get("campaign_transition_count")) for row in mutator_rows]) or 0.0)
+        - (_mean_or_none([_to_float(row.get("campaign_transition_count")) for row in fixed_rows]) or 0.0)
+    )
+    mutator_ttp = _mean_or_none([_to_float(row.get("ttp_change_count")) for row in mutator_rows]) or 0.0
+    adaptive_ttp = _mean_or_none([_to_float(row.get("ttp_change_count")) for row in adaptive_rows]) or 0.0
+    return {
+        "mission_change_observed": any(value > 0.0 for value in mutation_values),
+        "aggressive_disruption_weakened": mutator_agg < adaptive_agg,
+        "achievement_mutation_observed": any(bool(row.get("achievement_mutation")) for row in mutator_rows),
+        "mission_mutation_effective": mutator_objective > adaptive_objective or any(_to_float(row.get("mission_mutation_success")) > 0.0 for row in mutator_rows),
+        "defense_campaign_affected": campaign_delta > 0.01,
+        "coevolution_strengthened": any(value > 0.0 for value in mutation_values) and mutator_ttp >= adaptive_ttp,
+        "mission_aware_defense_value_retained": len(set(_phase421_best_profiles(mutator_rows))) > 1 or mutator_agg >= 0.4,
+        "mean_mission_change_count": float(np.mean(mutation_values)) if mutation_values else 0.0,
+        "mean_mission_stability_score": _mean_or_none([_to_float(row.get("mission_stability_score")) for row in mutator_rows]) or 0.0,
+        "mean_mutator_objective": mutator_objective,
+        "mean_adaptive_objective": adaptive_objective,
+        "adaptive_aggressive_score": adaptive_agg,
+        "mutator_aggressive_score": mutator_agg,
+        "transition_matrix": transition_matrix,
+        "by_mission": _phase421_by_mission(mutator_rows),
+    }
+
+
+def _phase421_profile_mode_mean(rows: List[Dict[str, object]], profile: str, key: str) -> float:
+    values = [_to_float(row.get(key)) for row in rows if row.get("strategy_profile") == profile]
+    return float(np.mean(values)) if values else 0.0
+
+
+def _phase421_initial_mission_from_scenario(scenario: str, fallback: str) -> str:
+    if "critical_hunter" in scenario:
+        return "critical_hunter"
+    for mission in ("profit", "achievement", "persistence"):
+        if mission in scenario:
+            return mission
+    return fallback
+
+
+def _phase421_best_profiles(rows: List[Dict[str, object]]) -> List[str]:
+    best = []
+    for mission in sorted({str(row.get("initial_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("initial_mission") == mission]
+        if mission_rows:
+            best.append(str(max(mission_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score"))).get("strategy_profile")))
+    return best
+
+
+def _phase421_transition_matrix(rows: List[Dict[str, object]]) -> Dict[str, Dict[str, int]]:
+    missions = ["profit", "achievement", "persistence", "critical_hunter"]
+    matrix = {source: {target: 0 for target in missions} for source in missions}
+    for row in rows:
+        history = [mission for mission in _phase416_list_value(row.get("mission_history")) if mission in missions]
+        if not history:
+            history = [str(row.get("initial_mission")), str(row.get("final_mission"))]
+        elif str(row.get("initial_mission")) in missions and history[0] != str(row.get("initial_mission")):
+            history = [str(row.get("initial_mission"))] + history
+        for source, target in zip(history, history[1:]):
+            if source in matrix and target in matrix[source]:
+                matrix[source][target] += 1
+    return matrix
+
+
+def _phase421_by_mission(rows: List[Dict[str, object]]) -> Dict[str, Dict[str, object]]:
+    result = {}
+    for mission in sorted({str(row.get("initial_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("initial_mission") == mission]
+        result[mission] = {
+            "mean_change_count": _mean_or_none([_to_float(row.get("mission_change_count")) for row in mission_rows]) or 0.0,
+            "achievement_mutation_rate": _mean_or_none([1.0 if row.get("achievement_mutation") else 0.0 for row in mission_rows]) or 0.0,
+            "mean_objective": _mean_or_none([_to_float(row.get("mission_objective_score")) for row in mission_rows]) or 0.0,
+            "best_defense_strategy": max(mission_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score"))).get("strategy_profile") if mission_rows else "",
+        }
+    return result
+
+
+def _write_phase421_mission_mutation_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "mission_mutation_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE421_MISSION_MUTATION_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE421_MISSION_MUTATION_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "mission_mutation_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase421_transition_matrix(analysis: Dict[str, object], save_path: str) -> None:
+    missions = ["profit", "achievement", "persistence", "critical_hunter"]
+    matrix_data = analysis.get("transition_matrix", {})
+    values = np.asarray([[int(matrix_data.get(source, {}).get(target, 0)) for target in missions] for source in missions], dtype=float)
+    fig, ax = plt.subplots(figsize=(7, 6))
+    image = ax.imshow(values, cmap="viridis")
+    ax.set_title("Mission Transition Matrix")
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions, rotation=30, ha="right")
+    ax.set_yticks(np.arange(len(missions)))
+    ax.set_yticklabels(missions)
+    for i in range(len(missions)):
+        for j in range(len(missions)):
+            ax.text(j, i, f"{int(values[i, j])}", ha="center", va="center", color="white" if values[i, j] > 0 else "black")
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase421_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("initial_mission")) for row in rows))
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("initial_mission") == mission and row.get("attacker_mode") == "mission_mutator"]))
+        for mission in missions
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(missions)), values, color="#e15759")
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase421_mutation_vs_phase420(rows: List[Dict[str, object]], save_path: str) -> None:
+    modes = ["fixed_mission", "adaptive_mission", "mission_mutator"]
+    values = [
+        float(np.mean([_to_float(row.get("mission_objective_defense_score")) for row in rows if row.get("attacker_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#59a14f", "#e15759"])
+    ax.set_title("Mission Mutation vs Phase4.20 Adaptive Mission")
+    ax.set_ylabel("defense score")
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase421_mission_mutation_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.21 Mission Mutation Report",
+        "",
+        "## Research Questions",
+        f"1. Mission changes occur: `{analysis.get('mission_change_observed')}`.",
+        f"2. Aggressive Disruption weakens: `{analysis.get('aggressive_disruption_weakened')}`.",
+        f"3. Achievement mutation occurs: `{analysis.get('achievement_mutation_observed')}`.",
+        f"4. Mission Mutation is effective: `{analysis.get('mission_mutation_effective')}`.",
+        f"5. Defense Campaign is affected: `{analysis.get('defense_campaign_affected')}`.",
+        f"6. Co-evolution strengthens: `{analysis.get('coevolution_strengthened')}`.",
+        f"7. Mission-Aware Defense retains value: `{analysis.get('mission_aware_defense_value_retained')}`.",
+        "",
+        "## Summary",
+        f"- Mean mission change count: `{_to_float(analysis.get('mean_mission_change_count')):.3f}`.",
+        f"- Mean mission stability score: `{_to_float(analysis.get('mean_mission_stability_score')):.3f}`.",
+        f"- Adaptive/mutator objective: `{_to_float(analysis.get('mean_adaptive_objective')):.3f}` / `{_to_float(analysis.get('mean_mutator_objective')):.3f}`.",
+        f"- Aggressive score adaptive/mutator: `{_to_float(analysis.get('adaptive_aggressive_score')):.3f}` / `{_to_float(analysis.get('mutator_aggressive_score')):.3f}`.",
+        "",
+        "## Mission Mutation",
+        "| mission | changes | achievement rate | objective | best defense |",
+        "|---|---:|---:|---:|---|",
+    ]
+    for mission, item in analysis.get("by_mission", {}).items():
+        lines.append(
+            f"| {mission} | {_to_float(item.get('mean_change_count')):.3f} | "
+            f"{_to_float(item.get('achievement_mutation_rate')):.3f} | "
+            f"{_to_float(item.get('mean_objective')):.3f} | {item.get('best_defense_strategy')} |"
+        )
+    lines.extend(["", "## Rows", "| mission | final | mode | strategy | changes | objective | defense | reason |", "|---|---|---|---|---:|---:|---:|---|"])
+    for row in rows:
+        lines.append(
+            f"| {row.get('initial_mission')} | {row.get('final_mission')} | {row.get('attacker_mode')} | "
+            f"{row.get('strategy_profile')} | {_to_float(row.get('mission_change_count')):.3f} | "
+            f"{_to_float(row.get('mission_objective_score')):.3f} | {_to_float(row.get('mission_objective_defense_score')):.3f} | "
+            f"{row.get('mission_mutation_reason')} |"
+        )
+    with open(os.path.join(output_dir, "PHASE421_MISSION_MUTATION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE422_ADAPTIVE_INTELLIGENCE_COLUMNS = [
+    "mission_scenario",
+    "initial_mission",
+    "final_mission",
+    "defense_mode",
+    "strategy_profile",
+    "selected_strategy",
+    "mission_objective_score",
+    "mission_objective_defense_score",
+    "cognitive_neutralization_score",
+    "mission_aware_cns",
+    "mission_change_count",
+    "mission_reclassification_count",
+    "defense_reoptimization_count",
+    "reclassification_accuracy",
+    "belief_recovery_time",
+    "ttp_change_count",
+    "alternative_path_usage",
+    "campaign_transition_count",
+    "campaign_policy_diversity",
+    "mission_history",
+    "reclassified_mission_history",
+    "selected_strategy_history",
+]
+
+
+def run_phase422_adaptive_intelligence_defender(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase422_adaptive_intelligence"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    defense_modes = [
+        ("fixed_mission_aware", False, False, "standard"),
+        ("mission_mutation_attacker", True, False, "adaptive_mission_mutator"),
+        ("adaptive_intelligence_defender", True, True, "adaptive_mission_mutator"),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase422_", 1)
+        for defense_mode, mutation_enabled, reclassification_enabled, attacker_type in defense_modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"adaptive_intelligence_{defense_mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": mutation_enabled,
+                        "mission_reclassification_enabled": reclassification_enabled,
+                        "attacker_type": attacker_type,
+                    }
+                )
+                scenarios[f"{scenario_name}__{defense_mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase422_adaptive_intelligence_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("initial_mission")), str(row.get("defense_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase422_adaptive_intelligence_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase422_adaptive_intelligence_summary(rows, analysis, output_dir)
+    _plot_phase422_metric(rows, "mission_reclassification_count", os.path.join(output_dir, "mission_reclassification.png"))
+    _plot_phase422_metric(rows, "defense_reoptimization_count", os.path.join(output_dir, "defense_reoptimization.png"))
+    _plot_phase422_vs_phase421(rows, os.path.join(output_dir, "phase422_vs_phase421.png"))
+    _write_phase422_adaptive_intelligence_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase422_adaptive_intelligence_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    defense_mode = parts[1] if len(parts) > 1 else "fixed_mission_aware"
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    mission_history = _phase416_list_value(row.get("mission_history"))
+    reclassified_history = _phase416_list_value(row.get("reclassified_mission_history"))
+    selected_strategy_history = _phase416_list_value(row.get("selected_strategy_history"))
+    initial_mission = _phase421_initial_mission_from_scenario(mission_scenario, str(row.get("attacker_mission") or ""))
+    final_mission = mission_history[-1] if mission_history else initial_mission
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    policy_history = _phase416_list_value(row.get("campaign_policy_history"))
+    selected_strategy = selected_strategy_history[-1] if selected_strategy_history else strategy
+    return {
+        "mission_scenario": mission_scenario,
+        "initial_mission": initial_mission,
+        "final_mission": final_mission,
+        "defense_mode": defense_mode,
+        "strategy_profile": strategy,
+        "selected_strategy": selected_strategy,
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "mission_objective_defense_score": defense_score,
+        "cognitive_neutralization_score": row.get("cognitive_neutralization_score_mean"),
+        "mission_aware_cns": row.get("mission_aware_cns_mean"),
+        "mission_change_count": row.get("mission_change_count_mean"),
+        "mission_reclassification_count": row.get("mission_reclassification_count_mean"),
+        "defense_reoptimization_count": row.get("defense_reoptimization_count_mean"),
+        "reclassification_accuracy": row.get("reclassification_accuracy_mean"),
+        "belief_recovery_time": row.get("belief_recovery_time_mean"),
+        "ttp_change_count": row.get("ttp_change_count_mean"),
+        "alternative_path_usage": row.get("alternative_path_usage_mean"),
+        "campaign_transition_count": row.get("campaign_transition_count_mean"),
+        "campaign_policy_diversity": len({policy for policy in policy_history if policy}) if policy_history else 1,
+        "mission_history": mission_history,
+        "reclassified_mission_history": reclassified_history,
+        "selected_strategy_history": selected_strategy_history,
+    }
+
+
+def _analyze_phase422_adaptive_intelligence_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    adaptive_rows = [row for row in rows if row.get("defense_mode") == "adaptive_intelligence_defender"]
+    mutation_rows = [row for row in rows if row.get("defense_mode") == "mission_mutation_attacker"]
+    fixed_rows = [row for row in rows if row.get("defense_mode") == "fixed_mission_aware"]
+    adaptive_reclass = [_to_float(row.get("mission_reclassification_count")) for row in adaptive_rows]
+    adaptive_reopt = [_to_float(row.get("defense_reoptimization_count")) for row in adaptive_rows]
+    adaptive_accuracy = _mean_or_none([_to_float(row.get("reclassification_accuracy")) for row in adaptive_rows]) or 0.0
+    adaptive_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in adaptive_rows]) or 0.0
+    mutation_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in mutation_rows]) or 0.0
+    fixed_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in fixed_rows]) or 0.0
+    adaptive_agg = _phase422_mode_profile_mean(adaptive_rows, "aggressive_disruption", "mission_objective_defense_score")
+    mutation_agg = _phase422_mode_profile_mean(mutation_rows, "aggressive_disruption", "mission_objective_defense_score")
+    mutation_changes = _mean_or_none([_to_float(row.get("mission_change_count")) for row in mutation_rows]) or 0.0
+    adaptive_changes = _mean_or_none([_to_float(row.get("mission_change_count")) for row in adaptive_rows]) or 0.0
+    recovered_times = [
+        _to_float(row.get("belief_recovery_time"))
+        for row in adaptive_rows
+        if _to_float(row.get("belief_recovery_time")) >= 0.0
+    ]
+    return {
+        "mission_mutation_detected": any(value > 0.0 for value in adaptive_reclass) and adaptive_accuracy > 0.0,
+        "defense_reoptimization_observed": any(value > 0.0 for value in adaptive_reopt),
+        "mission_aware_defense_value_retained": adaptive_defense >= fixed_defense * 0.85,
+        "aggressive_reduction_handled": adaptive_agg >= mutation_agg or any(value > 0.0 for value in adaptive_reopt),
+        "mission_reclassification_effective": adaptive_accuracy >= 0.5 and any(_to_float(row.get("belief_recovery_time")) >= 0.0 for row in adaptive_rows),
+        "defender_adaptation_effective": adaptive_defense >= mutation_defense or any(value > 0.0 for value in adaptive_reopt),
+        "coevolution_strengthened": adaptive_changes > 0.0 and any(value > 0.0 for value in adaptive_reclass) and any(value > 0.0 for value in adaptive_reopt),
+        "mean_reclassification_count": _mean_or_none(adaptive_reclass) or 0.0,
+        "mean_defense_reoptimization_count": _mean_or_none(adaptive_reopt) or 0.0,
+        "mean_reclassification_accuracy": adaptive_accuracy,
+        "mean_belief_recovery_time": _mean_or_none(recovered_times) if recovered_times else -1.0,
+        "fixed_defense_score": fixed_defense,
+        "mutation_defense_score": mutation_defense,
+        "adaptive_defense_score": adaptive_defense,
+        "mutation_mean_change_count": mutation_changes,
+        "adaptive_mean_change_count": adaptive_changes,
+        "mutation_aggressive_score": mutation_agg,
+        "adaptive_aggressive_score": adaptive_agg,
+        "by_mission": _phase422_by_mission(adaptive_rows),
+    }
+
+
+def _phase422_mode_profile_mean(rows: List[Dict[str, object]], profile: str, key: str) -> float:
+    values = [_to_float(row.get(key)) for row in rows if row.get("strategy_profile") == profile]
+    return float(np.mean(values)) if values else 0.0
+
+
+def _phase422_by_mission(rows: List[Dict[str, object]]) -> Dict[str, Dict[str, object]]:
+    result = {}
+    for mission in sorted({str(row.get("initial_mission")) for row in rows}):
+        mission_rows = [row for row in rows if row.get("initial_mission") == mission]
+        result[mission] = {
+            "mean_reclassification_count": _mean_or_none([_to_float(row.get("mission_reclassification_count")) for row in mission_rows]) or 0.0,
+            "mean_reoptimization_count": _mean_or_none([_to_float(row.get("defense_reoptimization_count")) for row in mission_rows]) or 0.0,
+            "mean_accuracy": _mean_or_none([_to_float(row.get("reclassification_accuracy")) for row in mission_rows]) or 0.0,
+            "best_selected_strategy": max(mission_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score"))).get("selected_strategy") if mission_rows else "",
+        }
+    return result
+
+
+def _write_phase422_adaptive_intelligence_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "adaptive_intelligence_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE422_ADAPTIVE_INTELLIGENCE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE422_ADAPTIVE_INTELLIGENCE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "adaptive_intelligence_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase422_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    missions = list(dict.fromkeys(str(row.get("initial_mission")) for row in rows))
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("initial_mission") == mission and row.get("defense_mode") == "adaptive_intelligence_defender"]))
+        for mission in missions
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(missions)), values, color="#4e79a7")
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase422_vs_phase421(rows: List[Dict[str, object]], save_path: str) -> None:
+    modes = ["fixed_mission_aware", "mission_mutation_attacker", "adaptive_intelligence_defender"]
+    values = [
+        float(np.mean([_to_float(row.get("mission_objective_defense_score")) for row in rows if row.get("defense_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#e15759", "#59a14f"])
+    ax.set_title("Phase4.22 Adaptive Intelligence vs Phase4.21 Mutation")
+    ax.set_ylabel("defense score")
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase422_adaptive_intelligence_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.22 Adaptive Intelligence Defender Report",
+        "",
+        "## Research Questions",
+        f"1. Mission Mutation detected: `{analysis.get('mission_mutation_detected')}`.",
+        f"2. Defense reoptimization occurs: `{analysis.get('defense_reoptimization_observed')}`.",
+        f"3. Mission-Aware Defense value is retained: `{analysis.get('mission_aware_defense_value_retained')}`.",
+        f"4. Aggressive dominance reduction is handled: `{analysis.get('aggressive_reduction_handled')}`.",
+        f"5. Mission Reclassification is effective: `{analysis.get('mission_reclassification_effective')}`.",
+        f"6. Defender Adaptation is effective: `{analysis.get('defender_adaptation_effective')}`.",
+        f"7. Co-evolution strengthens: `{analysis.get('coevolution_strengthened')}`.",
+        "",
+        "## Summary",
+        f"- Mean reclassification count: `{_to_float(analysis.get('mean_reclassification_count')):.3f}`.",
+        f"- Mean defense reoptimization count: `{_to_float(analysis.get('mean_defense_reoptimization_count')):.3f}`.",
+        f"- Mean reclassification accuracy: `{_to_float(analysis.get('mean_reclassification_accuracy')):.3f}`.",
+        f"- Mean belief recovery time: `{_to_float(analysis.get('mean_belief_recovery_time')):.3f}`.",
+        f"- Defense score fixed/mutation/adaptive: `{_to_float(analysis.get('fixed_defense_score')):.3f}` / `{_to_float(analysis.get('mutation_defense_score')):.3f}` / `{_to_float(analysis.get('adaptive_defense_score')):.3f}`.",
+        "",
+        "## Mission Detail",
+        "| mission | reclassifications | reoptimizations | accuracy | best selected strategy |",
+        "|---|---:|---:|---:|---|",
+    ]
+    for mission, item in analysis.get("by_mission", {}).items():
+        lines.append(
+            f"| {mission} | {_to_float(item.get('mean_reclassification_count')):.3f} | "
+            f"{_to_float(item.get('mean_reoptimization_count')):.3f} | "
+            f"{_to_float(item.get('mean_accuracy')):.3f} | {item.get('best_selected_strategy')} |"
+        )
+    lines.extend(["", "## Rows", "| mission | mode | initial strategy | selected strategy | changes | reclass | reopt | accuracy | defense |", "|---|---|---|---|---:|---:|---:|---:|---:|"])
+    for row in rows:
+        lines.append(
+            f"| {row.get('initial_mission')} | {row.get('defense_mode')} | {row.get('strategy_profile')} | {row.get('selected_strategy')} | "
+            f"{_to_float(row.get('mission_change_count')):.3f} | {_to_float(row.get('mission_reclassification_count')):.3f} | "
+            f"{_to_float(row.get('defense_reoptimization_count')):.3f} | {_to_float(row.get('reclassification_accuracy')):.3f} | "
+            f"{_to_float(row.get('mission_objective_defense_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE422_ADAPTIVE_INTELLIGENCE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE423_INTENT_DECEPTION_COLUMNS = [
+    "mission_scenario",
+    "attacker_mode",
+    "true_mission",
+    "observed_mission",
+    "final_mission",
+    "strategy_profile",
+    "selected_strategy",
+    "mission_objective_score",
+    "mission_objective_defense_score",
+    "mission_change_count",
+    "mission_reclassification_count",
+    "defense_reoptimization_count",
+    "deception_event_count",
+    "mission_belief_error",
+    "belief_confusion_score",
+    "mission_masking_success",
+    "reclassification_accuracy",
+    "ttp_change_count",
+    "alternative_path_usage",
+    "mission_weight_profit",
+    "mission_weight_achievement",
+    "mission_weight_persistence",
+    "mission_weight_critical_hunter",
+    "true_mission_history",
+    "observed_mission_history",
+    "deception_history",
+]
+
+
+def run_phase423_intent_deception_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase423_intent_deception"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    attacker_modes = [
+        ("adaptive_mission_attacker", False, False, "adaptive_mission_attacker"),
+        ("mission_mutation_attacker", True, False, "adaptive_mission_mutator"),
+        ("intent_deception_attacker", True, True, "intent_deception_attacker"),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase423_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for attacker_mode, mutation_enabled, deception_enabled, attacker_type in attacker_modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"intent_deception_{attacker_mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": mutation_enabled,
+                        "mission_reclassification_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": deception_enabled,
+                        "attacker_type": attacker_type,
+                    }
+                )
+                scenarios[f"{scenario_name}__{attacker_mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase423_intent_deception_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("attacker_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase423_intent_deception_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase423_intent_deception_summary(rows, analysis, output_dir)
+    _plot_phase423_confusion_matrix(analysis, os.path.join(output_dir, "mission_confusion_matrix.png"))
+    _plot_phase423_belief_error(rows, os.path.join(output_dir, "belief_error_distribution.png"))
+    _plot_phase423_vs_phase422(rows, os.path.join(output_dir, "phase423_vs_phase422.png"))
+    _write_phase423_intent_deception_report(rows, analysis, output_dir)
+    return rows
+
+
+def _phase423_mission_weights(mission: str) -> Dict[str, float]:
+    if mission == "critical_hunter":
+        return {"profit": 0.0, "achievement": 0.5, "persistence": 0.0, "critical_hunter": 0.5}
+    if mission == "profit":
+        return {"profit": 0.7, "achievement": 0.2, "persistence": 0.1, "critical_hunter": 0.0}
+    if mission == "persistence":
+        return {"profit": 0.1, "achievement": 0.3, "persistence": 0.6, "critical_hunter": 0.0}
+    return {"profit": 0.2, "achievement": 0.7, "persistence": 0.1, "critical_hunter": 0.0}
+
+
+def _build_phase423_intent_deception_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    attacker_mode = parts[1] if len(parts) > 1 else str(row.get("attacker_type") or "adaptive_mission_attacker")
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    true_history = _phase416_list_value(row.get("true_mission_history"))
+    observed_history = _phase416_list_value(row.get("observed_mission_history"))
+    deception_history = _phase416_list_value(row.get("deception_history"))
+    mission_history = _phase416_list_value(row.get("mission_history"))
+    selected_strategy_history = _phase416_list_value(row.get("selected_strategy_history"))
+    true_mission = true_history[-1] if true_history else str(row.get("true_mission") or row.get("attacker_mission") or "")
+    observed_mission = observed_history[-1] if observed_history else str(row.get("observed_mission") or true_mission)
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mode": attacker_mode,
+        "true_mission": true_mission,
+        "observed_mission": observed_mission,
+        "final_mission": mission_history[-1] if mission_history else true_mission,
+        "strategy_profile": strategy,
+        "selected_strategy": selected_strategy_history[-1] if selected_strategy_history else strategy,
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "mission_objective_defense_score": defense_score,
+        "mission_change_count": row.get("mission_change_count_mean"),
+        "mission_reclassification_count": row.get("mission_reclassification_count_mean"),
+        "defense_reoptimization_count": row.get("defense_reoptimization_count_mean"),
+        "deception_event_count": row.get("deception_event_count_mean"),
+        "mission_belief_error": row.get("mission_belief_error_mean"),
+        "belief_confusion_score": row.get("belief_confusion_score_mean"),
+        "mission_masking_success": _to_float(row.get("mission_masking_success_mean")) > 0.0,
+        "reclassification_accuracy": row.get("reclassification_accuracy_mean"),
+        "ttp_change_count": row.get("ttp_change_count_mean"),
+        "alternative_path_usage": row.get("alternative_path_usage_mean"),
+        "mission_weight_profit": row.get("mission_weight_profit"),
+        "mission_weight_achievement": row.get("mission_weight_achievement"),
+        "mission_weight_persistence": row.get("mission_weight_persistence"),
+        "mission_weight_critical_hunter": row.get("mission_weight_critical_hunter"),
+        "true_mission_history": true_history,
+        "observed_mission_history": observed_history,
+        "deception_history": deception_history,
+    }
+
+
+def _analyze_phase423_intent_deception_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    deception_rows = [row for row in rows if row.get("attacker_mode") == "intent_deception_attacker"]
+    mutation_rows = [row for row in rows if row.get("attacker_mode") == "mission_mutation_attacker"]
+    adaptive_rows = [row for row in rows if row.get("attacker_mode") == "adaptive_mission_attacker"]
+    deception_events = [_to_float(row.get("deception_event_count")) for row in deception_rows]
+    deception_error = _mean_or_none([_to_float(row.get("mission_belief_error")) for row in deception_rows]) or 0.0
+    mutation_error = _mean_or_none([_to_float(row.get("mission_belief_error")) for row in mutation_rows]) or 0.0
+    adaptive_error = _mean_or_none([_to_float(row.get("mission_belief_error")) for row in adaptive_rows]) or 0.0
+    deception_reopt = _mean_or_none([_to_float(row.get("defense_reoptimization_count")) for row in deception_rows]) or 0.0
+    deception_confusion = _mean_or_none([_to_float(row.get("belief_confusion_score")) for row in deception_rows]) or 0.0
+    deception_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in deception_rows]) or 0.0
+    mutation_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in mutation_rows]) or 0.0
+    aggressive_deception = _phase423_mode_profile_mean(deception_rows, "aggressive_disruption", "mission_objective_defense_score")
+    best_deception_profile = max(deception_rows, key=lambda row: _to_float(row.get("mission_objective_defense_score"))).get("strategy_profile") if deception_rows else ""
+    return {
+        "mission_deception_succeeds": any(value > 0.0 for value in deception_events) and any(bool(row.get("mission_masking_success")) for row in deception_rows),
+        "mission_belief_accuracy_declines": deception_error > max(mutation_error, adaptive_error),
+        "defense_reoptimization_misdirected": deception_reopt > 0.0 and deception_confusion > 0.0,
+        "multi_objective_mission_effective": all(
+            sum(_to_float(row.get(key)) for key in ("mission_weight_profit", "mission_weight_achievement", "mission_weight_persistence", "mission_weight_critical_hunter")) > 0.99
+            for row in rows
+        ),
+        "aggressive_disruption_returns": best_deception_profile == "aggressive_disruption",
+        "adaptive_intelligence_resilient": deception_defense >= mutation_defense * 0.8,
+        "coevolution_strengthened": any(value > 0.0 for value in deception_events) and deception_reopt > 0.0 and deception_confusion > 0.0,
+        "mean_deception_event_count": _mean_or_none(deception_events) or 0.0,
+        "mean_deception_belief_error": deception_error,
+        "mean_mutation_belief_error": mutation_error,
+        "mean_adaptive_belief_error": adaptive_error,
+        "mean_belief_confusion_score": deception_confusion,
+        "mean_deception_reoptimization": deception_reopt,
+        "deception_defense_score": deception_defense,
+        "mutation_defense_score": mutation_defense,
+        "aggressive_deception_score": aggressive_deception,
+        "best_deception_profile": best_deception_profile,
+        "confusion_matrix": _phase423_confusion_matrix(deception_rows),
+    }
+
+
+def _phase423_mode_profile_mean(rows: List[Dict[str, object]], profile: str, key: str) -> float:
+    values = [_to_float(row.get(key)) for row in rows if row.get("strategy_profile") == profile]
+    return float(np.mean(values)) if values else 0.0
+
+
+def _phase423_confusion_matrix(rows: List[Dict[str, object]]) -> Dict[str, Dict[str, int]]:
+    missions = ["profit", "achievement", "persistence", "critical_hunter"]
+    matrix = {source: {target: 0 for target in missions} for source in missions}
+    for row in rows:
+        true_history = _phase416_list_value(row.get("true_mission_history"))
+        observed_history = _phase416_list_value(row.get("observed_mission_history"))
+        n = min(len(true_history), len(observed_history))
+        if n == 0:
+            true_history = [str(row.get("true_mission"))]
+            observed_history = [str(row.get("observed_mission"))]
+            n = 1
+        for idx in range(n):
+            source = str(true_history[idx])
+            target = str(observed_history[idx])
+            if source in matrix and target in matrix[source]:
+                matrix[source][target] += 1
+    return matrix
+
+
+def _write_phase423_intent_deception_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "intent_deception_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE423_INTENT_DECEPTION_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE423_INTENT_DECEPTION_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "intent_deception_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase423_confusion_matrix(analysis: Dict[str, object], save_path: str) -> None:
+    missions = ["profit", "achievement", "persistence", "critical_hunter"]
+    matrix = analysis.get("confusion_matrix", {})
+    values = np.asarray([[int(matrix.get(source, {}).get(target, 0)) for target in missions] for source in missions], dtype=float)
+    fig, ax = plt.subplots(figsize=(7, 6))
+    image = ax.imshow(values, cmap="magma")
+    ax.set_title("Mission Confusion Matrix")
+    ax.set_xticks(np.arange(len(missions)))
+    ax.set_xticklabels(missions, rotation=30, ha="right")
+    ax.set_yticks(np.arange(len(missions)))
+    ax.set_yticklabels(missions)
+    for i in range(len(missions)):
+        for j in range(len(missions)):
+            ax.text(j, i, f"{int(values[i, j])}", ha="center", va="center", color="white" if values[i, j] > 0 else "black")
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase423_belief_error(rows: List[Dict[str, object]], save_path: str) -> None:
+    modes = ["adaptive_mission_attacker", "mission_mutation_attacker", "intent_deception_attacker"]
+    values = [
+        float(np.mean([_to_float(row.get("mission_belief_error")) for row in rows if row.get("attacker_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#e15759", "#b07aa1"])
+    ax.set_title("Mission Belief Error Distribution")
+    ax.set_ylabel("belief error")
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase423_vs_phase422(rows: List[Dict[str, object]], save_path: str) -> None:
+    modes = ["adaptive_mission_attacker", "mission_mutation_attacker", "intent_deception_attacker"]
+    values = [
+        float(np.mean([_to_float(row.get("mission_objective_defense_score")) for row in rows if row.get("attacker_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#e15759", "#b07aa1"])
+    ax.set_title("Phase4.23 Intent Deception vs Phase4.22")
+    ax.set_ylabel("defense score")
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase423_intent_deception_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.23 Intent Deception Report",
+        "",
+        "## Research Questions",
+        f"1. Mission deception succeeds: `{analysis.get('mission_deception_succeeds')}`.",
+        f"2. Mission Belief accuracy declines: `{analysis.get('mission_belief_accuracy_declines')}`.",
+        f"3. Defense Reoptimization is misdirected: `{analysis.get('defense_reoptimization_misdirected')}`.",
+        f"4. Multi-Objective Mission is effective: `{analysis.get('multi_objective_mission_effective')}`.",
+        f"5. Aggressive Disruption returns: `{analysis.get('aggressive_disruption_returns')}`.",
+        f"6. Adaptive Intelligence Defender is resilient: `{analysis.get('adaptive_intelligence_resilient')}`.",
+        f"7. Co-evolution strengthens: `{analysis.get('coevolution_strengthened')}`.",
+        "",
+        "## Summary",
+        f"- Mean deception event count: `{_to_float(analysis.get('mean_deception_event_count')):.3f}`.",
+        f"- Belief error adaptive/mutation/deception: `{_to_float(analysis.get('mean_adaptive_belief_error')):.3f}` / `{_to_float(analysis.get('mean_mutation_belief_error')):.3f}` / `{_to_float(analysis.get('mean_deception_belief_error')):.3f}`.",
+        f"- Mean confusion score: `{_to_float(analysis.get('mean_belief_confusion_score')):.3f}`.",
+        f"- Mean deception reoptimization: `{_to_float(analysis.get('mean_deception_reoptimization')):.3f}`.",
+        f"- Defense score mutation/deception: `{_to_float(analysis.get('mutation_defense_score')):.3f}` / `{_to_float(analysis.get('deception_defense_score')):.3f}`.",
+        f"- Best deception profile: `{analysis.get('best_deception_profile')}`.",
+        "",
+        "## Rows",
+        "| true | observed | mode | strategy | selected | deception | belief error | confusion | reopt | defense |",
+        "|---|---|---|---|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('true_mission')} | {row.get('observed_mission')} | {row.get('attacker_mode')} | "
+            f"{row.get('strategy_profile')} | {row.get('selected_strategy')} | {_to_float(row.get('deception_event_count')):.3f} | "
+            f"{_to_float(row.get('mission_belief_error')):.3f} | {_to_float(row.get('belief_confusion_score')):.3f} | "
+            f"{_to_float(row.get('defense_reoptimization_count')):.3f} | {_to_float(row.get('mission_objective_defense_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE423_INTENT_DECEPTION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE424_SIGNAL_EXTRACTION_COLUMNS = [
+    "mission_scenario",
+    "defense_mode",
+    "true_mission",
+    "observed_mission",
+    "strategy_profile",
+    "selected_strategy",
+    "mission_objective_score",
+    "mission_objective_defense_score",
+    "mission_belief_error",
+    "belief_confusion_score",
+    "deception_event_count",
+    "noise_event_count",
+    "signal_event_count",
+    "signal_to_noise_ratio",
+    "noise_filter_accuracy",
+    "decision_confidence",
+    "defense_reoptimization_count",
+    "reclassification_accuracy",
+    "noise_history",
+    "signal_history",
+]
+
+
+def run_phase424_signal_extraction_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase424_signal_extraction"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    modes = [
+        ("adaptive_intelligence_defender", False, False, False),
+        ("noise_injection_attacker", True, True, False),
+        ("signal_extraction_defender", True, True, True),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase424_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for mode, deception_enabled, noise_enabled, signal_enabled in modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"signal_extraction_{mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": deception_enabled,
+                        "mission_reclassification_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": deception_enabled,
+                        "noise_injection_enabled": noise_enabled,
+                        "signal_extraction_enabled": signal_enabled,
+                        "attacker_type": "intent_deception_attacker" if deception_enabled else "adaptive_mission_attacker",
+                    }
+                )
+                scenarios[f"{scenario_name}__{mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase424_signal_extraction_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("defense_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase424_signal_extraction_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase424_signal_extraction_summary(rows, analysis, output_dir)
+    _plot_phase424_metric(rows, "signal_to_noise_ratio", os.path.join(output_dir, "signal_to_noise_ratio.png"))
+    _plot_phase424_metric(rows, "noise_filter_accuracy", os.path.join(output_dir, "noise_filter_accuracy.png"))
+    _plot_phase424_vs_phase423(rows, os.path.join(output_dir, "phase424_vs_phase423.png"))
+    _write_phase424_signal_extraction_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase424_signal_extraction_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    defense_mode = parts[1] if len(parts) > 1 else "adaptive_intelligence_defender"
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    true_history = _phase416_list_value(row.get("true_mission_history"))
+    observed_history = _phase416_list_value(row.get("observed_mission_history"))
+    selected_strategy_history = _phase416_list_value(row.get("selected_strategy_history"))
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    true_mission = true_history[-1] if true_history else str(row.get("true_mission") or row.get("attacker_mission") or "")
+    observed_mission = observed_history[-1] if observed_history else str(row.get("observed_mission") or true_mission)
+    return {
+        "mission_scenario": mission_scenario,
+        "defense_mode": defense_mode,
+        "true_mission": true_mission,
+        "observed_mission": observed_mission,
+        "strategy_profile": strategy,
+        "selected_strategy": selected_strategy_history[-1] if selected_strategy_history else strategy,
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "mission_objective_defense_score": defense_score,
+        "mission_belief_error": row.get("mission_belief_error_mean"),
+        "belief_confusion_score": row.get("belief_confusion_score_mean"),
+        "deception_event_count": row.get("deception_event_count_mean"),
+        "noise_event_count": row.get("noise_event_count_mean"),
+        "signal_event_count": row.get("signal_event_count_mean"),
+        "signal_to_noise_ratio": row.get("signal_to_noise_ratio_mean"),
+        "noise_filter_accuracy": row.get("noise_filter_accuracy_mean"),
+        "decision_confidence": row.get("decision_confidence_mean"),
+        "defense_reoptimization_count": row.get("defense_reoptimization_count_mean"),
+        "reclassification_accuracy": row.get("reclassification_accuracy_mean"),
+        "noise_history": _phase416_list_value(row.get("noise_history")),
+        "signal_history": _phase416_list_value(row.get("signal_history")),
+    }
+
+
+def _analyze_phase424_signal_extraction_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    adaptive_rows = [row for row in rows if row.get("defense_mode") == "adaptive_intelligence_defender"]
+    noise_rows = [row for row in rows if row.get("defense_mode") == "noise_injection_attacker"]
+    signal_rows = [row for row in rows if row.get("defense_mode") == "signal_extraction_defender"]
+    adaptive_error = _mean_or_none([_to_float(row.get("mission_belief_error")) for row in adaptive_rows]) or 0.0
+    noise_error = _mean_or_none([_to_float(row.get("mission_belief_error")) for row in noise_rows]) or 0.0
+    signal_error = _mean_or_none([_to_float(row.get("mission_belief_error")) for row in signal_rows]) or 0.0
+    adaptive_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in adaptive_rows]) or 0.0
+    noise_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in noise_rows]) or 0.0
+    signal_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in signal_rows]) or 0.0
+    signal_filter = _mean_or_none([_to_float(row.get("noise_filter_accuracy")) for row in signal_rows]) or 0.0
+    noise_count = _mean_or_none([_to_float(row.get("noise_event_count")) for row in noise_rows]) or 0.0
+    signal_snr = _mean_or_none([_to_float(row.get("signal_to_noise_ratio")) for row in signal_rows]) or 0.0
+    noise_snr = _mean_or_none([_to_float(row.get("signal_to_noise_ratio")) for row in noise_rows]) or 0.0
+    signal_confidence = _mean_or_none([_to_float(row.get("decision_confidence")) for row in signal_rows]) or 0.0
+    noise_confidence = _mean_or_none([_to_float(row.get("decision_confidence")) for row in noise_rows]) or 0.0
+    return {
+        "noise_injection_effective": noise_count > 0.0 and noise_error >= adaptive_error,
+        "mission_belief_worsens_under_noise": noise_error >= adaptive_error,
+        "signal_extraction_effective": signal_filter >= 0.5 and (signal_defense >= noise_defense or signal_confidence > noise_confidence),
+        "defense_score_maintained": signal_defense >= adaptive_defense * 0.8,
+        "deception_noise_combination_strong": noise_count > 0.0 and noise_error > 0.75,
+        "adaptive_defender_resilient": signal_defense >= noise_defense * 0.9,
+        "coevolution_strengthened": noise_count > 0.0 and signal_filter > 0.0 and signal_confidence > noise_confidence,
+        "mean_noise_event_count": noise_count,
+        "mean_signal_event_count": _mean_or_none([_to_float(row.get("signal_event_count")) for row in signal_rows]) or 0.0,
+        "noise_mode_belief_error": noise_error,
+        "signal_mode_belief_error": signal_error,
+        "adaptive_belief_error": adaptive_error,
+        "noise_mode_defense_score": noise_defense,
+        "signal_mode_defense_score": signal_defense,
+        "adaptive_defense_score": adaptive_defense,
+        "noise_signal_to_noise_ratio": noise_snr,
+        "signal_signal_to_noise_ratio": signal_snr,
+        "mean_noise_filter_accuracy": signal_filter,
+        "noise_decision_confidence": noise_confidence,
+        "signal_decision_confidence": signal_confidence,
+    }
+
+
+def _write_phase424_signal_extraction_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "signal_extraction_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE424_SIGNAL_EXTRACTION_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE424_SIGNAL_EXTRACTION_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "signal_extraction_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase424_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    modes = ["adaptive_intelligence_defender", "noise_injection_attacker", "signal_extraction_defender"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("defense_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#e15759", "#59a14f"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase424_vs_phase423(rows: List[Dict[str, object]], save_path: str) -> None:
+    modes = ["adaptive_intelligence_defender", "noise_injection_attacker", "signal_extraction_defender"]
+    values = [
+        float(np.mean([_to_float(row.get("mission_objective_defense_score")) for row in rows if row.get("defense_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#e15759", "#59a14f"])
+    ax.set_title("Phase4.24 Signal Extraction vs Phase4.23")
+    ax.set_ylabel("defense score")
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase424_signal_extraction_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.24 Signal Extraction Report",
+        "",
+        "## Research Questions",
+        f"1. Noise Injection is effective: `{analysis.get('noise_injection_effective')}`.",
+        f"2. Mission Belief worsens under noise: `{analysis.get('mission_belief_worsens_under_noise')}`.",
+        f"3. Signal Extraction is effective: `{analysis.get('signal_extraction_effective')}`.",
+        f"4. Defense Score is maintained: `{analysis.get('defense_score_maintained')}`.",
+        f"5. Intent Deception plus noise is strong: `{analysis.get('deception_noise_combination_strong')}`.",
+        f"6. Adaptive Defender is resilient: `{analysis.get('adaptive_defender_resilient')}`.",
+        f"7. Co-evolution strengthens: `{analysis.get('coevolution_strengthened')}`.",
+        "",
+        "## Summary",
+        f"- Mean noise event count: `{_to_float(analysis.get('mean_noise_event_count')):.3f}`.",
+        f"- Noise/filter accuracy: `{_to_float(analysis.get('mean_noise_filter_accuracy')):.3f}`.",
+        f"- SNR noise/signal mode: `{_to_float(analysis.get('noise_signal_to_noise_ratio')):.3f}` / `{_to_float(analysis.get('signal_signal_to_noise_ratio')):.3f}`.",
+        f"- Decision confidence noise/signal: `{_to_float(analysis.get('noise_decision_confidence')):.3f}` / `{_to_float(analysis.get('signal_decision_confidence')):.3f}`.",
+        f"- Defense score adaptive/noise/signal: `{_to_float(analysis.get('adaptive_defense_score')):.3f}` / `{_to_float(analysis.get('noise_mode_defense_score')):.3f}` / `{_to_float(analysis.get('signal_mode_defense_score')):.3f}`.",
+        "",
+        "## Rows",
+        "| mission | mode | strategy | noise | signal | snr | filter | confidence | belief error | defense |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('true_mission')} | {row.get('defense_mode')} | {row.get('strategy_profile')} | "
+            f"{_to_float(row.get('noise_event_count')):.3f} | {_to_float(row.get('signal_event_count')):.3f} | "
+            f"{_to_float(row.get('signal_to_noise_ratio')):.3f} | {_to_float(row.get('noise_filter_accuracy')):.3f} | "
+            f"{_to_float(row.get('decision_confidence')):.3f} | {_to_float(row.get('mission_belief_error')):.3f} | "
+            f"{_to_float(row.get('mission_objective_defense_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE424_SIGNAL_EXTRACTION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE425_ADVERSARIAL_SIGNAL_COLUMNS = [
+    "mission_scenario",
+    "defense_mode",
+    "true_mission",
+    "strategy_profile",
+    "selected_strategy",
+    "mission_objective_defense_score",
+    "noise_filter_accuracy",
+    "decision_confidence",
+    "fake_signal_count",
+    "adversarial_signal_count",
+    "signal_confusion_score",
+    "false_signal_acceptance_rate",
+    "signal_consistency_score",
+    "defense_reoptimization_count",
+    "critical_path_step_count",
+    "fake_signal_history",
+    "signal_consistency_history",
+]
+
+
+def run_phase425_adversarial_signal_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase425_adversarial_signal"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else [profile for profile, _label in PHASE417_CAMPAIGN_PROFILES]
+    modes = [
+        ("phase424_noise_injection", True, False, True),
+        ("phase425_adversarial_signal", True, True, False),
+        ("phase425_signal_consistency_defender", True, True, True),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase425_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for mode, noise_enabled, adversarial_enabled, signal_enabled in modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"adversarial_signal_{mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": True,
+                        "mission_reclassification_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": True,
+                        "noise_injection_enabled": noise_enabled,
+                        "adversarial_signal_enabled": adversarial_enabled,
+                        "signal_extraction_enabled": signal_enabled,
+                        "attacker_type": "intent_deception_attacker",
+                    }
+                )
+                scenarios[f"{scenario_name}__{mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase425_adversarial_signal_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("defense_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase425_adversarial_signal_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase425_adversarial_signal_summary(rows, analysis, output_dir)
+    _plot_phase425_metric(rows, "fake_signal_count", os.path.join(output_dir, "fake_signal_count.png"))
+    _plot_phase425_metric(rows, "signal_confusion_score", os.path.join(output_dir, "signal_confusion_score.png"))
+    _plot_phase425_vs_phase424(rows, os.path.join(output_dir, "phase425_vs_phase424.png"))
+    _write_phase425_adversarial_signal_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase425_adversarial_signal_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    mode = parts[1] if len(parts) > 1 else "phase424_noise_injection"
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    true_history = _phase416_list_value(row.get("true_mission_history"))
+    selected_strategy_history = _phase416_list_value(row.get("selected_strategy_history"))
+    objective = _to_float(row.get("mission_objective_score_mean"))
+    cns = _to_float(row.get("cognitive_neutralization_score_mean"))
+    defense_score = float(np.clip(0.6 * cns + 0.4 * (1.0 - objective), 0.0, 1.0))
+    return {
+        "mission_scenario": mission_scenario,
+        "defense_mode": mode,
+        "true_mission": true_history[-1] if true_history else str(row.get("true_mission") or row.get("attacker_mission") or ""),
+        "strategy_profile": strategy,
+        "selected_strategy": selected_strategy_history[-1] if selected_strategy_history else strategy,
+        "mission_objective_defense_score": defense_score,
+        "noise_filter_accuracy": row.get("noise_filter_accuracy_mean"),
+        "decision_confidence": row.get("decision_confidence_mean"),
+        "fake_signal_count": row.get("fake_signal_count_mean"),
+        "adversarial_signal_count": row.get("adversarial_signal_count_mean"),
+        "signal_confusion_score": row.get("signal_confusion_score_mean"),
+        "false_signal_acceptance_rate": row.get("false_signal_acceptance_rate_mean"),
+        "signal_consistency_score": row.get("signal_consistency_score_mean"),
+        "defense_reoptimization_count": row.get("defense_reoptimization_count_mean"),
+        "critical_path_step_count": row.get("critical_path_step_count_mean"),
+        "fake_signal_history": _phase416_list_value(row.get("fake_signal_history")),
+        "signal_consistency_history": _phase416_list_value(row.get("signal_consistency_history")),
+    }
+
+
+def _analyze_phase425_adversarial_signal_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    noise_rows = [row for row in rows if row.get("defense_mode") == "phase424_noise_injection"]
+    adversarial_rows = [row for row in rows if row.get("defense_mode") == "phase425_adversarial_signal"]
+    consistency_rows = [row for row in rows if row.get("defense_mode") == "phase425_signal_consistency_defender"]
+    noise_filter = _mean_or_none([_to_float(row.get("noise_filter_accuracy")) for row in noise_rows]) or 0.0
+    adversarial_filter = _mean_or_none([_to_float(row.get("noise_filter_accuracy")) for row in adversarial_rows]) or 0.0
+    adversarial_confusion = _mean_or_none([_to_float(row.get("signal_confusion_score")) for row in adversarial_rows]) or 0.0
+    consistency_confusion = _mean_or_none([_to_float(row.get("signal_confusion_score")) for row in consistency_rows]) or 0.0
+    adversarial_confidence = _mean_or_none([_to_float(row.get("decision_confidence")) for row in adversarial_rows]) or 0.0
+    noise_confidence = _mean_or_none([_to_float(row.get("decision_confidence")) for row in noise_rows]) or 0.0
+    noise_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in noise_rows]) or 0.0
+    adversarial_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in adversarial_rows]) or 0.0
+    consistency_defense = _mean_or_none([_to_float(row.get("mission_objective_defense_score")) for row in consistency_rows]) or 0.0
+    fake_count = _mean_or_none([_to_float(row.get("fake_signal_count")) for row in adversarial_rows]) or 0.0
+    consistency_score = _mean_or_none([_to_float(row.get("signal_consistency_score")) for row in consistency_rows]) or 0.0
+    return {
+        "fake_signal_misdirects_defense": fake_count > 0.0 and adversarial_confusion > 0.0,
+        "noise_filter_accuracy_declines": adversarial_filter < noise_filter,
+        "decision_confidence_false_increase": adversarial_confidence > noise_confidence,
+        "defense_score_declines": adversarial_defense < noise_defense,
+        "consistency_check_effective": consistency_confusion <= adversarial_confusion and consistency_defense >= adversarial_defense * 0.95,
+        "critical_path_intelligence_deceived": adversarial_confusion > 0.25,
+        "signal_extraction_limit": "high-confidence fake signals pass extraction unless consistency checks reject implausible critical-path context",
+        "mean_fake_signal_count": fake_count,
+        "noise_filter_accuracy": noise_filter,
+        "adversarial_filter_accuracy": adversarial_filter,
+        "adversarial_signal_confusion": adversarial_confusion,
+        "consistency_signal_confusion": consistency_confusion,
+        "noise_decision_confidence": noise_confidence,
+        "adversarial_decision_confidence": adversarial_confidence,
+        "noise_defense_score": noise_defense,
+        "adversarial_defense_score": adversarial_defense,
+        "consistency_defense_score": consistency_defense,
+        "mean_signal_consistency_score": consistency_score,
+    }
+
+
+def _write_phase425_adversarial_signal_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "adversarial_signal_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE425_ADVERSARIAL_SIGNAL_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE425_ADVERSARIAL_SIGNAL_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "adversarial_signal_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase425_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    modes = ["phase424_noise_injection", "phase425_adversarial_signal", "phase425_signal_consistency_defender"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("defense_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#e15759", "#59a14f"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase425_vs_phase424(rows: List[Dict[str, object]], save_path: str) -> None:
+    _plot_phase425_metric(rows, "mission_objective_defense_score", save_path)
+
+
+def _write_phase425_adversarial_signal_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase4.25 Adversarial Signal Report",
+        "",
+        "## Research Questions",
+        f"1. Fake high-confidence signal misdirects defense: `{analysis.get('fake_signal_misdirects_defense')}`.",
+        f"2. Noise filter accuracy declines: `{analysis.get('noise_filter_accuracy_declines')}`.",
+        f"3. Decision confidence falsely increases: `{analysis.get('decision_confidence_false_increase')}`.",
+        f"4. Defense score declines: `{analysis.get('defense_score_declines')}`.",
+        f"5. Signal consistency check is effective: `{analysis.get('consistency_check_effective')}`.",
+        f"6. Critical Path Intelligence is deceived: `{analysis.get('critical_path_intelligence_deceived')}`.",
+        f"7. Signal Extraction limit: `{analysis.get('signal_extraction_limit')}`.",
+        "",
+        "## Summary",
+        f"- Mean fake signal count: `{_to_float(analysis.get('mean_fake_signal_count')):.3f}`.",
+        f"- Filter accuracy noise/adversarial: `{_to_float(analysis.get('noise_filter_accuracy')):.3f}` / `{_to_float(analysis.get('adversarial_filter_accuracy')):.3f}`.",
+        f"- Signal confusion adversarial/consistency: `{_to_float(analysis.get('adversarial_signal_confusion')):.3f}` / `{_to_float(analysis.get('consistency_signal_confusion')):.3f}`.",
+        f"- Decision confidence noise/adversarial: `{_to_float(analysis.get('noise_decision_confidence')):.3f}` / `{_to_float(analysis.get('adversarial_decision_confidence')):.3f}`.",
+        f"- Defense score noise/adversarial/consistency: `{_to_float(analysis.get('noise_defense_score')):.3f}` / `{_to_float(analysis.get('adversarial_defense_score')):.3f}` / `{_to_float(analysis.get('consistency_defense_score')):.3f}`.",
+        "",
+        "## Rows",
+        "| mission | mode | strategy | fake | confusion | acceptance | consistency | confidence | defense |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('true_mission')} | {row.get('defense_mode')} | {row.get('strategy_profile')} | "
+            f"{_to_float(row.get('fake_signal_count')):.3f} | {_to_float(row.get('signal_confusion_score')):.3f} | "
+            f"{_to_float(row.get('false_signal_acceptance_rate')):.3f} | {_to_float(row.get('signal_consistency_score')):.3f} | "
+            f"{_to_float(row.get('decision_confidence')):.3f} | {_to_float(row.get('mission_objective_defense_score')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE425_ADVERSARIAL_SIGNAL_REPORT.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 

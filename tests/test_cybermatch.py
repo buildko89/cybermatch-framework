@@ -20,8 +20,35 @@ from run_scenarios import (
     run_phase2_policy_selection_evaluation,
     run_phase3_expected_utility_evaluation,
     run_phase3_trust_attacker_evaluation,
+    run_phase4_adaptive_defender_evaluation,
+    run_phase4_cns_guided_evaluation,
+    run_phase4_step_adaptive_evaluation,
+    run_phase4_nonstationary_evaluation,
+    run_phase4_switch_benefit_evaluation,
+    run_phase4_specialized_policy_evaluation,
+    run_phase47_mission_profile_evaluation,
+    run_phase48_mission_aware_evaluation,
+    run_phase49_mission_belief_evaluation,
+    run_phase410_state_belief_evaluation,
+    run_phase411_virtual_topology_evaluation,
+    run_phase412_critical_path_evaluation,
+    run_phase413_intelligence_defender_evaluation,
+    run_phase414_weight_sweep_evaluation,
+    run_phase415_decision_matrix_evaluation,
+    run_phase416_defense_campaign_evaluation,
+    run_phase417_campaign_profile_evaluation,
+    run_phase418_mission_objective_evaluation,
+    run_phase419_mission_sensitivity_evaluation,
+    run_phase420_adaptive_mission_evaluation,
+    run_phase421_mission_mutation_evaluation,
+    run_phase422_adaptive_intelligence_defender,
+    run_phase423_intent_deception_evaluation,
+    run_phase424_signal_extraction_evaluation,
+    run_phase425_adversarial_signal_evaluation,
     run_scenarios,
     run_scenarios_multi_seed,
+    _select_cns_guided_policy,
+    _select_adaptive_defense_policy,
 )
 
 
@@ -162,6 +189,40 @@ def test_expected_utility_score_uses_gain_trust_risk_and_search_cost():
     assert score[2] > score[1]
 
 
+def test_rule_based_adaptive_defender_policy_selection():
+    assert _select_adaptive_defense_policy(
+        expected_utility=1.0,
+        trust_collapse_rate=0.0,
+        target_switch_count=0,
+    ) == ("gated_edge_pressure_count_2", "high_expected_utility")
+    assert _select_adaptive_defense_policy(
+        expected_utility=0.0,
+        trust_collapse_rate=0.3,
+        target_switch_count=0,
+    ) == ("phase2_frustration_decoy", "trust_collapse")
+    assert _select_adaptive_defense_policy(
+        expected_utility=0.0,
+        trust_collapse_rate=0.0,
+        target_switch_count=8,
+    ) == ("phase2_ai_balanced", "target_switch")
+
+
+def test_cns_guided_adaptive_defender_policy_selection():
+    policy, reason, score, rank, estimated_cns = _select_cns_guided_policy(
+        expected_utility=1.0,
+        trust_collapse_rate=0.3,
+        target_switch_count=8,
+        critical_compromise_risk=0.5,
+        retreat_rate=1.0,
+    )
+
+    assert policy == "phase2_frustration_decoy"
+    assert reason in {"cns_trust_collapse", "cns_critical_protection", "cns_score_max"}
+    assert score > 0.0
+    assert rank == 1
+    assert 0.0 <= estimated_cns <= 1.0
+
+
 def test_metrics_written(tmp_path):
     config = small_config()
     sim = CyberDefenseSimulator(config)
@@ -231,10 +292,131 @@ def test_metrics_written(tmp_path):
         "expected_utility_enabled",
         "expected_utility_final",
         "expected_utility_mean",
+        "attacker_mission",
+        "mission_success_score",
+        "mission_satisfaction_score",
+        "mission_objectives_enabled",
+        "mission_satisfaction",
+        "mission_objective_score",
+        "mission_failure_reason",
+        "objective_weight_profile",
+        "mission_strategy_change",
+        "mission_sensitivity_score",
+        "adaptive_mission_attacker_enabled",
+        "observed_defense_strategy",
+        "defense_effectiveness_memory",
+        "strategy_failure_memory",
+        "strategy_success_memory",
+        "adaptation_count",
+        "ttp_change_count",
+        "strategy_avoidance_score",
+        "alternative_path_usage",
+        "mission_mutation_enabled",
+        "mission_change_count",
+        "mission_stability_score",
+        "mission_mutation_reason",
+        "mission_mutation_success",
+        "attacker_type",
+        "mission_reclassification_enabled",
+        "mission_reclassification_count",
+        "defense_reoptimization_count",
+        "reclassification_accuracy",
+        "belief_recovery_time",
+        "multi_objective_mission_enabled",
+        "intent_deception_enabled",
+        "deception_event_count",
+        "mission_belief_error",
+        "belief_confusion_score",
+        "true_mission",
+        "observed_mission",
+        "mission_masking_success",
+        "noise_injection_enabled",
+        "signal_extraction_enabled",
+        "noise_event_count",
+        "signal_event_count",
+        "signal_to_noise_ratio",
+        "noise_filter_accuracy",
+        "decision_confidence",
+        "adversarial_signal_enabled",
+        "fake_signal_count",
+        "adversarial_signal_count",
+        "signal_confusion_score",
+        "false_signal_acceptance_rate",
+        "signal_consistency_score",
+        "nonstationary_attacker_enabled",
+        "attacker_phase",
+        "attacker_phase_switch_count",
+        "attacker_strategy_name",
         "expected_gain_estimate",
         "expected_detection_risk",
         "expected_search_cost",
         "target_switch_count",
+        "adaptive_defender_enabled",
+        "adaptive_selected_policy",
+        "adaptive_policy_switch_count",
+        "adaptive_policy_reason",
+        "adaptive_policy_score",
+        "adaptive_policy_rank",
+        "adaptive_selection_reason",
+        "adaptive_estimated_cns",
+        "mission_aware_defender_enabled",
+        "mission_aware_selected_policy",
+        "mission_policy_match",
+        "mission_policy_switch_count",
+        "mission_aware_cns",
+        "mission_belief_inference_enabled",
+        "belief_profit",
+        "belief_achievement",
+        "belief_persistence",
+        "belief_critical_hunter",
+        "predicted_mission",
+        "mission_prediction_confidence",
+        "mission_prediction_correct",
+        "state_belief_inference_enabled",
+        "belief_recon",
+        "belief_exploitation",
+        "belief_lateral_movement",
+        "belief_targeting",
+        "belief_action_on_objective",
+        "predicted_state",
+        "state_prediction_confidence",
+        "state_transition_count",
+        "virtual_topology_enabled",
+        "observable_events_enabled",
+        "critical_path_events_enabled",
+        "observable_event_count",
+        "scan_count",
+        "credential_use_count",
+        "lateral_move_count",
+        "critical_probe_count",
+        "objective_action_count",
+        "critical_path_proximity",
+        "critical_path_step_count",
+        "critical_node_visit_count",
+        "critical_edge_traversal_count",
+        "intelligence_defender_enabled",
+        "selected_intelligence_policy",
+        "intelligence_risk_score",
+        "risk_level",
+        "risk_level_transition_count",
+        "decision_matrix_defender_enabled",
+        "decision_matrix_policy",
+        "decision_matrix_match_count",
+        "decision_matrix_override_count",
+        "defense_campaign_enabled",
+        "campaign_effectiveness_score",
+        "campaign_stage",
+        "campaign_transition_count",
+        "campaign_policy_switch_count",
+        "strategy_profile",
+        "strategy_effectiveness_score",
+        "profile_rank",
+        "best_weight_configuration",
+        "mission_weight",
+        "state_weight",
+        "critical_path_weight",
+        "weight_sweep_rank",
+        "adaptive_defender_effectiveness",
         "attacker_belief_change_l1",
         "attacker_belief_change_l2",
         "attacker_belief_decoy_reduction",
@@ -892,6 +1074,522 @@ def test_phase3_expected_utility_outputs_exist(tmp_path):
     assert (tmp_path / "phase3_expected_utility" / "expected_retreat_rate.png").exists()
     assert (tmp_path / "phase3_expected_utility" / "expected_target_switch.png").exists()
     assert (tmp_path / "phase3_expected_utility" / "PHASE3_EXPECTED_UTILITY_REPORT.md").exists()
+
+
+def test_phase4_adaptive_defender_outputs_exist(tmp_path):
+    rows = run_phase4_adaptive_defender_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase4_adaptive_defender"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert any(row["defense_mode"] == "adaptive_defender" for row in rows)
+    assert any(row["defense_mode"] == "fixed" for row in rows)
+    assert (tmp_path / "phase4_adaptive_defender" / "adaptive_defender_summary.csv").exists()
+    assert (tmp_path / "phase4_adaptive_defender" / "adaptive_defender_summary.json").exists()
+    assert (tmp_path / "phase4_adaptive_defender" / "adaptive_defender_cns.png").exists()
+    assert (tmp_path / "phase4_adaptive_defender" / "adaptive_defender_policy_selection.png").exists()
+    assert (tmp_path / "phase4_adaptive_defender" / "adaptive_defender_effectiveness.png").exists()
+    assert (tmp_path / "phase4_adaptive_defender" / "PHASE4_ADAPTIVE_DEFENDER_REPORT.md").exists()
+
+
+def test_phase4_cns_guided_outputs_exist(tmp_path):
+    rows = run_phase4_cns_guided_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase4_cns_guided"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert any(row["defense_mode"] == "cns_guided_adaptive" for row in rows)
+    assert any(row["defense_mode"] == "rule_based_adaptive" for row in rows)
+    assert any(row["defense_mode"] == "fixed" for row in rows)
+    assert (tmp_path / "phase4_cns_guided" / "cns_guided_summary.csv").exists()
+    assert (tmp_path / "phase4_cns_guided" / "cns_guided_summary.json").exists()
+    assert (tmp_path / "phase4_cns_guided" / "cns_guided_cns.png").exists()
+    assert (tmp_path / "phase4_cns_guided" / "cns_guided_policy_selection.png").exists()
+    assert (tmp_path / "phase4_cns_guided" / "cns_guided_vs_rule_based.png").exists()
+    assert (tmp_path / "phase4_cns_guided" / "PHASE4_CNS_GUIDED_REPORT.md").exists()
+
+
+def test_phase4_step_adaptive_outputs_exist(tmp_path):
+    rows = run_phase4_step_adaptive_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase4_step_adaptive"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert any(row["defense_mode"] == "step_adaptive" for row in rows)
+    assert any(row["defense_mode"] == "cns_guided_adaptive" for row in rows)
+    assert any(row["defense_mode"] == "rule_based_adaptive" for row in rows)
+    assert any(row["defense_mode"] == "fixed" for row in rows)
+    assert (tmp_path / "phase4_step_adaptive" / "step_adaptive_summary.csv").exists()
+    assert (tmp_path / "phase4_step_adaptive" / "step_adaptive_summary.json").exists()
+    assert (tmp_path / "phase4_step_adaptive" / "step_adaptive_cns.png").exists()
+    assert (tmp_path / "phase4_step_adaptive" / "step_adaptive_switch_count.png").exists()
+    assert (tmp_path / "phase4_step_adaptive" / "step_adaptive_vs_phase42.png").exists()
+    assert (tmp_path / "phase4_step_adaptive" / "PHASE4_STEP_ADAPTIVE_REPORT.md").exists()
+
+
+def test_phase4_nonstationary_outputs_exist(tmp_path):
+    rows = run_phase4_nonstationary_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase4_nonstationary"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    assert any(row["defense_mode"] == "step_adaptive" for row in rows)
+    assert any(row["defense_mode"] == "cns_guided_adaptive" for row in rows)
+    assert any(row["defense_mode"] == "fixed_frustration_decoy" for row in rows)
+    assert (tmp_path / "phase4_nonstationary" / "nonstationary_summary.csv").exists()
+    assert (tmp_path / "phase4_nonstationary" / "nonstationary_summary.json").exists()
+    assert (tmp_path / "phase4_nonstationary" / "nonstationary_cns.png").exists()
+    assert (tmp_path / "phase4_nonstationary" / "nonstationary_policy_switch.png").exists()
+    assert (tmp_path / "phase4_nonstationary" / "nonstationary_vs_phase43.png").exists()
+    assert (tmp_path / "phase4_nonstationary" / "PHASE4_NONSTATIONARY_REPORT.md").exists()
+
+
+def test_phase4_switch_benefit_outputs_exist(tmp_path):
+    rows = run_phase4_switch_benefit_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase4_switch_benefit"),
+        config_path=str(tmp_path / "missing_config.json"),
+        phase_change_steps=[10],
+        recheck_intervals=[1],
+        min_improvements=[0.0],
+        switch_costs=[0.0],
+    )
+
+    assert rows
+    assert "switch_benefit_score" in rows[0]
+    assert "switch_efficiency" in rows[0]
+    assert (tmp_path / "phase4_switch_benefit" / "switch_benefit_summary.csv").exists()
+    assert (tmp_path / "phase4_switch_benefit" / "switch_benefit_summary.json").exists()
+    assert (tmp_path / "phase4_switch_benefit" / "switch_benefit_heatmap.png").exists()
+    assert (tmp_path / "phase4_switch_benefit" / "switch_benefit_vs_interval.png").exists()
+    assert (tmp_path / "phase4_switch_benefit" / "switch_benefit_vs_cost.png").exists()
+    assert (tmp_path / "phase4_switch_benefit" / "PHASE4_SWITCH_BENEFIT_REPORT.md").exists()
+
+
+def test_phase4_specialized_policy_outputs_exist(tmp_path):
+    rows = run_phase4_specialized_policy_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase4_specialized_policy"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    policies = {row["policy"] for row in rows}
+    assert "phase4_trust_collapse_maximizer" in policies
+    assert "phase4_expected_utility_suppressor" in policies
+    assert "phase4_target_switch_inducer" in policies
+    assert "phase4_planning_disruptor" in policies
+    assert (tmp_path / "phase4_specialized_policy" / "specialized_policy_summary.csv").exists()
+    assert (tmp_path / "phase4_specialized_policy" / "specialized_policy_summary.json").exists()
+    assert (tmp_path / "phase4_specialized_policy" / "specialized_policy_ranking.png").exists()
+    assert (tmp_path / "phase4_specialized_policy" / "specialized_policy_breakdown.png").exists()
+    assert (tmp_path / "phase4_specialized_policy" / "specialized_policy_vs_phase2.png").exists()
+    assert (tmp_path / "phase4_specialized_policy" / "PHASE4_SPECIALIZED_POLICY_REPORT.md").exists()
+
+
+def test_phase47_mission_profile_outputs_exist(tmp_path):
+    rows = run_phase47_mission_profile_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase47_mission_profiles"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    missions = {row["attacker_mission"] for row in rows}
+    assert {"profit", "achievement", "persistence", "critical_hunter"}.issubset(missions)
+    assert all("defense_effectiveness_score" in row for row in rows)
+    assert (tmp_path / "phase47_mission_profiles" / "mission_profile_summary.csv").exists()
+    assert (tmp_path / "phase47_mission_profiles" / "mission_profile_summary.json").exists()
+    assert (tmp_path / "phase47_mission_profiles" / "mission_profile_ranking.png").exists()
+    assert (tmp_path / "phase47_mission_profiles" / "mission_profile_breakdown.png").exists()
+    assert (tmp_path / "phase47_mission_profiles" / "mission_profile_vs_defense.png").exists()
+    assert (tmp_path / "phase47_mission_profiles" / "PHASE47_MISSION_PROFILE_REPORT.md").exists()
+
+
+def test_phase48_mission_aware_outputs_exist(tmp_path):
+    rows = run_phase48_mission_aware_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase48_mission_aware"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_frustration_decoy", "fixed_gated_count2", "cns_guided", "mission_aware"}.issubset(modes)
+    mission_rows = [row for row in rows if row["defense_mode"] == "mission_aware"]
+    assert mission_rows
+    assert all(row["mission_policy_match"] for row in mission_rows)
+    assert (tmp_path / "phase48_mission_aware" / "mission_aware_summary.csv").exists()
+    assert (tmp_path / "phase48_mission_aware" / "mission_aware_summary.json").exists()
+    assert (tmp_path / "phase48_mission_aware" / "mission_aware_cns.png").exists()
+    assert (tmp_path / "phase48_mission_aware" / "mission_aware_policy_selection.png").exists()
+    assert (tmp_path / "phase48_mission_aware" / "mission_aware_vs_phase47.png").exists()
+    assert (tmp_path / "phase48_mission_aware" / "PHASE48_MISSION_AWARE_REPORT.md").exists()
+
+
+def test_phase49_mission_belief_outputs_exist(tmp_path):
+    rows = run_phase49_mission_belief_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase49_mission_belief"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_best", "cns_guided", "oracle_mission", "mission_belief"}.issubset(modes)
+    belief_rows = [row for row in rows if row["defense_mode"] == "mission_belief"]
+    assert belief_rows
+    assert all("predicted_mission" in row for row in belief_rows)
+    assert (tmp_path / "phase49_mission_belief" / "mission_belief_summary.csv").exists()
+    assert (tmp_path / "phase49_mission_belief" / "mission_belief_summary.json").exists()
+    assert (tmp_path / "phase49_mission_belief" / "mission_prediction_accuracy.png").exists()
+    assert (tmp_path / "phase49_mission_belief" / "mission_belief_vs_oracle.png").exists()
+    assert (tmp_path / "phase49_mission_belief" / "mission_belief_vs_phase48.png").exists()
+    assert (tmp_path / "phase49_mission_belief" / "PHASE49_MISSION_BELIEF_REPORT.md").exists()
+
+
+def test_phase410_state_belief_outputs_exist(tmp_path):
+    rows = run_phase410_state_belief_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase410_state_belief"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_best", "cns_guided", "mission_belief", "state_belief"}.issubset(modes)
+    state_rows = [row for row in rows if row["defense_mode"] == "state_belief"]
+    assert state_rows
+    assert all("predicted_state" in row for row in state_rows)
+    assert (tmp_path / "phase410_state_belief" / "state_belief_summary.csv").exists()
+    assert (tmp_path / "phase410_state_belief" / "state_belief_summary.json").exists()
+    assert (tmp_path / "phase410_state_belief" / "state_prediction.png").exists()
+    assert (tmp_path / "phase410_state_belief" / "state_transition.png").exists()
+    assert (tmp_path / "phase410_state_belief" / "state_belief_vs_phase49.png").exists()
+    assert (tmp_path / "phase410_state_belief" / "PHASE410_STATE_BELIEF_REPORT.md").exists()
+
+
+def test_phase411_virtual_topology_outputs_exist(tmp_path):
+    rows = run_phase411_virtual_topology_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase411_virtual_topology"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"phase410_state_belief", "observable_state_belief"}.issubset(modes)
+    observable_rows = [row for row in rows if row["defense_mode"] == "observable_state_belief"]
+    assert observable_rows
+    assert all("observable_event_count" in row for row in observable_rows)
+    assert (tmp_path / "phase411_virtual_topology" / "virtual_topology_summary.csv").exists()
+    assert (tmp_path / "phase411_virtual_topology" / "virtual_topology_summary.json").exists()
+    assert (tmp_path / "phase411_virtual_topology" / "state_transition_heatmap.png").exists()
+    assert (tmp_path / "phase411_virtual_topology" / "observable_events_breakdown.png").exists()
+    assert (tmp_path / "phase411_virtual_topology" / "state_belief_vs_phase410.png").exists()
+    assert (tmp_path / "phase411_virtual_topology" / "PHASE411_VIRTUAL_TOPOLOGY_REPORT.md").exists()
+
+
+def test_phase412_critical_path_outputs_exist(tmp_path):
+    rows = run_phase412_critical_path_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase412_critical_path"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"phase411", "phase412"}.issubset(modes)
+    phase412_rows = [row for row in rows if row["defense_mode"] == "phase412"]
+    assert phase412_rows
+    assert all("critical_path_proximity" in row for row in phase412_rows)
+    assert (tmp_path / "phase412_critical_path" / "critical_path_summary.csv").exists()
+    assert (tmp_path / "phase412_critical_path" / "critical_path_summary.json").exists()
+    assert (tmp_path / "phase412_critical_path" / "critical_path_events.png").exists()
+    assert (tmp_path / "phase412_critical_path" / "critical_path_proximity.png").exists()
+    assert (tmp_path / "phase412_critical_path" / "state_belief_vs_phase411.png").exists()
+    assert (tmp_path / "phase412_critical_path" / "PHASE412_CRITICAL_PATH_REPORT.md").exists()
+
+
+def test_phase413_intelligence_defender_outputs_exist(tmp_path):
+    rows = run_phase413_intelligence_defender_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase413_intelligence_defender"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_best", "mission_belief", "state_belief", "intelligence_driven"}.issubset(modes)
+    intelligence_rows = [row for row in rows if row["defense_mode"] == "intelligence_driven"]
+    assert intelligence_rows
+    assert all("intelligence_risk_score" in row for row in intelligence_rows)
+    assert (tmp_path / "phase413_intelligence_defender" / "intelligence_summary.csv").exists()
+    assert (tmp_path / "phase413_intelligence_defender" / "intelligence_summary.json").exists()
+    assert (tmp_path / "phase413_intelligence_defender" / "intelligence_risk_score.png").exists()
+    assert (tmp_path / "phase413_intelligence_defender" / "risk_level_transition.png").exists()
+    assert (tmp_path / "phase413_intelligence_defender" / "intelligence_vs_phase412.png").exists()
+    assert (tmp_path / "phase413_intelligence_defender" / "PHASE413_INTELLIGENCE_DEFENDER_REPORT.md").exists()
+
+
+def test_phase414_weight_sweep_outputs_exist(tmp_path):
+    rows = run_phase414_weight_sweep_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase414_weight_sweep"),
+        config_path=str(tmp_path / "missing_config.json"),
+        weight_configs=[(0.2, 0.4, 0.4)],
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_best", "mission_belief", "state_belief", "intelligence_default", "weight_sweep_01"}.issubset(modes)
+    sweep_rows = [row for row in rows if row["defense_mode"] == "weight_sweep_01"]
+    assert sweep_rows
+    assert all(row["weight_configuration"] == "m=0.20,s=0.40,p=0.40" for row in sweep_rows)
+    assert all("weight_sweep_rank" in row for row in sweep_rows)
+    assert (tmp_path / "phase414_weight_sweep" / "weight_sweep_summary.csv").exists()
+    assert (tmp_path / "phase414_weight_sweep" / "weight_sweep_summary.json").exists()
+    assert (tmp_path / "phase414_weight_sweep" / "weight_sweep_ranking.png").exists()
+    assert (tmp_path / "phase414_weight_sweep" / "weight_sensitivity.png").exists()
+    assert (tmp_path / "phase414_weight_sweep" / "weight_sweep_vs_phase413.png").exists()
+    assert (tmp_path / "phase414_weight_sweep" / "PHASE414_WEIGHT_SWEEP_REPORT.md").exists()
+
+
+def test_phase415_decision_matrix_outputs_exist(tmp_path):
+    rows = run_phase415_decision_matrix_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase415_decision_matrix"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_best", "mission_belief", "state_belief", "intelligence_risk", "decision_matrix"}.issubset(modes)
+    matrix_rows = [row for row in rows if row["defense_mode"] == "decision_matrix"]
+    assert matrix_rows
+    assert all("decision_matrix_policy" in row for row in matrix_rows)
+    assert all(_row["decision_matrix_match_count"] is not None for _row in matrix_rows)
+    assert (tmp_path / "phase415_decision_matrix" / "decision_matrix_summary.csv").exists()
+    assert (tmp_path / "phase415_decision_matrix" / "decision_matrix_summary.json").exists()
+    assert (tmp_path / "phase415_decision_matrix" / "decision_matrix_policy_distribution.png").exists()
+    assert (tmp_path / "phase415_decision_matrix" / "decision_matrix_vs_phase414.png").exists()
+    assert (tmp_path / "phase415_decision_matrix" / "decision_matrix_breakdown.png").exists()
+    assert (tmp_path / "phase415_decision_matrix" / "PHASE415_DECISION_MATRIX_REPORT.md").exists()
+
+
+def test_phase416_defense_campaign_outputs_exist(tmp_path):
+    rows = run_phase416_defense_campaign_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase416_defense_campaign"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_best", "state_belief", "decision_matrix", "defense_campaign"}.issubset(modes)
+    campaign_rows = [row for row in rows if row["defense_mode"] == "defense_campaign"]
+    assert campaign_rows
+    assert all("campaign_transition_count" in row for row in campaign_rows)
+    assert all("campaign_policy_diversity" in row for row in campaign_rows)
+    assert (tmp_path / "phase416_defense_campaign" / "campaign_summary.csv").exists()
+    assert (tmp_path / "phase416_defense_campaign" / "campaign_summary.json").exists()
+    assert (tmp_path / "phase416_defense_campaign" / "campaign_policy_timeline.png").exists()
+    assert (tmp_path / "phase416_defense_campaign" / "campaign_transition_heatmap.png").exists()
+    assert (tmp_path / "phase416_defense_campaign" / "campaign_vs_phase415.png").exists()
+    assert (tmp_path / "phase416_defense_campaign" / "PHASE416_DEFENSE_CAMPAIGN_REPORT.md").exists()
+
+
+def test_phase417_campaign_profile_outputs_exist(tmp_path):
+    rows = run_phase417_campaign_profile_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase417_campaign_profiles"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    profiles = {row["strategy_profile"] for row in rows}
+    assert {"aggressive_disruption", "trust_collapse", "utility_suppression", "balanced"}.issubset(profiles)
+    assert all("profile_rank" in row for row in rows)
+    assert all("strategy_effectiveness_score" in row for row in rows)
+    assert (tmp_path / "phase417_campaign_profiles" / "campaign_profile_summary.csv").exists()
+    assert (tmp_path / "phase417_campaign_profiles" / "campaign_profile_summary.json").exists()
+    assert (tmp_path / "phase417_campaign_profiles" / "campaign_profile_ranking.png").exists()
+    assert (tmp_path / "phase417_campaign_profiles" / "campaign_profile_by_mission.png").exists()
+    assert (tmp_path / "phase417_campaign_profiles" / "campaign_profile_vs_phase416.png").exists()
+    assert (tmp_path / "phase417_campaign_profiles" / "PHASE417_CAMPAIGN_PROFILE_REPORT.md").exists()
+
+
+def test_phase418_mission_objective_outputs_exist(tmp_path):
+    rows = run_phase418_mission_objective_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase418_mission_objectives"),
+        config_path=str(tmp_path / "missing_config.json"),
+    )
+
+    missions = {row["attacker_mission"] for row in rows}
+    profiles = {row["strategy_profile"] for row in rows}
+    assert {"profit", "achievement", "persistence", "critical_hunter"}.issubset(missions)
+    assert {"aggressive_disruption", "trust_collapse", "utility_suppression", "balanced"}.issubset(profiles)
+    assert all("mission_objective_score" in row for row in rows)
+    assert all("mission_objective_defense_score" in row for row in rows)
+    assert (tmp_path / "phase418_mission_objectives" / "mission_objective_summary.csv").exists()
+    assert (tmp_path / "phase418_mission_objectives" / "mission_objective_summary.json").exists()
+    assert (tmp_path / "phase418_mission_objectives" / "mission_satisfaction_by_profile.png").exists()
+    assert (tmp_path / "phase418_mission_objectives" / "strategy_by_mission.png").exists()
+    assert (tmp_path / "phase418_mission_objectives" / "mission_objective_vs_phase417.png").exists()
+    assert (tmp_path / "phase418_mission_objectives" / "PHASE418_MISSION_OBJECTIVE_REPORT.md").exists()
+
+
+def test_phase419_mission_sensitivity_outputs_exist(tmp_path):
+    rows = run_phase419_mission_sensitivity_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase419_mission_sensitivity"),
+        config_path=str(tmp_path / "missing_config.json"),
+        objective_profiles={
+            "profit": [("profit_eu90_success10", {"profit_expected_utility_weight": 0.9, "profit_success_weight": 0.1})],
+            "achievement": [("achievement_progress60_critical40", {"achievement_progress_weight": 0.6, "achievement_critical_weight": 0.4})],
+            "persistence": [("persistence_survival20_trust60_stealth20", {"persistence_survival_weight": 0.2, "persistence_trust_weight": 0.6, "persistence_stealth_weight": 0.2})],
+            "critical_hunter": [("critical_progress90_reach10", {"critical_progress_weight": 0.9, "critical_reach_weight": 0.1})],
+        },
+    )
+
+    assert rows
+    assert all("objective_weight_profile" in row for row in rows)
+    assert all("mission_sensitivity_score" in row for row in rows)
+    assert (tmp_path / "phase419_mission_sensitivity" / "mission_sensitivity_summary.csv").exists()
+    assert (tmp_path / "phase419_mission_sensitivity" / "mission_sensitivity_summary.json").exists()
+    assert (tmp_path / "phase419_mission_sensitivity" / "mission_sensitivity_heatmap.png").exists()
+    assert (tmp_path / "phase419_mission_sensitivity" / "strategy_by_mission_weight.png").exists()
+    assert (tmp_path / "phase419_mission_sensitivity" / "mission_sensitivity_vs_phase418.png").exists()
+    assert (tmp_path / "phase419_mission_sensitivity" / "PHASE419_MISSION_SENSITIVITY_REPORT.md").exists()
+
+
+def test_phase420_adaptive_mission_outputs_exist(tmp_path):
+    rows = run_phase420_adaptive_mission_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase420_adaptive_mission"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["aggressive_disruption", "balanced"],
+    )
+
+    modes = {row["attacker_mode"] for row in rows}
+    missions = {row["attacker_mission"] for row in rows}
+    assert {"non_adaptive", "adaptive"}.issubset(modes)
+    assert {"profit", "achievement", "persistence", "critical_hunter"}.issubset(missions)
+    assert any(row["ttp_change_count"] > 0 for row in rows if row["attacker_mode"] == "adaptive")
+    assert (tmp_path / "phase420_adaptive_mission" / "adaptive_mission_summary.csv").exists()
+    assert (tmp_path / "phase420_adaptive_mission" / "adaptive_mission_summary.json").exists()
+    assert (tmp_path / "phase420_adaptive_mission" / "ttp_change_count.png").exists()
+    assert (tmp_path / "phase420_adaptive_mission" / "alternative_path_usage.png").exists()
+    assert (tmp_path / "phase420_adaptive_mission" / "adaptive_vs_nonadaptive.png").exists()
+    assert (tmp_path / "phase420_adaptive_mission" / "PHASE420_ADAPTIVE_MISSION_REPORT.md").exists()
+
+
+def test_phase421_mission_mutation_outputs_exist(tmp_path):
+    rows = run_phase421_mission_mutation_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase421_mission_mutation"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["aggressive_disruption", "trust_collapse"],
+    )
+
+    modes = {row["attacker_mode"] for row in rows}
+    assert {"fixed_mission", "adaptive_mission", "mission_mutator"}.issubset(modes)
+    mutator_rows = [row for row in rows if row["attacker_mode"] == "mission_mutator"]
+    assert any(row["mission_change_count"] > 0 for row in mutator_rows)
+    assert any(row["achievement_mutation"] for row in mutator_rows)
+    assert (tmp_path / "phase421_mission_mutation" / "mission_mutation_summary.csv").exists()
+    assert (tmp_path / "phase421_mission_mutation" / "mission_mutation_summary.json").exists()
+    assert (tmp_path / "phase421_mission_mutation" / "mission_transition_matrix.png").exists()
+    assert (tmp_path / "phase421_mission_mutation" / "mission_change_count.png").exists()
+    assert (tmp_path / "phase421_mission_mutation" / "mission_mutation_vs_phase420.png").exists()
+    assert (tmp_path / "phase421_mission_mutation" / "PHASE421_MISSION_MUTATION_REPORT.md").exists()
+
+
+def test_phase422_adaptive_intelligence_outputs_exist(tmp_path):
+    rows = run_phase422_adaptive_intelligence_defender(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase422_adaptive_intelligence"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["aggressive_disruption", "trust_collapse"],
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"fixed_mission_aware", "mission_mutation_attacker", "adaptive_intelligence_defender"}.issubset(modes)
+    adaptive_rows = [row for row in rows if row["defense_mode"] == "adaptive_intelligence_defender"]
+    assert any(row["mission_reclassification_count"] > 0 for row in adaptive_rows)
+    assert any(row["defense_reoptimization_count"] > 0 for row in adaptive_rows)
+    assert any(row["reclassification_accuracy"] > 0 for row in adaptive_rows)
+    assert (tmp_path / "phase422_adaptive_intelligence" / "adaptive_intelligence_summary.csv").exists()
+    assert (tmp_path / "phase422_adaptive_intelligence" / "adaptive_intelligence_summary.json").exists()
+    assert (tmp_path / "phase422_adaptive_intelligence" / "mission_reclassification.png").exists()
+    assert (tmp_path / "phase422_adaptive_intelligence" / "defense_reoptimization.png").exists()
+    assert (tmp_path / "phase422_adaptive_intelligence" / "phase422_vs_phase421.png").exists()
+    assert (tmp_path / "phase422_adaptive_intelligence" / "PHASE422_ADAPTIVE_INTELLIGENCE_REPORT.md").exists()
+
+
+def test_phase423_intent_deception_outputs_exist(tmp_path):
+    rows = run_phase423_intent_deception_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase423_intent_deception"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["aggressive_disruption", "trust_collapse"],
+    )
+
+    modes = {row["attacker_mode"] for row in rows}
+    assert {"adaptive_mission_attacker", "mission_mutation_attacker", "intent_deception_attacker"}.issubset(modes)
+    deception_rows = [row for row in rows if row["attacker_mode"] == "intent_deception_attacker"]
+    assert any(row["deception_event_count"] > 0 for row in deception_rows)
+    assert any(row["true_mission"] != row["observed_mission"] for row in deception_rows)
+    assert any(row["mission_belief_error"] > 0 for row in deception_rows)
+    assert (tmp_path / "phase423_intent_deception" / "intent_deception_summary.csv").exists()
+    assert (tmp_path / "phase423_intent_deception" / "intent_deception_summary.json").exists()
+    assert (tmp_path / "phase423_intent_deception" / "mission_confusion_matrix.png").exists()
+    assert (tmp_path / "phase423_intent_deception" / "belief_error_distribution.png").exists()
+    assert (tmp_path / "phase423_intent_deception" / "phase423_vs_phase422.png").exists()
+    assert (tmp_path / "phase423_intent_deception" / "PHASE423_INTENT_DECEPTION_REPORT.md").exists()
+
+
+def test_phase424_signal_extraction_outputs_exist(tmp_path):
+    rows = run_phase424_signal_extraction_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase424_signal_extraction"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["aggressive_disruption", "trust_collapse"],
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {"adaptive_intelligence_defender", "noise_injection_attacker", "signal_extraction_defender"}.issubset(modes)
+    noise_rows = [row for row in rows if row["defense_mode"] == "noise_injection_attacker"]
+    signal_rows = [row for row in rows if row["defense_mode"] == "signal_extraction_defender"]
+    assert any(row["noise_event_count"] > 0 for row in noise_rows)
+    assert any(row["noise_filter_accuracy"] > 0 for row in signal_rows)
+    assert any(row["decision_confidence"] > 0 for row in signal_rows)
+    assert (tmp_path / "phase424_signal_extraction" / "signal_extraction_summary.csv").exists()
+    assert (tmp_path / "phase424_signal_extraction" / "signal_extraction_summary.json").exists()
+    assert (tmp_path / "phase424_signal_extraction" / "signal_to_noise_ratio.png").exists()
+    assert (tmp_path / "phase424_signal_extraction" / "noise_filter_accuracy.png").exists()
+    assert (tmp_path / "phase424_signal_extraction" / "phase424_vs_phase423.png").exists()
+    assert (tmp_path / "phase424_signal_extraction" / "PHASE424_SIGNAL_EXTRACTION_REPORT.md").exists()
+
+
+def test_phase425_adversarial_signal_outputs_exist(tmp_path):
+    rows = run_phase425_adversarial_signal_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase425_adversarial_signal"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["aggressive_disruption", "trust_collapse"],
+    )
+
+    modes = {row["defense_mode"] for row in rows}
+    assert {
+        "phase424_noise_injection",
+        "phase425_adversarial_signal",
+        "phase425_signal_consistency_defender",
+    }.issubset(modes)
+    adversarial_rows = [row for row in rows if row["defense_mode"] == "phase425_adversarial_signal"]
+    consistency_rows = [row for row in rows if row["defense_mode"] == "phase425_signal_consistency_defender"]
+    assert any(row["fake_signal_count"] > 0 for row in adversarial_rows)
+    assert any(row["signal_confusion_score"] > 0 for row in adversarial_rows)
+    assert any(row["signal_consistency_score"] < 1 for row in consistency_rows)
+    assert (tmp_path / "phase425_adversarial_signal" / "adversarial_signal_summary.csv").exists()
+    assert (tmp_path / "phase425_adversarial_signal" / "adversarial_signal_summary.json").exists()
+    assert (tmp_path / "phase425_adversarial_signal" / "fake_signal_count.png").exists()
+    assert (tmp_path / "phase425_adversarial_signal" / "signal_confusion_score.png").exists()
+    assert (tmp_path / "phase425_adversarial_signal" / "phase425_vs_phase424.png").exists()
+    assert (tmp_path / "phase425_adversarial_signal" / "PHASE425_ADVERSARIAL_SIGNAL_REPORT.md").exists()
 
 
 def test_best_policy_fields_exist(tmp_path):

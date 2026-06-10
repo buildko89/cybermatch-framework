@@ -7,10 +7,11 @@ import argparse
 from run_phase1 import main as run_phase1_main
 from run_phase2 import main as run_phase2_main
 from run_phase3 import main as run_phase3_main
+from run_phase4 import main as run_phase4_main
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run CyberMatch Phase1, Phase2, and Phase3-A evaluations.")
+    parser = argparse.ArgumentParser(description="Run CyberMatch Phase1-Phase4 publication evaluations.")
     parser.add_argument(
         "args",
         nargs="*",
@@ -21,6 +22,7 @@ def main() -> None:
     run_phase1_main()
     run_phase2_main()
     run_phase3_main()
+    run_phase4_main()
 
 
 if __name__ == "__main__":

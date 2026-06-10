@@ -165,6 +165,151 @@ class SimulationConfig:
     expected_detection_cost: float = 1.0
     expected_search_cost: float = 1.0
     expected_trust_weight: float = 1.0
+    adaptive_defender_enabled: bool = False
+    adaptive_defender_mode: str = "rule_based"
+    adaptive_expected_utility_threshold: float = 0.0
+    adaptive_trust_collapse_threshold: float = 0.2
+    adaptive_target_switch_threshold: int = 5
+    adaptive_policy_default: str = "phase2_frustration_decoy"
+    adaptive_policy_high_expected_utility: str = "gated_edge_pressure_count_2"
+    adaptive_policy_trust_collapse: str = "phase2_frustration_decoy"
+    adaptive_policy_high_switching: str = "phase2_ai_balanced"
+    adaptive_selected_policy: str = ""
+    adaptive_policy_reason: str = "disabled"
+    adaptive_policy_switch_count: int = 0
+    adaptive_policy_score: float = 0.0
+    adaptive_policy_rank: int = 0
+    adaptive_selection_reason: str = "disabled"
+    adaptive_estimated_cns: float = 0.0
+    step_adaptive_defender_enabled: bool = False
+    adaptive_recheck_interval: int = 5
+    adaptive_policy_switch_cost: float = 0.02
+    adaptive_min_improvement: float = 0.05
+    mission_aware_defender_enabled: bool = False
+    mission_aware_selected_policy: str = ""
+    mission_policy_match: bool = False
+    mission_policy_switch_count: int = 0
+    mission_aware_selection_reason: str = "disabled"
+    mission_aware_cns: float = 0.0
+    mission_belief_inference_enabled: bool = False
+    belief_profit: float = 0.25
+    belief_achievement: float = 0.25
+    belief_persistence: float = 0.25
+    belief_critical_hunter: float = 0.25
+    predicted_mission: str = "unknown"
+    mission_prediction_confidence: float = 0.0
+    mission_prediction_correct: bool = False
+    state_belief_inference_enabled: bool = False
+    belief_recon: float = 0.20
+    belief_exploitation: float = 0.20
+    belief_lateral_movement: float = 0.20
+    belief_targeting: float = 0.20
+    belief_action_on_objective: float = 0.20
+    predicted_state: str = "unknown"
+    state_prediction_confidence: float = 0.0
+    state_transition_count: int = 0
+    virtual_topology_enabled: bool = False
+    observable_events_enabled: bool = False
+    critical_path_events_enabled: bool = False
+    intelligence_defender_enabled: bool = False
+    selected_intelligence_policy: str = ""
+    intelligence_risk_score: float = 0.0
+    risk_level: str = "low"
+    risk_level_transition_count: int = 0
+    decision_matrix_defender_enabled: bool = False
+    decision_matrix_policy: str = ""
+    decision_matrix_match_count: int = 0
+    decision_matrix_override_count: int = 0
+    defense_campaign_enabled: bool = False
+    campaign_stage: str = "none"
+    campaign_transition_count: int = 0
+    campaign_policy_switch_count: int = 0
+    campaign_effectiveness_score: float = 0.0
+    campaign_strategy_profile: str = "balanced"
+    strategy_profile: str = "balanced"
+    strategy_effectiveness_score: float = 0.0
+    profile_rank: int = 0
+    intelligence_mission_weight: float = 0.4
+    intelligence_state_weight: float = 0.3
+    intelligence_critical_path_weight: float = 0.3
+    best_weight_configuration: str = ""
+    weight_sweep_rank: int = 0
+    node_roles: Dict[int, str] = field(default_factory=lambda: {
+        0: "internet_entry",
+        1: "dmz_web",
+        2: "application_server",
+        3: "identity_server",
+        4: "critical_asset",
+    })
+    nonstationary_attacker_enabled: bool = False
+    attacker_phase_change_step: int = 25
+    nonstationary_attacker_pattern: str = "expected_to_trust"
+    attacker_mission: str = "none"
+    mission_expected_utility_weight: float = 1.0
+    mission_trust_weight: float = 1.0
+    mission_planning_weight: float = 1.0
+    mission_critical_target_weight: float = 1.0
+    mission_objectives_enabled: bool = False
+    mission_satisfaction: float = 0.0
+    mission_objective_score: float = 0.0
+    mission_failure_reason: str = "none"
+    profit_expected_utility_weight: float = 0.7
+    profit_success_weight: float = 0.3
+    persistence_survival_weight: float = 0.5
+    persistence_trust_weight: float = 0.3
+    persistence_stealth_weight: float = 0.2
+    critical_progress_weight: float = 0.8
+    critical_reach_weight: float = 0.2
+    achievement_progress_weight: float = 0.6
+    achievement_critical_weight: float = 0.4
+    objective_weight_profile: str = "default"
+    mission_strategy_change: bool = False
+    mission_sensitivity_score: float = 0.0
+    multi_objective_mission_enabled: bool = False
+    mission_weight_profit: float = 0.0
+    mission_weight_achievement: float = 0.0
+    mission_weight_persistence: float = 0.0
+    mission_weight_critical_hunter: float = 0.0
+    adaptive_mission_attacker_enabled: bool = False
+    observed_defense_strategy: str = "none"
+    defense_effectiveness_memory: float = 0.0
+    strategy_failure_memory: float = 0.0
+    strategy_success_memory: float = 0.0
+    adaptation_count: int = 0
+    ttp_change_count: int = 0
+    strategy_avoidance_score: float = 0.0
+    alternative_path_usage: float = 0.0
+    mission_mutation_enabled: bool = False
+    mission_change_count: int = 0
+    mission_mutation_reason: str = "none"
+    mission_stability_score: float = 1.0
+    mission_mutation_success: bool = False
+    attacker_type: str = "standard"
+    mission_reclassification_enabled: bool = False
+    mission_reclassification_count: int = 0
+    defense_reoptimization_count: int = 0
+    reclassification_accuracy: float = 0.0
+    belief_recovery_time: int = -1
+    intent_deception_enabled: bool = False
+    deception_event_count: int = 0
+    mission_belief_error: float = 0.0
+    belief_confusion_score: float = 0.0
+    true_mission: str = "unknown"
+    observed_mission: str = "unknown"
+    mission_masking_success: bool = False
+    noise_injection_enabled: bool = False
+    signal_extraction_enabled: bool = False
+    noise_event_count: int = 0
+    signal_event_count: int = 0
+    signal_to_noise_ratio: float = 0.0
+    noise_filter_accuracy: float = 0.0
+    decision_confidence: float = 0.0
+    adversarial_signal_enabled: bool = False
+    fake_signal_count: int = 0
+    adversarial_signal_count: int = 0
+    signal_confusion_score: float = 0.0
+    false_signal_acceptance_rate: float = 0.0
+    signal_consistency_score: float = 1.0
     attacker_lateral_enabled: bool = False
     attacker_lateral_success_prob: float = 0.8
     attacker_lateral_detection_prob: float = 0.2
@@ -415,6 +560,139 @@ class SimulationConfig:
             errors.append("expected_search_cost must be >= 0")
         if self.expected_trust_weight < 0:
             errors.append("expected_trust_weight must be >= 0")
+        if self.adaptive_defender_mode not in ("rule_based", "cns_guided", "step_adaptive", "mission_aware"):
+            errors.append("adaptive_defender_mode must be one of: rule_based, cns_guided, step_adaptive, mission_aware")
+        if self.adaptive_target_switch_threshold < 0:
+            errors.append("adaptive_target_switch_threshold must be >= 0")
+        if self.adaptive_policy_switch_count < 0:
+            errors.append("adaptive_policy_switch_count must be >= 0")
+        if self.adaptive_recheck_interval <= 0:
+            errors.append("adaptive_recheck_interval must be > 0")
+        if self.adaptive_policy_switch_cost < 0:
+            errors.append("adaptive_policy_switch_cost must be >= 0")
+        if self.adaptive_min_improvement < 0:
+            errors.append("adaptive_min_improvement must be >= 0")
+        if self.mission_policy_switch_count < 0:
+            errors.append("mission_policy_switch_count must be >= 0")
+        for key, value in (
+            ("belief_profit", self.belief_profit),
+            ("belief_achievement", self.belief_achievement),
+            ("belief_persistence", self.belief_persistence),
+            ("belief_critical_hunter", self.belief_critical_hunter),
+            ("belief_recon", self.belief_recon),
+            ("belief_exploitation", self.belief_exploitation),
+            ("belief_lateral_movement", self.belief_lateral_movement),
+            ("belief_targeting", self.belief_targeting),
+            ("belief_action_on_objective", self.belief_action_on_objective),
+        ):
+            if value < 0:
+                errors.append(f"{key} must be >= 0")
+        if self.state_transition_count < 0:
+            errors.append("state_transition_count must be >= 0")
+        if self.intelligence_mission_weight < 0:
+            errors.append("intelligence_mission_weight must be >= 0")
+        if self.intelligence_state_weight < 0:
+            errors.append("intelligence_state_weight must be >= 0")
+        if self.intelligence_critical_path_weight < 0:
+            errors.append("intelligence_critical_path_weight must be >= 0")
+        if self.campaign_strategy_profile not in (
+            "balanced",
+            "aggressive_disruption",
+            "trust_collapse",
+            "utility_suppression",
+        ):
+            errors.append(
+                "campaign_strategy_profile must be one of: balanced, aggressive_disruption, trust_collapse, utility_suppression"
+            )
+        if self.attacker_phase_change_step < 0:
+            errors.append("attacker_phase_change_step must be >= 0")
+        if self.nonstationary_attacker_pattern not in ("expected_to_trust", "planning_to_expected"):
+            errors.append("nonstationary_attacker_pattern must be one of: expected_to_trust, planning_to_expected")
+        if self.attacker_mission not in ("none", "profit", "achievement", "persistence", "critical_hunter"):
+            errors.append("attacker_mission must be one of: none, profit, achievement, persistence, critical_hunter")
+        if self.mission_expected_utility_weight < 0:
+            errors.append("mission_expected_utility_weight must be >= 0")
+        if self.mission_trust_weight < 0:
+            errors.append("mission_trust_weight must be >= 0")
+        if self.mission_planning_weight < 0:
+            errors.append("mission_planning_weight must be >= 0")
+        if self.mission_critical_target_weight < 0:
+            errors.append("mission_critical_target_weight must be >= 0")
+        if self.defense_effectiveness_memory < 0:
+            errors.append("defense_effectiveness_memory must be >= 0")
+        if self.strategy_failure_memory < 0:
+            errors.append("strategy_failure_memory must be >= 0")
+        if self.strategy_success_memory < 0:
+            errors.append("strategy_success_memory must be >= 0")
+        if self.adaptation_count < 0:
+            errors.append("adaptation_count must be >= 0")
+        if self.ttp_change_count < 0:
+            errors.append("ttp_change_count must be >= 0")
+        if self.strategy_avoidance_score < 0:
+            errors.append("strategy_avoidance_score must be >= 0")
+        if self.alternative_path_usage < 0:
+            errors.append("alternative_path_usage must be >= 0")
+        if self.mission_change_count < 0:
+            errors.append("mission_change_count must be >= 0")
+        if not 0 <= self.mission_stability_score <= 1:
+            errors.append("mission_stability_score must be between 0 and 1")
+        for key, value in (
+            ("mission_weight_profit", self.mission_weight_profit),
+            ("mission_weight_achievement", self.mission_weight_achievement),
+            ("mission_weight_persistence", self.mission_weight_persistence),
+            ("mission_weight_critical_hunter", self.mission_weight_critical_hunter),
+        ):
+            if value < 0:
+                errors.append(f"{key} must be >= 0")
+        if self.attacker_type not in ("standard", "adaptive_mission_attacker", "adaptive_mission_mutator", "intent_deception_attacker"):
+            errors.append("attacker_type must be one of: standard, adaptive_mission_attacker, adaptive_mission_mutator, intent_deception_attacker")
+        if self.mission_reclassification_count < 0:
+            errors.append("mission_reclassification_count must be >= 0")
+        if self.defense_reoptimization_count < 0:
+            errors.append("defense_reoptimization_count must be >= 0")
+        if not 0 <= self.reclassification_accuracy <= 1:
+            errors.append("reclassification_accuracy must be between 0 and 1")
+        if self.belief_recovery_time < -1:
+            errors.append("belief_recovery_time must be >= -1")
+        if self.deception_event_count < 0:
+            errors.append("deception_event_count must be >= 0")
+        if not 0 <= self.mission_belief_error <= 1:
+            errors.append("mission_belief_error must be between 0 and 1")
+        if not 0 <= self.belief_confusion_score <= 1:
+            errors.append("belief_confusion_score must be between 0 and 1")
+        if self.noise_event_count < 0:
+            errors.append("noise_event_count must be >= 0")
+        if self.signal_event_count < 0:
+            errors.append("signal_event_count must be >= 0")
+        if self.signal_to_noise_ratio < 0:
+            errors.append("signal_to_noise_ratio must be >= 0")
+        if not 0 <= self.noise_filter_accuracy <= 1:
+            errors.append("noise_filter_accuracy must be between 0 and 1")
+        if not 0 <= self.decision_confidence <= 1:
+            errors.append("decision_confidence must be between 0 and 1")
+        if self.fake_signal_count < 0:
+            errors.append("fake_signal_count must be >= 0")
+        if self.adversarial_signal_count < 0:
+            errors.append("adversarial_signal_count must be >= 0")
+        if not 0 <= self.signal_confusion_score <= 1:
+            errors.append("signal_confusion_score must be between 0 and 1")
+        if not 0 <= self.false_signal_acceptance_rate <= 1:
+            errors.append("false_signal_acceptance_rate must be between 0 and 1")
+        if not 0 <= self.signal_consistency_score <= 1:
+            errors.append("signal_consistency_score must be between 0 and 1")
+        for key, value in (
+            ("profit_expected_utility_weight", self.profit_expected_utility_weight),
+            ("profit_success_weight", self.profit_success_weight),
+            ("persistence_survival_weight", self.persistence_survival_weight),
+            ("persistence_trust_weight", self.persistence_trust_weight),
+            ("persistence_stealth_weight", self.persistence_stealth_weight),
+            ("critical_progress_weight", self.critical_progress_weight),
+            ("critical_reach_weight", self.critical_reach_weight),
+            ("achievement_progress_weight", self.achievement_progress_weight),
+            ("achievement_critical_weight", self.achievement_critical_weight),
+        ):
+            if value < 0:
+                errors.append(f"{key} must be >= 0")
         if not 0 <= self.attacker_lateral_success_prob <= 1:
             errors.append("attacker_lateral_success_prob must be between 0 and 1")
         if not 0 <= self.attacker_lateral_detection_prob <= 1:
@@ -500,8 +778,8 @@ class SimulationConfig:
             errors.append("mtd_edge_block_duration must be > 0")
         if self.mtd_risk_gate_threshold < 0:
             errors.append("mtd_risk_gate_threshold must be >= 0")
-        if self.mtd_risk_gate_mode not in ("critical_path_risk", "chokepoint_risk", "critical_edge_pressure"):
-            errors.append("mtd_risk_gate_mode must be one of: critical_path_risk, chokepoint_risk, critical_edge_pressure")
+        if self.mtd_risk_gate_mode not in ("critical_path_risk", "chokepoint_risk", "critical_edge_pressure", "edge_pressure"):
+            errors.append("mtd_risk_gate_mode must be one of: critical_path_risk, chokepoint_risk, critical_edge_pressure, edge_pressure")
         if self.mtd_risk_gate_cooldown < 0:
             errors.append("mtd_risk_gate_cooldown must be >= 0")
         if self.mtd_conditional_policy_mode not in ("edge_pressure_split", "critical_vs_post_decoy"):
@@ -710,6 +988,20 @@ class AttackerModel:
     expected_detection_cost: float = 1.0
     expected_search_cost: float = 1.0
     expected_trust_weight: float = 1.0
+    attacker_mission: str = "none"
+    mission_expected_utility_weight: float = 1.0
+    mission_trust_weight: float = 1.0
+    mission_planning_weight: float = 1.0
+    mission_critical_target_weight: float = 1.0
+    adaptive_mission_attacker_enabled: bool = False
+    observed_defense_strategy: str = "none"
+    defense_effectiveness_memory: float = 0.0
+    strategy_failure_memory: float = 0.0
+    strategy_success_memory: float = 0.0
+    adaptation_count: int = 0
+    ttp_change_count: int = 0
+    strategy_avoidance_score: float = 0.0
+    alternative_path_usage: float = 0.0
     lateral_enabled: bool = False
     lateral_success_prob: float = 0.8
     lateral_detection_prob: float = 0.2
@@ -797,6 +1089,7 @@ class AttackerModel:
         self.last_expected_gain_estimate = np.zeros(n_nodes, dtype=float)
         self.last_expected_detection_risk = np.zeros(n_nodes, dtype=float)
         self.last_expected_search_cost = np.zeros(n_nodes, dtype=float)
+        self.adaptation_history = []
 
     @property
     def utility(self) -> float:
@@ -909,16 +1202,107 @@ class AttackerModel:
         path_weight = self.path_preference_weight if self.adaptive_path_enabled else 0.0
         planning_score = self._planning_candidate_score(x_current, M_current)
         expected_utility = self._expected_utility(x_current, M_current)
+        trust_score = self.trust_vector(n_nodes) if self.trust_enabled else np.ones(n_nodes, dtype=float)
+        critical_bonus = np.zeros(n_nodes, dtype=float)
+        if self.attacker_mission == "critical_hunter":
+            for node in self.critical_nodes or []:
+                if 0 <= int(node) < n_nodes:
+                    critical_bonus[int(node)] = self.mission_critical_target_weight * max(float(np.max(self.current_belief)), 1.0)
+        mission_adaptation_score = self._mission_adaptation_score(n_nodes, expected_utility, planning_score, trust_score)
         return (
             score
             + self.adaptive_success_weight * success_memory
             + preference_weight * preference_score
             + path_weight * path_score
-            + planning_score
-            + expected_utility
+            + self.mission_planning_weight * planning_score
+            + self.mission_expected_utility_weight * expected_utility
+            + self.mission_trust_weight * trust_score
+            + critical_bonus
+            + mission_adaptation_score
             - self.adaptive_decoy_weight * decoy_memory
             - self.adaptive_detection_weight * detection_memory
         )
+
+    def _mission_adaptation_score(
+        self,
+        n_nodes: int,
+        expected_utility: np.ndarray,
+        planning_score: np.ndarray,
+        trust_score: np.ndarray,
+    ) -> np.ndarray:
+        if not self.adaptive_mission_attacker_enabled:
+            return np.zeros(n_nodes, dtype=float)
+        pressure = float(np.clip(self.defense_effectiveness_memory, 0.0, 5.0))
+        if pressure <= 0.0:
+            return np.zeros(n_nodes, dtype=float)
+        score = np.zeros(n_nodes, dtype=float)
+        visited = {int(node) for node in (self.visited_nodes or set())}
+        unvisited_bonus = np.array([0.0 if node in visited else 1.0 for node in range(n_nodes)], dtype=float)
+        reachable = set(int(node) for node in self.reachable_nodes(n_nodes))
+        lateral_bonus = np.array([1.0 if node in reachable and node != int(self.current_node) else 0.0 for node in range(n_nodes)], dtype=float)
+        if self.attacker_mission == "profit":
+            score += pressure * (0.60 * unvisited_bonus + 0.20 * lateral_bonus + 0.20 * np.maximum(expected_utility, 0.0))
+        elif self.attacker_mission == "persistence":
+            score += pressure * (0.70 * trust_score + 0.30 * lateral_bonus)
+        elif self.attacker_mission == "critical_hunter":
+            score += pressure * (0.65 * planning_score + 0.35 * unvisited_bonus)
+        elif self.attacker_mission == "achievement":
+            score += pressure * (0.50 * np.maximum(expected_utility, 0.0) + 0.30 * planning_score + 0.20 * unvisited_bonus)
+        return score
+
+    def observe_defense_strategy(
+        self,
+        strategy: str,
+        objective_score: float,
+        failure_reason: str,
+    ) -> str:
+        if not self.adaptive_mission_attacker_enabled:
+            return "non_adaptive"
+        previous_strategy = self.observed_defense_strategy
+        self.observed_defense_strategy = str(strategy or "none")
+        pressure = float(np.clip(1.0 - float(objective_score), 0.0, 1.0))
+        mission_failure = str(failure_reason or "none") != "none"
+        if mission_failure or pressure > 0.45:
+            self.strategy_failure_memory = 0.80 * self.strategy_failure_memory + pressure + (0.25 if mission_failure else 0.0)
+            self.strategy_success_memory *= 0.85
+        else:
+            self.strategy_success_memory = 0.80 * self.strategy_success_memory + float(objective_score)
+            self.strategy_failure_memory *= 0.85
+        self.defense_effectiveness_memory = 0.70 * self.defense_effectiveness_memory + 0.30 * max(
+            self.strategy_failure_memory,
+            pressure,
+        )
+        should_adapt = self.defense_effectiveness_memory > 0.35
+        changed_strategy = previous_strategy not in ("", "none", self.observed_defense_strategy)
+        if should_adapt:
+            self.adaptation_count += 1
+            self.ttp_change_count += 1
+            if changed_strategy:
+                self.strategy_avoidance_score += 0.5
+            self.alternative_path_usage += self._alternative_path_increment()
+            action = self._adaptation_action()
+            self.adaptation_history.append(action)
+            return action
+        self.adaptation_history.append("observe")
+        return "observe"
+
+    def _alternative_path_increment(self) -> float:
+        if self.adaptive_path_enabled or self.lateral_enabled:
+            return 1.0
+        return 0.5
+
+    def _adaptation_action(self) -> str:
+        if self.attacker_mission == "profit":
+            return "target_switch"
+        if self.attacker_mission == "persistence":
+            return "stealth_lateral_shift"
+        if self.attacker_mission == "critical_hunter":
+            return "alternative_critical_path"
+        if self.attacker_mission == "achievement":
+            self.frustration_retreat_threshold += 0.25
+            self.patience += 1
+            return "risk_tolerance_increase"
+        return "generic_ttp_change"
 
     def _memory_array(self, memory: Optional[Dict[int, float]], n_nodes: int) -> np.ndarray:
         if memory is None:
@@ -1510,6 +1894,11 @@ class CyberDefenseSimulator:
         self.current_adjacency_matrix = self.config.adjacency_matrix.copy()
         self.active_adjacency_matrix = self.config.adjacency_matrix.copy()
         self.attacker = self._create_attacker()
+        self.attacker_phase = "stationary"
+        self.attacker_strategy_name = "configured"
+        self.attacker_phase_switch_count = 0
+        if self.config.nonstationary_attacker_enabled:
+            self._apply_attacker_strategy(self._initial_nonstationary_strategy(), count_switch=False)
         self.attacker_retreat_step = None
         self.first_decoy_step = None
         self.critical_compromise = False
@@ -1548,6 +1937,50 @@ class CyberDefenseSimulator:
         self.credential_mtd_stage_current = "none"
         self.credential_stage1_action_current = False
         self.credential_stage2_action_current = False
+        self.current_adaptive_policy_id = self.config.adaptive_selected_policy or self.config.adaptive_policy_default
+        self.adaptive_policy_history = []
+        self.adaptive_policy_switch_steps = []
+        self.adaptive_cns_gain = 0.0
+        self.adaptive_switch_cost_total = 0.0
+        self.initial_attacker_mission = str(self.config.attacker_mission)
+        self.mission_mutation_step = None
+        self.first_reclassification_step = None
+        self.reclassification_total_steps = 0
+        self.reclassification_correct_steps = 0
+        self.mission_names = ["profit", "achievement", "persistence", "critical_hunter"]
+        self.current_true_mission = self._true_mission_label()
+        self.current_observed_mission = self.current_true_mission
+        self.mission_aware_policy_initialized = False
+        self.mission_belief = np.array(
+            [
+                self.config.belief_profit,
+                self.config.belief_achievement,
+                self.config.belief_persistence,
+                self.config.belief_critical_hunter,
+            ],
+            dtype=float,
+        )
+        self.mission_belief = self._normalize_mission_belief(self.mission_belief)
+        self._sync_mission_prediction_metrics()
+        self.state_names = ["recon", "exploitation", "lateral_movement", "targeting", "action_on_objective"]
+        self.state_belief = np.array(
+            [
+                self.config.belief_recon,
+                self.config.belief_exploitation,
+                self.config.belief_lateral_movement,
+                self.config.belief_targeting,
+                self.config.belief_action_on_objective,
+            ],
+            dtype=float,
+        )
+        self.state_belief = self._normalize_state_belief(self.state_belief)
+        self.previous_predicted_state = "unknown"
+        self._sync_state_prediction_metrics()
+        self.critical_path_entered = False
+        self.latest_critical_path_events: List[str] = []
+        self.previous_risk_level = "unknown"
+        self.previous_campaign_stage = "none"
+        self.previous_campaign_policy = ""
         self.history = {
             'x': [],
             'raw_x': [],
@@ -1599,6 +2032,16 @@ class CyberDefenseSimulator:
             'planning_score': [],
             'trust_score': [],
             'expected_utility': [],
+            'attacker_phase': [],
+            'adaptive_policy_id': [],
+            'selected_policy_history': [],
+            'campaign_stage_history': [],
+            'campaign_policy_history': [],
+            'mission_belief': [],
+            'state_belief': [],
+            'observable_events': [],
+            'critical_path_events': [],
+            'risk_score': [],
             'defender_observed_belief': [],
             'defender_estimated_belief': [],
             'defender_target_counts': [],
@@ -1631,6 +2074,21 @@ class CyberDefenseSimulator:
             'attacker_perceived_gain': [],
             'attacker_critical_true_gain': [],
             'belief_entropy': [],
+            'mission_satisfaction': [],
+            'mission_objective_history': [],
+            'mission_failure_reason_history': [],
+            'observed_defense_history': [],
+            'adaptation_history': [],
+            'mission_history': [],
+            'reclassified_mission_history': [],
+            'selected_strategy_history': [],
+            'true_mission_history': [],
+            'observed_mission_history': [],
+            'deception_history': [],
+            'noise_history': [],
+            'signal_history': [],
+            'fake_signal_history': [],
+            'signal_consistency_history': [],
         }
 
     def _create_attacker(self) -> AttackerModel:
@@ -1688,6 +2146,20 @@ class CyberDefenseSimulator:
             expected_detection_cost=self.config.expected_detection_cost,
             expected_search_cost=self.config.expected_search_cost,
             expected_trust_weight=self.config.expected_trust_weight,
+            attacker_mission=self.config.attacker_mission,
+            mission_expected_utility_weight=self.config.mission_expected_utility_weight,
+            mission_trust_weight=self.config.mission_trust_weight,
+            mission_planning_weight=self.config.mission_planning_weight,
+            mission_critical_target_weight=self.config.mission_critical_target_weight,
+            adaptive_mission_attacker_enabled=self.config.adaptive_mission_attacker_enabled,
+            observed_defense_strategy=self.config.observed_defense_strategy,
+            defense_effectiveness_memory=self.config.defense_effectiveness_memory,
+            strategy_failure_memory=self.config.strategy_failure_memory,
+            strategy_success_memory=self.config.strategy_success_memory,
+            adaptation_count=self.config.adaptation_count,
+            ttp_change_count=self.config.ttp_change_count,
+            strategy_avoidance_score=self.config.strategy_avoidance_score,
+            alternative_path_usage=self.config.alternative_path_usage,
             lateral_enabled=self.config.attacker_lateral_enabled,
             lateral_success_prob=self.config.attacker_lateral_success_prob,
             lateral_detection_prob=self.config.attacker_lateral_detection_prob,
@@ -1769,6 +2241,9 @@ class CyberDefenseSimulator:
         logger.info(f"Starting simulation for T={self.config.T} steps...")
         for t in range(self.config.T):
             self.current_step = t
+            self._mission_aware_policy_update(t)
+            self._nonstationary_attacker_update(t)
+            self._step_adaptive_policy_update(t)
             self._restore_expired_mtd_edge_blocks(t)
             self._sync_attacker_adjacency()
             x_previous = self.x_current.copy()
@@ -1941,6 +2416,26 @@ class CyberDefenseSimulator:
             ):
                 self.critical_compromise = True
                 self.critical_compromise_step = t
+            critical_path_events = self._generate_critical_path_events(
+                selected_target=selected_target,
+                success=success,
+                critical_reached=critical_reached,
+            )
+            observable_events = self._generate_observable_events(
+                selected_target=selected_target,
+                attack_active=attack_active,
+                success=success,
+                credential_used=credential_used,
+                credential_decoy_trigger=credential_decoy_trigger,
+                path_changed=path_changed,
+                critical_reached=critical_reached,
+            )
+            observable_events = list(dict.fromkeys(observable_events + critical_path_events))
+            observable_events, signal_events, noise_events, fake_signal_events, consistency_score, extracted_observable_events = self._apply_noise_and_signal_extraction(
+                observable_events,
+                critical_path_events,
+                selected_target,
+            )
             if attack_active and attacked_decoy and self.first_decoy_step is None:
                 self.first_decoy_step = t
             if self.attacker.retreated and self.attacker_retreat_step is None:
@@ -2036,6 +2531,34 @@ class CyberDefenseSimulator:
                 if self.attacker.last_expected_utility is not None
                 else np.zeros(self.config.n_nodes, dtype=float)
             )
+            self.history['attacker_phase'].append(str(self.attacker_phase))
+            self.history['adaptive_policy_id'].append(str(self.current_adaptive_policy_id))
+            self.history['selected_policy_history'].append(str(self.current_adaptive_policy_id))
+            self.history['observable_events'].append("|".join(observable_events))
+            self.history['critical_path_events'].append("|".join(critical_path_events))
+            self.history['noise_history'].append("|".join(noise_events))
+            self.history['signal_history'].append("|".join(signal_events))
+            self.history['fake_signal_history'].append("|".join(fake_signal_events))
+            self.history['signal_consistency_history'].append(float(consistency_score))
+            self._mission_belief_update(
+                credential_decoy_trigger=bool(credential_decoy_trigger),
+                selected_target=int(selected_target) if selected_target is not None else None,
+            )
+            observed_mission = self._apply_intent_deception()
+            self._state_belief_update(
+                credential_decoy_trigger=bool(credential_decoy_trigger),
+                selected_target=int(selected_target) if selected_target is not None else None,
+                observable_events=extracted_observable_events,
+                critical_path_events=critical_path_events,
+            )
+            risk_score = self._intelligence_policy_update(
+                selected_target=int(selected_target) if selected_target is not None else None,
+            )
+            self.history['mission_belief'].append(self.mission_belief.copy())
+            self.history['state_belief'].append(self.state_belief.copy())
+            self.history['risk_score'].append(float(risk_score))
+            self.history['campaign_stage_history'].append(str(self.config.campaign_stage))
+            self.history['campaign_policy_history'].append(str(self.current_adaptive_policy_id))
             self.history['defender_observed_belief'].append(self.defender_observed_belief.copy())
             self.history['defender_estimated_belief'].append(self.defender_estimated_belief.copy())
             self.history['defender_target_counts'].append(self.defender_target_counts.copy())
@@ -2077,6 +2600,44 @@ class CyberDefenseSimulator:
             self.history['attacker_perceived_gain'].append(float(perceived_gain))
             self.history['attacker_critical_true_gain'].append(float(critical_true_gain))
             self.history['belief_entropy'].append(float(belief_entropy_step))
+            mission_objective_score, mission_failure_reason = self._mission_objective_step()
+            self.config.mission_satisfaction = float(mission_objective_score)
+            self.config.mission_objective_score = float(mission_objective_score)
+            self.config.mission_failure_reason = str(mission_failure_reason)
+            self._apply_mission_objective_retreat(float(mission_objective_score), str(mission_failure_reason))
+            observed_strategy = str(self.config.campaign_strategy_profile if self.config.defense_campaign_enabled else self.current_adaptive_policy_id)
+            adaptation_action = self.attacker.observe_defense_strategy(
+                observed_strategy,
+                float(mission_objective_score),
+                str(mission_failure_reason),
+            )
+            self.config.observed_defense_strategy = self.attacker.observed_defense_strategy
+            self.config.defense_effectiveness_memory = float(self.attacker.defense_effectiveness_memory)
+            self.config.strategy_failure_memory = float(self.attacker.strategy_failure_memory)
+            self.config.strategy_success_memory = float(self.attacker.strategy_success_memory)
+            self.config.adaptation_count = int(self.attacker.adaptation_count)
+            self.config.ttp_change_count = int(self.attacker.ttp_change_count)
+            self.config.strategy_avoidance_score = float(self.attacker.strategy_avoidance_score)
+            self.config.alternative_path_usage = float(self.attacker.alternative_path_usage)
+            mutation_reason = self._maybe_mutate_mission(float(mission_objective_score), str(mission_failure_reason))
+            reclassified_mission = self._maybe_reclassify_mission(
+                float(mission_objective_score),
+                str(mission_failure_reason),
+                str(adaptation_action),
+                str(mutation_reason),
+            )
+            self.history['mission_satisfaction'].append(float(mission_objective_score))
+            self.history['mission_objective_history'].append(float(mission_objective_score))
+            self.history['mission_failure_reason_history'].append(str(self.config.mission_failure_reason))
+            self.history['observed_defense_history'].append(observed_strategy)
+            self.history['adaptation_history'].append(str(adaptation_action))
+            self.history['mission_history'].append(str(self.config.attacker_mission))
+            self.history['reclassified_mission_history'].append(str(reclassified_mission))
+            self.history['selected_strategy_history'].append(
+                str(self.config.campaign_strategy_profile if self.config.defense_campaign_enabled else self.current_adaptive_policy_id)
+            )
+            self.history['true_mission_history'].append(str(self.current_true_mission))
+            self.history['observed_mission_history'].append(str(observed_mission))
             self.r_prev = r_opt.copy()
 
             reason = self._check_and_update_matching(t, x_previous)
@@ -2112,6 +2673,1261 @@ class CyberDefenseSimulator:
         boost = np.zeros_like(weights)
         boost[top_indices] = belief[top_indices]
         return np.clip(weights + (self.config.post_decoy_defense_weight * boost), 0.0, None)
+
+    def _initial_nonstationary_strategy(self) -> str:
+        if self.config.nonstationary_attacker_pattern == "planning_to_expected":
+            return "planning"
+        return "expected_utility"
+
+    def _second_nonstationary_strategy(self) -> str:
+        if self.config.nonstationary_attacker_pattern == "planning_to_expected":
+            return "expected_utility"
+        return "trust_aware_planning"
+
+    def _nonstationary_attacker_update(self, t: int) -> None:
+        if not self.config.nonstationary_attacker_enabled:
+            return
+        if t == int(self.config.attacker_phase_change_step):
+            self._apply_attacker_strategy(self._second_nonstationary_strategy(), count_switch=True)
+
+    def _apply_attacker_strategy(self, strategy_name: str, count_switch: bool) -> None:
+        phase = f"phase{self.attacker_phase_switch_count + 1}" if count_switch else "phase0"
+        if strategy_name == "expected_utility":
+            settings = {
+                "adaptive_attacker_enabled": True,
+                "adaptive_preference_enabled": True,
+                "adaptive_path_enabled": True,
+                "adaptive_planning_enabled": True,
+                "trust_enabled": True,
+                "expected_utility_enabled": True,
+            }
+        elif strategy_name == "trust_aware_planning":
+            settings = {
+                "adaptive_attacker_enabled": True,
+                "adaptive_preference_enabled": True,
+                "adaptive_path_enabled": True,
+                "adaptive_planning_enabled": True,
+                "trust_enabled": True,
+                "expected_utility_enabled": False,
+            }
+        else:
+            settings = {
+                "adaptive_attacker_enabled": True,
+                "adaptive_preference_enabled": True,
+                "adaptive_path_enabled": True,
+                "adaptive_planning_enabled": True,
+                "trust_enabled": False,
+                "expected_utility_enabled": False,
+            }
+            strategy_name = "planning"
+
+        for key, value in settings.items():
+            setattr(self.config, key, value)
+            setattr(self.attacker, key, value)
+        self.attacker.target_selection = "adaptive"
+        self.config.attacker_target_selection = "adaptive"
+        self.attacker_strategy_name = strategy_name
+        self.attacker_phase = f"{phase}:{strategy_name}"
+        if count_switch:
+            self.attacker_phase_switch_count += 1
+
+    def _step_adaptive_policy_update(self, t: int) -> None:
+        if (
+            not self.config.step_adaptive_defender_enabled
+            or not self.config.adaptive_defender_enabled
+            or t % self.config.adaptive_recheck_interval != 0
+        ):
+            return
+
+        observations = self._step_adaptive_observations()
+        candidates = [
+            "phase2_frustration_decoy",
+            "phase2_ai_balanced",
+            "gated_edge_pressure_count_2",
+        ]
+        current_policy = self.current_adaptive_policy_id or self.config.adaptive_policy_default
+        if current_policy not in candidates:
+            current_policy = self.config.adaptive_policy_default
+        current_score = self._estimate_step_policy_score(current_policy, observations)
+        scored = [
+            (policy, self._estimate_step_policy_score(policy, observations))
+            for policy in candidates
+        ]
+        scored.sort(key=lambda item: item[1], reverse=True)
+        best_policy, best_score = scored[0]
+        improvement = float(best_score - current_score)
+        threshold = float(self.config.adaptive_min_improvement + self.config.adaptive_policy_switch_cost)
+
+        self.config.adaptive_policy_score = float(best_score)
+        self.config.adaptive_policy_rank = 1
+        self.config.adaptive_estimated_cns = float(np.clip(best_score, 0.0, 1.0))
+        self.config.adaptive_selection_reason = "step_cns_recheck"
+        self.config.adaptive_policy_reason = self._step_policy_reason(best_policy, observations)
+
+        if best_policy != current_policy and improvement > threshold:
+            self.current_adaptive_policy_id = best_policy
+            self.config.adaptive_selected_policy = best_policy
+            self.config.adaptive_policy_switch_count += 1
+            self.adaptive_policy_switch_steps.append(int(t))
+            self.adaptive_cns_gain += improvement
+            self.adaptive_switch_cost_total += float(self.config.adaptive_policy_switch_cost)
+            self._apply_step_policy(best_policy)
+        else:
+            self.current_adaptive_policy_id = current_policy
+            self.config.adaptive_selected_policy = current_policy
+
+        self.adaptive_policy_history.append(str(self.current_adaptive_policy_id))
+
+    def _select_mission_aware_policy(self) -> Tuple[str, str]:
+        if self.config.state_belief_inference_enabled:
+            critical_event_mapping = {
+                "critical_path_entry": "phase4_planning_disruptor",
+                "critical_path_progress": "phase4_target_switch_inducer",
+                "critical_path_near_target": "phase2_frustration_decoy",
+                "critical_asset_reach": "phase2_frustration_decoy",
+            }
+            for event in (
+                "critical_asset_reach",
+                "critical_path_near_target",
+                "critical_path_progress",
+                "critical_path_entry",
+            ):
+                if event in self.latest_critical_path_events:
+                    return critical_event_mapping[event], f"critical_path_{event}"
+            state = self.config.predicted_state
+            state_mapping = {
+                "recon": "phase4_target_switch_inducer",
+                "exploitation": "phase4_trust_collapse_maximizer",
+                "lateral_movement": "phase4_planning_disruptor",
+                "targeting": "phase2_frustration_decoy",
+                "action_on_objective": "phase2_frustration_decoy",
+            }
+            selected = state_mapping.get(state, self.config.adaptive_policy_default)
+            if state in state_mapping:
+                return selected, f"state_belief_{state}"
+            return selected, "state_belief_default"
+        mission = self.config.predicted_mission if self.config.mission_belief_inference_enabled else self.config.attacker_mission
+        mapping = {
+            "profit": "phase4_expected_utility_suppressor",
+            "achievement": "phase4_planning_disruptor",
+            "persistence": "phase4_trust_collapse_maximizer",
+            "critical_hunter": "phase4_planning_disruptor",
+        }
+        selected = mapping.get(mission, self.config.adaptive_policy_default)
+        if mission in mapping:
+            prefix = "belief_mission" if self.config.mission_belief_inference_enabled else "oracle_mission"
+            return selected, f"{prefix}_{mission}"
+        return selected, "oracle_mission_default"
+
+    def _normalize_mission_belief(self, belief: np.ndarray) -> np.ndarray:
+        clipped = np.clip(np.asarray(belief, dtype=float), 0.0, None)
+        total = float(np.sum(clipped))
+        if total <= 0.0:
+            return np.full(4, 0.25, dtype=float)
+        return clipped / total
+
+    def _sync_mission_prediction_metrics(self) -> None:
+        self.mission_belief = self._normalize_mission_belief(self.mission_belief)
+        idx = int(np.argmax(self.mission_belief))
+        predicted = self.mission_names[idx]
+        self.config.belief_profit = float(self.mission_belief[0])
+        self.config.belief_achievement = float(self.mission_belief[1])
+        self.config.belief_persistence = float(self.mission_belief[2])
+        self.config.belief_critical_hunter = float(self.mission_belief[3])
+        self.config.predicted_mission = predicted
+        self.config.mission_prediction_confidence = float(self.mission_belief[idx])
+        self.config.mission_prediction_correct = predicted == self.config.attacker_mission
+
+    def _mission_belief_update(self, credential_decoy_trigger: bool, selected_target: Optional[int]) -> None:
+        if not self.config.mission_belief_inference_enabled:
+            return
+
+        evidence = np.zeros(4, dtype=float)
+        if credential_decoy_trigger:
+            evidence[0] += 0.20
+            evidence[2] += 0.10
+
+        selected_targets = np.asarray(self.history.get('attacker_selected_target', []), dtype=int)
+        valid_targets = selected_targets[selected_targets >= 0]
+        if len(valid_targets) >= 2 and int(valid_targets[-1]) != int(valid_targets[-2]):
+            evidence[1] += 0.15
+
+        critical_focus = (
+            selected_target is not None
+            and any(int(selected_target) == int(node) for node in self.config.critical_nodes)
+        )
+        if critical_focus:
+            evidence[3] += 0.25
+
+        trust_vector = self.attacker.trust_vector(self.config.n_nodes)
+        trust_collapse_rate = float(np.mean(trust_vector < 0.5)) if len(trust_vector) > 0 else 0.0
+        if trust_collapse_rate > self.config.adaptive_trust_collapse_threshold:
+            evidence[2] += 0.15
+
+        expected = self.attacker.last_expected_utility
+        if expected is not None and len(expected) > 0 and float(np.max(expected)) > 0.0:
+            evidence[0] += 0.05
+
+        planning = self.attacker.last_planning_score
+        if planning is not None:
+            finite = np.asarray(planning, dtype=float)
+            finite = finite[np.isfinite(finite) & (finite > -1.0e11)]
+            if len(finite) > 0 and float(np.max(finite)) > 0.0:
+                evidence[1] += 0.05
+
+        if float(np.sum(evidence)) > 0.0:
+            previous_prediction = self.config.predicted_mission
+            self.mission_belief = self._normalize_mission_belief(self.mission_belief + evidence)
+            self._sync_mission_prediction_metrics()
+            if self.config.mission_aware_defender_enabled and self.config.adaptive_defender_enabled:
+                self._mission_belief_policy_update(previous_prediction)
+
+    def _mission_belief_policy_update(self, previous_prediction: str) -> None:
+        if self.config.predicted_mission == previous_prediction and self.mission_aware_policy_initialized:
+            return
+        previous_policy = self.current_adaptive_policy_id or self.config.adaptive_policy_default
+        selected_policy, reason = self._select_mission_aware_policy()
+        self.current_adaptive_policy_id = selected_policy
+        self.config.adaptive_selected_policy = selected_policy
+        self.config.adaptive_policy_reason = reason
+        self.config.adaptive_selection_reason = reason
+        self.config.mission_aware_selected_policy = selected_policy
+        self.config.mission_aware_selection_reason = reason
+        self.config.mission_policy_match = selected_policy == {
+            "profit": "phase4_expected_utility_suppressor",
+            "achievement": "phase4_planning_disruptor",
+            "persistence": "phase4_trust_collapse_maximizer",
+            "critical_hunter": "phase4_planning_disruptor",
+        }.get(self.config.predicted_mission, self.config.adaptive_policy_default)
+        if selected_policy != previous_policy:
+            self.config.mission_policy_switch_count += 1
+            self.config.adaptive_policy_switch_count += 1
+            self.adaptive_policy_switch_steps.append(int(self.current_step))
+        self._apply_step_policy(selected_policy)
+        self.mission_aware_policy_initialized = True
+
+    def _normalize_state_belief(self, belief: np.ndarray) -> np.ndarray:
+        clipped = np.clip(np.asarray(belief, dtype=float), 0.0, None)
+        total = float(np.sum(clipped))
+        if total <= 0.0:
+            return np.full(5, 0.20, dtype=float)
+        return clipped / total
+
+    def _sync_state_prediction_metrics(self) -> None:
+        self.state_belief = self._normalize_state_belief(self.state_belief)
+        idx = int(np.argmax(self.state_belief))
+        predicted = self.state_names[idx]
+        self.config.belief_recon = float(self.state_belief[0])
+        self.config.belief_exploitation = float(self.state_belief[1])
+        self.config.belief_lateral_movement = float(self.state_belief[2])
+        self.config.belief_targeting = float(self.state_belief[3])
+        self.config.belief_action_on_objective = float(self.state_belief[4])
+        if self.previous_predicted_state not in ("unknown", predicted):
+            self.config.state_transition_count += 1
+        self.previous_predicted_state = predicted
+        self.config.predicted_state = predicted
+        self.config.state_prediction_confidence = float(self.state_belief[idx])
+
+    def _node_role(self, node_idx: Optional[int]) -> str:
+        if node_idx is None:
+            return "unknown"
+        roles = self.config.node_roles or {}
+        return str(roles.get(int(node_idx), roles.get(str(int(node_idx)), "unknown")))
+
+    def _generate_observable_events(
+        self,
+        selected_target: int,
+        attack_active: bool,
+        success: bool,
+        credential_used: bool,
+        credential_decoy_trigger: bool,
+        path_changed: bool,
+        critical_reached: bool,
+    ) -> List[str]:
+        if not self.config.observable_events_enabled:
+            return []
+
+        events: List[str] = []
+        role = self._node_role(selected_target)
+        if attack_active and role == "internet_entry":
+            events.append("scan")
+        if attack_active:
+            events.append("exploit_attempt")
+        if credential_used or credential_decoy_trigger or role == "identity_server":
+            events.append("credential_use")
+        if path_changed:
+            events.append("lateral_move")
+        if role in ("critical_asset", "database_server") or selected_target in self.config.critical_nodes:
+            events.append("critical_probe")
+        if role == "database_server":
+            events.append("data_access")
+        if critical_reached or role == "critical_asset":
+            events.append("objective_action")
+        return list(dict.fromkeys(events))
+
+    def _is_critical_path_edge(self, source: int, target: int) -> bool:
+        if source < 0 or target < 0:
+            return False
+        for path in self._paths_to_critical_on(self.config.adjacency_matrix):
+            for left, right in zip(path[:-1], path[1:]):
+                if int(left) == int(source) and int(right) == int(target):
+                    return True
+        return False
+
+    def _static_critical_path_nodes(self) -> set:
+        return {int(node) for path in self._paths_to_critical_on(self.config.adjacency_matrix) for node in path}
+
+    def _generate_critical_path_events(
+        self,
+        selected_target: int,
+        success: bool,
+        critical_reached: bool,
+    ) -> List[str]:
+        if not self.config.critical_path_events_enabled:
+            self.latest_critical_path_events = []
+            return []
+
+        events: List[str] = []
+        critical_path_nodes = self._static_critical_path_nodes()
+        on_critical_path = selected_target in critical_path_nodes
+        if on_critical_path and not self.critical_path_entered:
+            events.append("critical_path_entry")
+            self.critical_path_entered = True
+
+        previous_target = int(self.attacker.previous_selected_target)
+        if (
+            previous_target >= 0
+            and selected_target >= 0
+            and self._is_critical_path_edge(previous_target, selected_target)
+            and self._target_moves_closer_to_critical_static(previous_target, selected_target)
+        ):
+            events.append("critical_path_progress")
+
+        distance = self._distance_to_nearest_critical_static(selected_target)
+        if distance is not None and distance <= 1:
+            events.append("critical_path_near_target")
+
+        if critical_reached or selected_target in self.config.critical_nodes:
+            events.append("critical_asset_reach")
+
+        self.latest_critical_path_events = list(dict.fromkeys(events))
+        return self.latest_critical_path_events
+
+    def _signal_event_names(self) -> set:
+        return {
+            "objective_action",
+            "critical_asset_reach",
+            "critical_path_entry",
+            "critical_path_progress",
+            "critical_path_near_target",
+            "critical_probe",
+            "data_access",
+        }
+
+    def _noise_event_names(self) -> set:
+        return {
+            "noise_recon",
+            "noise_scan",
+            "credential_noise",
+            "false_path",
+            "fake_critical_probe",
+        }
+
+    def _apply_noise_and_signal_extraction(
+        self,
+        observable_events: List[str],
+        critical_path_events: List[str],
+        selected_target: int,
+    ) -> Tuple[List[str], List[str], List[str], List[str], float, List[str]]:
+        raw_events = list(observable_events)
+        noise_events: List[str] = []
+        if self.config.noise_injection_enabled:
+            noise_events = ["noise_recon", "noise_scan", "credential_noise", "false_path", "fake_critical_probe"]
+            raw_events.extend(["scan", "credential_use", "lateral_move", "critical_probe"])
+            raw_events.extend(noise_events)
+            self.config.noise_event_count += len(noise_events)
+            if not self.config.signal_extraction_enabled and self.config.mission_belief_inference_enabled:
+                noise_belief = np.array([0.36, 0.28, 0.24, 0.12], dtype=float)
+                self.mission_belief = self._normalize_mission_belief(0.75 * self.mission_belief + 0.25 * noise_belief)
+                self._sync_mission_prediction_metrics()
+
+        fake_signal_events: List[str] = []
+        if self.config.adversarial_signal_enabled:
+            fake_signal_events = [
+                "fake_critical_path_entry",
+                "fake_critical_path_progress",
+                "fake_critical_path_near_target",
+                "fake_objective_action",
+            ]
+            raw_events.extend(fake_signal_events)
+            raw_events.extend(["critical_path_entry", "critical_path_progress", "critical_path_near_target", "objective_action"])
+            self.config.fake_signal_count += len(fake_signal_events)
+            self.config.adversarial_signal_count += len(fake_signal_events)
+
+        raw_events = list(dict.fromkeys(raw_events))
+        signal_set = self._signal_event_names()
+        signal_events = [event for event in raw_events if event in signal_set or event in critical_path_events]
+        self.config.signal_event_count += len(signal_events)
+        suspicious_fake = 0
+        if fake_signal_events:
+            distance = self._distance_to_nearest_critical_static(selected_target)
+            proximity = 0.0 if distance is None else 1.0 / (1.0 + float(distance))
+            has_real_critical_progress = bool(set(critical_path_events) & {"critical_path_progress", "critical_path_near_target", "critical_asset_reach"})
+            if "fake_objective_action" in fake_signal_events and proximity < 0.5:
+                suspicious_fake += 1
+            if "fake_critical_path_near_target" in fake_signal_events and not has_real_critical_progress:
+                suspicious_fake += 1
+            if "fake_critical_path_progress" in fake_signal_events and "critical_path_progress" not in critical_path_events:
+                suspicious_fake += 1
+        consistency_score = float(np.clip(1.0 - suspicious_fake / max(len(fake_signal_events), 1), 0.0, 1.0)) if fake_signal_events else 1.0
+
+        if self.config.signal_extraction_enabled:
+            extracted = list(dict.fromkeys(signal_events))
+            if self.config.adversarial_signal_enabled:
+                if suspicious_fake > 0:
+                    extracted = [
+                        event
+                        for event in extracted
+                        if event not in ("critical_path_near_target", "objective_action")
+                    ]
+            filtered_noise = len([event for event in noise_events if event not in extracted])
+            accepted_fake = len([event for event in fake_signal_events if event in extracted or event.replace("fake_", "") in extracted])
+            self.config.false_signal_acceptance_rate = float(accepted_fake / max(len(fake_signal_events), 1)) if fake_signal_events else 0.0
+            filter_denominator = max(len(noise_events) + len(fake_signal_events), 1)
+            filtered_fake = max(len(fake_signal_events) - accepted_fake, 0)
+            self.config.noise_filter_accuracy = float((filtered_noise + filtered_fake) / filter_denominator) if filter_denominator else 1.0
+            if self.config.mission_belief_inference_enabled and signal_events:
+                signal_belief = self.mission_belief.copy()
+                if "critical_asset_reach" in signal_events or "critical_path_near_target" in signal_events:
+                    signal_belief[self.mission_names.index("critical_hunter")] += 0.20
+                    signal_belief[self.mission_names.index("achievement")] += 0.10
+                if "objective_action" in signal_events:
+                    signal_belief[self.mission_names.index("achievement")] += 0.20
+                self.mission_belief = self._normalize_mission_belief(signal_belief)
+                self._sync_mission_prediction_metrics()
+        else:
+            extracted = raw_events
+            self.config.noise_filter_accuracy = 0.0 if noise_events else 1.0
+            self.config.false_signal_acceptance_rate = 1.0 if fake_signal_events else 0.0
+
+        self.config.signal_to_noise_ratio = float(len(signal_events) / max(len(noise_events), 1))
+        self.config.signal_confusion_score = float(self.config.false_signal_acceptance_rate)
+        self.config.signal_consistency_score = consistency_score
+        self.config.decision_confidence = float(
+            np.clip(
+                0.55 * (self.config.signal_to_noise_ratio / (1.0 + self.config.signal_to_noise_ratio))
+                + 0.45 * self.config.noise_filter_accuracy,
+                0.0,
+                1.0,
+            )
+        )
+        return raw_events, signal_events, noise_events, fake_signal_events, consistency_score, extracted
+
+    def _state_belief_update(
+        self,
+        credential_decoy_trigger: bool,
+        selected_target: Optional[int],
+        observable_events: Optional[List[str]] = None,
+        critical_path_events: Optional[List[str]] = None,
+    ) -> None:
+        if not self.config.state_belief_inference_enabled:
+            return
+
+        evidence = np.zeros(5, dtype=float)
+        events = observable_events or []
+        if self.config.observable_events_enabled and events:
+            event_set = set(events)
+            if "scan" in event_set:
+                evidence[0] += 0.20
+            if "credential_use" in event_set or "exploit_attempt" in event_set:
+                evidence[1] += 0.25
+            if "lateral_move" in event_set:
+                evidence[2] += 0.20
+            if "critical_probe" in event_set or "data_access" in event_set:
+                evidence[3] += 0.30
+            if "objective_action" in event_set:
+                evidence[4] += 0.40
+            critical_event_set = set(critical_path_events or [])
+            if "critical_path_entry" in critical_event_set:
+                evidence[3] += 0.15
+            if "critical_path_progress" in critical_event_set:
+                evidence[3] += 0.10
+            if "critical_path_near_target" in critical_event_set:
+                evidence[4] += 0.20
+            if "critical_asset_reach" in critical_event_set:
+                evidence[4] += 0.40
+        else:
+            if credential_decoy_trigger:
+                evidence[1] += 0.20
+
+            selected_targets = np.asarray(self.history.get('attacker_selected_target', []), dtype=int)
+            valid_targets = selected_targets[selected_targets >= 0]
+            if len(valid_targets) >= 2 and int(valid_targets[-1]) != int(valid_targets[-2]):
+                evidence[2] += 0.20
+
+            critical_focus = (
+                selected_target is not None
+                and any(int(selected_target) == int(node) for node in self.config.critical_nodes)
+            )
+            if critical_focus:
+                evidence[3] += 0.30
+            if self.critical_compromise:
+                evidence[4] += 0.40
+
+            if float(np.sum(evidence)) <= 0.0:
+                evidence[0] += 0.03
+
+        previous_state = self.config.predicted_state
+        self.state_belief = self._normalize_state_belief(self.state_belief + evidence)
+        self._sync_state_prediction_metrics()
+        if self.config.mission_aware_defender_enabled and self.config.adaptive_defender_enabled:
+            self._state_belief_policy_update(previous_state)
+
+    def _state_belief_policy_update(self, previous_state: str) -> None:
+        if self.config.predicted_state == previous_state and self.mission_aware_policy_initialized:
+            return
+        previous_policy = self.current_adaptive_policy_id or self.config.adaptive_policy_default
+        selected_policy, reason = self._select_mission_aware_policy()
+        self.current_adaptive_policy_id = selected_policy
+        self.config.adaptive_selected_policy = selected_policy
+        self.config.adaptive_policy_reason = reason
+        self.config.adaptive_selection_reason = reason
+        self.config.mission_aware_selected_policy = selected_policy
+        self.config.mission_aware_selection_reason = reason
+        if selected_policy != previous_policy:
+            self.config.mission_policy_switch_count += 1
+            self.config.adaptive_policy_switch_count += 1
+            self.adaptive_policy_switch_steps.append(int(self.current_step))
+        self._apply_step_policy(selected_policy)
+        self.mission_aware_policy_initialized = True
+
+    def _critical_path_proximity_for_target(self, selected_target: Optional[int]) -> float:
+        if selected_target is None or int(selected_target) < 0:
+            return 0.0
+        distance = self._distance_to_nearest_critical_static(int(selected_target))
+        return 0.0 if distance is None else float(1.0 / (1.0 + float(distance)))
+
+    def _risk_level_for_score(self, score: float) -> str:
+        if score >= 0.80:
+            return "critical"
+        if score >= 0.60:
+            return "high"
+        if score >= 0.40:
+            return "medium"
+        return "low"
+
+    def _normalized_intelligence_weights(self) -> Tuple[float, float, float]:
+        weights = np.array(
+            [
+                self.config.intelligence_mission_weight,
+                self.config.intelligence_state_weight,
+                self.config.intelligence_critical_path_weight,
+            ],
+            dtype=float,
+        )
+        total = float(np.sum(weights))
+        if total <= 0.0:
+            weights = np.array([0.4, 0.3, 0.3], dtype=float)
+        else:
+            weights = weights / total
+        return float(weights[0]), float(weights[1]), float(weights[2])
+
+    def _calculate_intelligence_risk_score(self, selected_target: Optional[int]) -> float:
+        mission_risk = {
+            "critical_hunter": 1.0,
+            "persistence": 0.8,
+            "achievement": 0.6,
+            "profit": 0.5,
+        }.get(self.config.predicted_mission, 0.4)
+        state_risk = {
+            "recon": 0.1,
+            "exploitation": 0.3,
+            "lateral_movement": 0.5,
+            "targeting": 0.8,
+            "action_on_objective": 1.0,
+        }.get(self.config.predicted_state, 0.1)
+        proximity = self._critical_path_proximity_for_target(selected_target)
+        mission_weight, state_weight, critical_path_weight = self._normalized_intelligence_weights()
+        score = (
+            mission_weight * mission_risk
+            + state_weight * state_risk
+            + critical_path_weight * proximity
+        )
+        return float(np.clip(score, 0.0, 1.0))
+
+    def _select_intelligence_policy(self, risk_score: float) -> Tuple[str, str]:
+        level = self._risk_level_for_score(risk_score)
+        if level == "critical":
+            return "phase2_frustration_decoy", "intelligence_critical_risk"
+        if level == "high":
+            return "phase2_frustration_decoy", "intelligence_high_risk"
+        if level == "medium":
+            return "phase4_planning_disruptor", "intelligence_medium_risk"
+        return "phase4_target_switch_inducer", "intelligence_low_risk"
+
+    def _position_class_for_proximity(self, proximity: float) -> str:
+        if proximity >= 1.0:
+            return "critical"
+        if proximity >= 0.5:
+            return "near"
+        if proximity >= 0.25:
+            return "medium"
+        return "far"
+
+    def _select_decision_matrix_policy(self, selected_target: Optional[int]) -> Tuple[str, str, str]:
+        mission = self.config.predicted_mission if self.config.predicted_mission in self.mission_names else self.config.attacker_mission
+        if mission not in self.mission_names:
+            mission = "achievement"
+        state = self.config.predicted_state if self.config.predicted_state in self.state_names else "recon"
+        if state == "lateral_movement":
+            state_key = "lateral"
+        elif state == "action_on_objective":
+            state_key = "objective"
+        else:
+            state_key = state
+        proximity = self._critical_path_proximity_for_target(selected_target)
+        position = self._position_class_for_proximity(proximity)
+
+        matrix = {
+            "profit": {
+                "recon": "phase4_target_switch_inducer",
+                "exploitation": "phase4_expected_utility_suppressor",
+                "lateral": "phase4_expected_utility_suppressor",
+                "targeting": "phase2_frustration_decoy",
+                "objective": "phase2_frustration_decoy",
+            },
+            "persistence": {
+                "recon": "phase4_trust_collapse_maximizer",
+                "exploitation": "phase4_trust_collapse_maximizer",
+                "lateral": "phase4_trust_collapse_maximizer",
+                "targeting": "phase4_planning_disruptor",
+                "objective": "phase2_frustration_decoy",
+            },
+            "critical_hunter": {
+                "recon": "phase4_planning_disruptor",
+                "exploitation": "phase4_planning_disruptor",
+                "lateral": "phase4_planning_disruptor",
+                "targeting": "phase4_planning_disruptor",
+                "objective": "phase2_frustration_decoy",
+            },
+            "achievement": {
+                "recon": "phase4_target_switch_inducer",
+                "exploitation": "phase4_planning_disruptor",
+                "lateral": "phase4_planning_disruptor",
+                "targeting": "phase4_planning_disruptor",
+                "objective": "phase2_frustration_decoy",
+            },
+        }
+        selected_policy = matrix.get(mission, {}).get(state_key, "phase2_frustration_decoy")
+        if mission == "critical_hunter" and position in ("near", "critical"):
+            selected_policy = "phase2_frustration_decoy"
+        if position == "critical":
+            selected_policy = "phase2_frustration_decoy"
+        reason = f"decision_matrix_{mission}_{state_key}_{position}"
+        return selected_policy, reason, position
+
+    def _campaign_context(self, selected_target: Optional[int]) -> Tuple[str, str, str, str]:
+        mission = self.config.predicted_mission if self.config.predicted_mission in self.mission_names else self.config.attacker_mission
+        if mission not in self.mission_names:
+            mission = "achievement"
+        state = self.config.predicted_state if self.config.predicted_state in self.state_names else "recon"
+        proximity = self._critical_path_proximity_for_target(selected_target)
+        position = self._position_class_for_proximity(proximity)
+        stage = state
+        if position == "critical":
+            stage = "action_on_objective"
+        elif mission == "critical_hunter" and position == "near" and state in ("targeting", "action_on_objective"):
+            stage = "targeting"
+        return mission, state, position, stage
+
+    def _campaign_stage_policy(self, profile: str) -> Dict[str, str]:
+        profiles = {
+            "aggressive_disruption": {
+                "recon": "phase4_planning_disruptor",
+                "exploitation": "phase4_planning_disruptor",
+                "lateral_movement": "phase4_planning_disruptor",
+                "targeting": "phase2_frustration_decoy",
+                "action_on_objective": "phase2_frustration_decoy",
+            },
+            "trust_collapse": {
+                "recon": "phase4_target_switch_inducer",
+                "exploitation": "phase4_trust_collapse_maximizer",
+                "lateral_movement": "phase4_trust_collapse_maximizer",
+                "targeting": "phase4_planning_disruptor",
+                "action_on_objective": "phase2_frustration_decoy",
+            },
+            "utility_suppression": {
+                "recon": "phase4_target_switch_inducer",
+                "exploitation": "phase4_expected_utility_suppressor",
+                "lateral_movement": "phase4_expected_utility_suppressor",
+                "targeting": "phase4_planning_disruptor",
+                "action_on_objective": "phase2_frustration_decoy",
+            },
+            "balanced": {
+                "recon": "phase4_target_switch_inducer",
+                "exploitation": "phase4_expected_utility_suppressor",
+                "lateral_movement": "phase4_trust_collapse_maximizer",
+                "targeting": "phase4_planning_disruptor",
+                "action_on_objective": "phase2_frustration_decoy",
+            },
+        }
+        return profiles.get(profile, profiles["balanced"])
+
+    def _select_campaign_policy(self, selected_target: Optional[int]) -> Tuple[str, str]:
+        mission, _state, position, stage = self._campaign_context(selected_target)
+        profile = self.config.campaign_strategy_profile
+        stage_policy = self._campaign_stage_policy(profile)
+        selected_policy = stage_policy.get(stage, "phase2_frustration_decoy")
+        if mission == "critical_hunter" and stage == "targeting" and position in ("medium", "near"):
+            selected_policy = "phase4_planning_disruptor"
+        if mission == "critical_hunter" and position == "critical":
+            selected_policy = "phase2_frustration_decoy"
+        if mission == "persistence" and stage == "lateral_movement":
+            selected_policy = "phase4_trust_collapse_maximizer"
+        if mission == "profit" and stage == "exploitation":
+            selected_policy = "phase4_expected_utility_suppressor"
+
+        if self.previous_campaign_stage not in ("none", stage):
+            self.config.campaign_transition_count += 1
+        if self.previous_campaign_policy not in ("", selected_policy):
+            self.config.campaign_policy_switch_count += 1
+        self.previous_campaign_stage = stage
+        self.previous_campaign_policy = selected_policy
+        self.config.campaign_stage = stage
+        self.config.strategy_profile = profile
+        reason = f"campaign_{profile}_{mission}_{stage}_{position}"
+        return selected_policy, reason
+
+    def _intelligence_policy_update(self, selected_target: Optional[int]) -> float:
+        risk_score = self._calculate_intelligence_risk_score(selected_target)
+        risk_level = self._risk_level_for_score(risk_score)
+        self.config.intelligence_risk_score = risk_score
+        if self.previous_risk_level not in ("unknown", risk_level):
+            self.config.risk_level_transition_count += 1
+        self.previous_risk_level = risk_level
+        self.config.risk_level = risk_level
+
+        if not (
+            self.config.intelligence_defender_enabled
+            and self.config.adaptive_defender_enabled
+        ):
+            return risk_score
+
+        previous_policy = self.current_adaptive_policy_id or self.config.adaptive_policy_default
+        risk_policy, risk_reason = self._select_intelligence_policy(risk_score)
+        if self.config.defense_campaign_enabled:
+            selected_policy, reason = self._select_campaign_policy(selected_target)
+            self.config.decision_matrix_policy = selected_policy
+            self.config.decision_matrix_match_count += 1
+            if selected_policy != risk_policy:
+                self.config.decision_matrix_override_count += 1
+        elif self.config.decision_matrix_defender_enabled:
+            selected_policy, reason, _position = self._select_decision_matrix_policy(selected_target)
+            self.config.decision_matrix_policy = selected_policy
+            self.config.decision_matrix_match_count += 1
+            if selected_policy != risk_policy:
+                self.config.decision_matrix_override_count += 1
+        else:
+            selected_policy, reason = risk_policy, risk_reason
+        self.current_adaptive_policy_id = selected_policy
+        self.config.selected_intelligence_policy = selected_policy
+        self.config.adaptive_selected_policy = selected_policy
+        self.config.adaptive_policy_reason = reason
+        self.config.adaptive_selection_reason = reason
+        if selected_policy != previous_policy:
+            self.config.mission_policy_switch_count += 1
+            self.config.adaptive_policy_switch_count += 1
+            self.adaptive_policy_switch_steps.append(int(self.current_step))
+        self._apply_step_policy(selected_policy)
+        return risk_score
+
+    def _mission_aware_policy_update(self, t: int) -> None:
+        if (
+            self.mission_aware_policy_initialized
+            or t != 0
+            or not self.config.mission_aware_defender_enabled
+            or not self.config.adaptive_defender_enabled
+        ):
+            return
+
+        previous_policy = self.current_adaptive_policy_id or self.config.adaptive_policy_default
+        selected_policy, reason = self._select_mission_aware_policy()
+        self.current_adaptive_policy_id = selected_policy
+        self.config.adaptive_selected_policy = selected_policy
+        self.config.adaptive_policy_reason = reason
+        self.config.adaptive_selection_reason = reason
+        self.config.mission_aware_selected_policy = selected_policy
+        self.config.mission_aware_selection_reason = reason
+        self.config.mission_policy_match = selected_policy == {
+            "profit": "phase4_expected_utility_suppressor",
+            "achievement": "phase4_planning_disruptor",
+            "persistence": "phase4_trust_collapse_maximizer",
+            "critical_hunter": "phase4_planning_disruptor",
+        }.get(
+            self.config.predicted_mission if self.config.mission_belief_inference_enabled else self.config.attacker_mission,
+            self.config.adaptive_policy_default,
+        )
+        if selected_policy != previous_policy:
+            self.config.mission_policy_switch_count += 1
+            self.config.adaptive_policy_switch_count += 1
+            self.adaptive_policy_switch_steps.append(int(t))
+        self._apply_step_policy(selected_policy)
+        self.mission_aware_policy_initialized = True
+
+    def _step_adaptive_observations(self) -> Dict[str, float]:
+        expected = self.attacker.last_expected_utility
+        expected_utility = (
+            float(np.max(expected))
+            if expected is not None and len(expected) > 0
+            else float(self.attacker.utility)
+        )
+        trust = self.attacker.trust_vector(self.config.n_nodes)
+        trust_collapse_rate = float(np.mean(trust < 0.5)) if len(trust) > 0 else 0.0
+        selected_targets = np.asarray(self.history.get('attacker_selected_target', []), dtype=int)
+        valid_targets = selected_targets[selected_targets >= 0]
+        target_switch_count = float(np.count_nonzero(np.diff(valid_targets) != 0)) if len(valid_targets) > 1 else 0.0
+        retreat_probability = 1.0 if self.attacker.retreated else float(
+            np.clip(
+                max(0.0, self.config.attacker_retreat_threshold - self.attacker.utility + 1.0)
+                / max(abs(self.config.attacker_retreat_threshold) + 1.0, 1.0),
+                0.0,
+                1.0,
+            )
+        )
+        critical_risk = float(np.max(self.x_current[self.config.critical_nodes])) if self.config.critical_nodes else 0.0
+        critical_compromise_risk = float(np.clip(critical_risk / 100.0, 0.0, 1.0))
+        return {
+            "expected_utility": expected_utility,
+            "trust_collapse_rate": trust_collapse_rate,
+            "target_switch_count": target_switch_count,
+            "retreat_probability": retreat_probability,
+            "critical_compromise_risk": critical_compromise_risk,
+            "attacker_strategy_name": self.attacker_strategy_name,
+        }
+
+    def _estimate_step_policy_score(self, policy_name: str, observations: Dict[str, float]) -> float:
+        expected_utility = float(observations["expected_utility"])
+        trust_collapse_rate = float(observations["trust_collapse_rate"])
+        switch_pressure = float(np.clip(observations["target_switch_count"] / 10.0, 0.0, 1.0))
+        retreat_probability = float(observations["retreat_probability"])
+        critical_compromise_risk = float(observations["critical_compromise_risk"])
+        expected_pressure = float(np.clip(expected_utility / 10.0, 0.0, 1.0))
+        strategy_name = str(observations.get("attacker_strategy_name", ""))
+        if policy_name == "phase2_frustration_decoy":
+            return (
+                0.35
+                + 1.20 * trust_collapse_rate
+                + 0.80 * retreat_probability
+                - 0.20 * expected_pressure
+                - 0.50 * critical_compromise_risk
+                - 0.05 * switch_pressure
+                + (0.10 if strategy_name == "trust_aware_planning" else 0.0)
+            )
+        if policy_name == "phase2_ai_balanced":
+            return (
+                0.25
+                + 0.40 * trust_collapse_rate
+                + 0.75 * retreat_probability
+                + 0.20 * switch_pressure
+                - 0.25 * expected_pressure
+                - 0.45 * critical_compromise_risk
+            )
+        if policy_name == "gated_edge_pressure_count_2":
+            return (
+                0.10
+                + 0.20 * trust_collapse_rate
+                + 0.50 * retreat_probability
+                + 0.85 * expected_pressure
+                + 0.10 * switch_pressure
+                - 0.90 * critical_compromise_risk
+                + (0.35 if strategy_name == "expected_utility" else 0.0)
+            )
+        return trust_collapse_rate + retreat_probability - expected_pressure - critical_compromise_risk
+
+    def _step_policy_reason(self, policy_name: str, observations: Dict[str, float]) -> str:
+        if policy_name == "gated_edge_pressure_count_2" and observations["expected_utility"] > 0.0:
+            return "step_expected_utility_suppression"
+        if policy_name == "phase2_ai_balanced" and observations["target_switch_count"] > self.config.adaptive_target_switch_threshold:
+            return "step_switch_stability"
+        if policy_name == "phase2_frustration_decoy" and observations["trust_collapse_rate"] > self.config.adaptive_trust_collapse_threshold:
+            return "step_trust_collapse"
+        return "step_cns_score_max"
+
+    def _apply_step_policy(self, policy_name: str) -> None:
+        if policy_name == "phase2_frustration_decoy":
+            self.config.frustration_retreat_threshold = 6.0
+            self.config.honeypot_credential_enabled = False
+            self.config.mtd_enabled = False
+            self.config.mtd_risk_gating_enabled = False
+            self.config.mtd_conditional_policy_enabled = False
+        elif policy_name == "phase2_ai_balanced":
+            self.config.honeypot_credential_enabled = True
+            self.config.credential_node_ids = [1, 3]
+            self.config.credential_attraction_bonus = 5.0
+            self.config.credential_detection_bonus = 5.0
+            self.config.frustration_decoy_hit = 3.5
+            self.config.frustration_credential_trap = 3.0
+            self.config.frustration_retreat_threshold = 7.0
+            self.config.ai_uncertainty_weight = 1.0
+            self.config.ai_replanning_weight = 1.0
+            self.config.ai_search_weight = 1.0
+            self.config.ai_operational_risk_weight = 1.0
+            self.config.ai_trust_degradation_weight = 1.0
+            self.config.mtd_enabled = False
+            self.config.mtd_risk_gating_enabled = False
+            self.config.mtd_conditional_policy_enabled = False
+        elif policy_name == "gated_edge_pressure_count_2":
+            self.config.mtd_enabled = True
+            self.config.mtd_strategy = "shuffle_belief"
+            self.config.mtd_interval = 1
+            self.config.mtd_intensity = 0.5
+            self.config.mtd_risk_gating_enabled = True
+            self.config.mtd_risk_gate_mode = "edge_pressure"
+            self.config.mtd_risk_gate_threshold = 10.0
+            self.config.mtd_risk_gate_cooldown = 3
+            self.config.mtd_edge_block_count = 2
+            self.config.mtd_edge_block_duration = 1
+        elif policy_name == "phase4_trust_collapse_maximizer":
+            self.config.honeypot_credential_enabled = True
+            self.config.credential_node_ids = [1, 3]
+            self.config.credential_attraction_bonus = 7.0
+            self.config.credential_detection_bonus = 8.0
+            self.config.credential_reuse_decay = 0.25
+            self.config.trust_enabled = True
+            self.config.trust_decoy_penalty = 0.35
+            self.config.trust_credential_penalty = 0.45
+            self.config.trust_detection_penalty = 0.25
+            self.config.frustration_decoy_hit = 4.5
+            self.config.frustration_credential_trap = 5.0
+            self.config.frustration_detection = 2.0
+            self.config.frustration_retreat_threshold = 7.0
+            self.config.stochastic_detection = True
+            self.config.base_detection_prob = 0.65
+            self.config.decoy_detection_prob = 1.0
+        elif policy_name == "phase4_expected_utility_suppressor":
+            self.config.expected_utility_enabled = True
+            self.config.adaptive_planning_enabled = True
+            self.config.trust_enabled = True
+            self.config.ai_uncertainty_weight = 2.5
+            self.config.ai_replanning_weight = 2.5
+            self.config.ai_search_weight = 3.0
+            self.config.ai_operational_risk_weight = 3.0
+            self.config.ai_trust_degradation_weight = 1.5
+            self.config.stochastic_detection = True
+            self.config.base_detection_prob = 0.75
+            self.config.defense_detection_scale = 0.30
+            self.config.decoy_detection_prob = 1.0
+            self.config.attacker_defense_cost_rate = 2.0
+            self.config.expected_detection_cost = 2.0
+            self.config.expected_search_cost = 2.0
+        elif policy_name == "phase4_target_switch_inducer":
+            self.config.attacker_lateral_enabled = True
+            self.config.mtd_enabled = True
+            self.config.mtd_strategy = "shuffle_belief"
+            self.config.mtd_interval = 1
+            self.config.mtd_intensity = 0.9
+            self.config.mtd_shuffle_topology = True
+            self.config.mtd_block_critical_edges = True
+            self.config.mtd_edge_block_count = 2
+            self.config.mtd_edge_block_duration = 2
+            self.config.mtd_risk_gating_enabled = True
+            self.config.mtd_risk_gate_mode = "critical_edge_pressure"
+            self.config.mtd_risk_gate_threshold = 1.0
+            self.config.mtd_risk_gate_cooldown = 0
+            self.config.frustration_path_change = 3.0
+            self.config.frustration_no_progress = 1.5
+        elif policy_name == "phase4_planning_disruptor":
+            self.config.adaptive_planning_enabled = True
+            self.config.planning_depth = 3
+            self.config.attacker_lateral_enabled = True
+            self.config.post_decoy_defense_enabled = True
+            self.config.post_decoy_defense_weight = 4.0
+            self.config.post_decoy_defense_top_k = 2
+            self.config.post_decoy_defense_exclude_decoy = True
+            self.config.post_decoy_defense_injection_mode = "all"
+            self.config.post_decoy_defense_belief_source = "estimated"
+            self.config.defender_belief_estimation_enabled = True
+            self.config.defender_belief_observation_mode = "hybrid_visible"
+            self.config.mtd_enabled = True
+            self.config.mtd_strategy = "increase_uncertainty"
+            self.config.mtd_interval = 2
+            self.config.mtd_intensity = 0.8
+            self.config.mtd_block_critical_edges = True
+            self.config.mtd_edge_block_count = 2
+            self.config.mtd_edge_block_duration = 2
+            self.config.frustration_path_change = 2.5
+
+    def _mission_satisfaction_step(self) -> float:
+        return float(self._mission_objective_step()[0])
+
+    def _normalized_weights(self, values: List[float]) -> List[float]:
+        total = float(np.sum(np.asarray(values, dtype=float)))
+        if total <= 0.0:
+            return [1.0 / max(len(values), 1)] * len(values)
+        return [float(value) / total for value in values]
+
+    def _mission_weight_vector(self) -> Dict[str, float]:
+        weights = {
+            "profit": float(self.config.mission_weight_profit),
+            "achievement": float(self.config.mission_weight_achievement),
+            "persistence": float(self.config.mission_weight_persistence),
+            "critical_hunter": float(self.config.mission_weight_critical_hunter),
+        }
+        if not self.config.multi_objective_mission_enabled or sum(weights.values()) <= 0.0:
+            return {mission: 1.0 if mission == self.config.attacker_mission else 0.0 for mission in self.mission_names}
+        total = float(sum(weights.values()))
+        return {mission: float(value) / total for mission, value in weights.items()}
+
+    def _true_mission_label(self) -> str:
+        weights = self._mission_weight_vector()
+        mission = max(weights, key=lambda key: weights.get(key, 0.0))
+        self.config.true_mission = mission
+        return mission
+
+    def _deception_target_for_mission(self, mission: str) -> str:
+        mapping = {
+            "critical_hunter": "profit",
+            "profit": "persistence",
+            "persistence": "achievement",
+            "achievement": "profit",
+        }
+        return mapping.get(mission, "profit")
+
+    def _apply_intent_deception(self) -> str:
+        true_mission = self._true_mission_label()
+        observed_mission = true_mission
+        event = "none"
+        if self.config.intent_deception_enabled:
+            observed_mission = self._deception_target_for_mission(true_mission)
+            event = f"mask_{true_mission}_as_{observed_mission}"
+            self.config.deception_event_count += 1
+            if observed_mission in self.mission_names:
+                injected = np.full(len(self.mission_names), 0.08, dtype=float)
+                injected[self.mission_names.index(observed_mission)] = 0.76
+                self.mission_belief = self._normalize_mission_belief(0.35 * self.mission_belief + 0.65 * injected)
+                self._sync_mission_prediction_metrics()
+        self.current_true_mission = true_mission
+        self.current_observed_mission = observed_mission
+        self.config.true_mission = true_mission
+        self.config.observed_mission = observed_mission
+        self.history['deception_history'].append(event)
+        return observed_mission
+
+    def _mission_objective_step(self) -> Tuple[float, str]:
+        mission = self.config.attacker_mission
+        expected = self.attacker.last_expected_utility
+        expected_component = (
+            float(np.clip(np.max(expected) / 10.0, 0.0, 1.0))
+            if expected is not None and len(expected) > 0
+            else float(np.clip(max(self.attacker.utility, 0.0) / 10.0, 0.0, 1.0))
+        )
+        trust_vector = self.attacker.trust_vector(self.config.n_nodes)
+        trust_component = float(np.mean(trust_vector)) if len(trust_vector) > 0 else 1.0
+        success_history = np.asarray(self.history.get('attacker_success', []), dtype=bool)
+        detected_history = np.asarray(self.history.get('attacker_detected', []), dtype=bool)
+        success_rate = float(np.mean(success_history)) if len(success_history) > 0 else 0.0
+        stealth_score = 1.0 - (float(np.mean(detected_history)) if len(detected_history) > 0 else 0.0)
+        compromised_count = len(self.attacker.compromised_nodes)
+        compromise_progress = float(np.clip(compromised_count / max(float(self.config.n_nodes), 1.0), 0.0, 1.0))
+        selected_target = self.attacker.last_selected_target if self.attacker.last_selected_target is not None else None
+        critical_path_progress = self._critical_path_proximity_for_target(selected_target)
+        critical_reach = 1.0 if self.critical_compromise else 0.0
+        persistence_score = 0.0 if self.attacker.retreated else 1.0
+        expected_weight, success_weight = self._normalized_weights([
+            self.config.profit_expected_utility_weight,
+            self.config.profit_success_weight,
+        ])
+        progress_weight, achievement_critical_weight = self._normalized_weights([
+            self.config.achievement_progress_weight,
+            self.config.achievement_critical_weight,
+        ])
+        survival_weight, trust_weight, stealth_weight = self._normalized_weights([
+            self.config.persistence_survival_weight,
+            self.config.persistence_trust_weight,
+            self.config.persistence_stealth_weight,
+        ])
+        critical_progress_weight, critical_reach_weight = self._normalized_weights([
+            self.config.critical_progress_weight,
+            self.config.critical_reach_weight,
+        ])
+        scores = {
+            "profit": expected_weight * expected_component + success_weight * success_rate,
+            "achievement": progress_weight * compromise_progress + achievement_critical_weight * max(critical_path_progress, critical_reach),
+            "persistence": survival_weight * persistence_score + trust_weight * trust_component + stealth_weight * stealth_score,
+            "critical_hunter": critical_progress_weight * critical_path_progress + critical_reach_weight * critical_reach,
+        }
+        reasons = {
+            "profit": "expected_utility_collapse" if expected_component < 0.20 else "none",
+            "achievement": "compromise_stalled" if compromise_progress < 0.20 and self.current_step > 20 else "none",
+            "persistence": "trust_collapse" if trust_component < 0.55 else ("stealth_failure" if stealth_score < 0.50 else "none"),
+            "critical_hunter": "critical_path_failure" if critical_path_progress < 0.25 and self.current_step > 20 else "none",
+        }
+        if self.config.multi_objective_mission_enabled:
+            weights = self._mission_weight_vector()
+            score = sum(weights.get(name, 0.0) * scores.get(name, 0.0) for name in self.mission_names)
+            active_failures = [
+                (name, weights.get(name, 0.0), scores.get(name, 0.0), reasons.get(name, "none"))
+                for name in self.mission_names
+                if weights.get(name, 0.0) > 0.0 and reasons.get(name, "none") != "none"
+            ]
+            if active_failures:
+                failed = min(active_failures, key=lambda item: item[2])
+                reason = f"multi_objective_{failed[0]}_{failed[3]}"
+            else:
+                reason = "none"
+            return float(np.clip(score, 0.0, 1.0)), reason
+        if mission in scores:
+            return float(np.clip(scores[mission], 0.0, 1.0)), reasons.get(mission, "none")
+        score = (expected_component + success_rate + trust_component + critical_path_progress) / 4.0
+        return float(np.clip(score, 0.0, 1.0)), "none"
+
+    def _apply_mission_objective_retreat(self, score: float, reason: str) -> None:
+        if not self.config.mission_objectives_enabled or self.attacker.retreated:
+            return
+        mission = self.config.attacker_mission
+        should_retreat = False
+        if mission == "profit":
+            should_retreat = reason == "expected_utility_collapse" and score < 0.20 and self.current_step >= 8
+        elif mission == "persistence":
+            should_retreat = reason in ("trust_collapse", "stealth_failure") and score < 0.75 and self.current_step >= 8
+        elif mission == "critical_hunter":
+            should_retreat = reason == "critical_path_failure" and score < 0.25 and self.current_step >= 25
+        elif mission == "achievement":
+            should_retreat = False
+        if should_retreat:
+            self.attacker.retreated = True
+            self.config.mission_failure_reason = reason
+            if self.attacker_retreat_step is None:
+                self.attacker_retreat_step = int(self.current_step)
+
+    def _maybe_mutate_mission(self, score: float, reason: str) -> str:
+        if not self.config.mission_mutation_enabled:
+            return "none"
+        mission = self.config.attacker_mission
+        if mission in ("none", "achievement"):
+            return "none"
+        pressure = float(np.clip(1.0 - score, 0.0, 1.0))
+        failure_memory = float(self.config.strategy_failure_memory)
+        mutation_reason = "none"
+        if mission == "profit" and (
+            reason == "expected_utility_collapse"
+            or (self.config.campaign_strategy_profile == "utility_suppression" and score < 0.75)
+            or (failure_memory > 0.65 and score < 0.80)
+        ):
+            mutation_reason = "profit_expected_utility_collapse_to_achievement"
+        elif mission == "critical_hunter" and (
+            reason == "critical_path_failure"
+            or (self.config.campaign_strategy_profile == "aggressive_disruption" and score < 0.45)
+            or (failure_memory > 0.65 and pressure > 0.45)
+        ):
+            mutation_reason = "critical_path_failure_to_achievement"
+        elif mission == "persistence" and (
+            reason in ("trust_collapse", "stealth_failure")
+            or (self.config.campaign_strategy_profile == "trust_collapse" and score < 0.92)
+            or (failure_memory > 0.80 and score < 0.92)
+        ):
+            mutation_reason = "trust_collapse_to_achievement"
+        if mutation_reason == "none":
+            return "none"
+        self.config.attacker_mission = "achievement"
+        self.attacker.attacker_mission = "achievement"
+        self.config.mission_change_count += 1
+        self.config.mission_mutation_reason = mutation_reason
+        if self.mission_mutation_step is None:
+            self.mission_mutation_step = int(self.current_step)
+        return mutation_reason
+
+    def _phase422_policy_for_mission(self, mission: str) -> str:
+        mapping = {
+            "profit": "phase4_expected_utility_suppressor",
+            "achievement": "phase4_trust_collapse_maximizer",
+            "persistence": "phase4_trust_collapse_maximizer",
+            "critical_hunter": "phase4_planning_disruptor",
+        }
+        return mapping.get(mission, self.config.adaptive_policy_default)
+
+    def _phase422_strategy_for_mission(self, mission: str) -> str:
+        mapping = {
+            "profit": "utility_suppression",
+            "achievement": "trust_collapse",
+            "persistence": "trust_collapse",
+            "critical_hunter": "aggressive_disruption",
+        }
+        return mapping.get(mission, self.config.campaign_strategy_profile)
+
+    def _record_reclassification_accuracy(self) -> None:
+        if not self.config.mission_reclassification_enabled:
+            return
+        self.reclassification_total_steps += 1
+        if self.config.predicted_mission == self._true_mission_label():
+            self.reclassification_correct_steps += 1
+        self.config.reclassification_accuracy = float(
+            self.reclassification_correct_steps / max(self.reclassification_total_steps, 1)
+        )
+
+    def _maybe_reclassify_mission(
+        self,
+        score: float,
+        reason: str,
+        adaptation_action: str,
+        mutation_reason: str,
+    ) -> str:
+        if not self.config.mission_reclassification_enabled:
+            return str(self.config.predicted_mission)
+
+        repeated_ttp_change = (
+            adaptation_action not in ("observe", "non_adaptive", "none")
+            and self.config.ttp_change_count > self.config.mission_reclassification_count
+        )
+        trigger = (
+            mutation_reason != "none"
+            or (reason != "none" and score < 0.55)
+            or float(self.config.strategy_failure_memory) > 0.65
+            or repeated_ttp_change
+        )
+        if trigger:
+            previous_prediction = str(self.config.predicted_mission)
+            previous_policy = self.current_adaptive_policy_id or self.config.adaptive_policy_default
+            previous_strategy = str(self.config.campaign_strategy_profile)
+            mission = str(self.config.observed_mission if self.config.intent_deception_enabled else self.config.attacker_mission)
+            if mission in self.mission_names:
+                self.mission_belief = np.full(len(self.mission_names), 0.05, dtype=float)
+                self.mission_belief[self.mission_names.index(mission)] = 0.85
+                self._sync_mission_prediction_metrics()
+            selected_policy = self._phase422_policy_for_mission(self.config.predicted_mission)
+            selected_strategy = self._phase422_strategy_for_mission(self.config.predicted_mission)
+            reoptimized = False
+            if self.config.defense_campaign_enabled and selected_strategy != previous_strategy:
+                self.config.campaign_strategy_profile = selected_strategy
+                self.config.strategy_profile = selected_strategy
+                reoptimized = True
+            if selected_policy != previous_policy:
+                self.current_adaptive_policy_id = selected_policy
+                self.config.selected_intelligence_policy = selected_policy
+                self.config.adaptive_selected_policy = selected_policy
+                self.config.adaptive_policy_reason = f"mission_reclassification_{self.config.predicted_mission}"
+                self.config.adaptive_selection_reason = self.config.adaptive_policy_reason
+                self.config.mission_aware_selected_policy = selected_policy
+                self.config.mission_aware_selection_reason = self.config.adaptive_policy_reason
+                self._apply_step_policy(selected_policy)
+                reoptimized = True
+            if previous_prediction != self.config.predicted_mission or trigger:
+                self.config.mission_reclassification_count += 1
+                if self.first_reclassification_step is None:
+                    self.first_reclassification_step = int(self.current_step)
+            if reoptimized:
+                self.config.defense_reoptimization_count += 1
+                self.config.mission_policy_switch_count += 1
+                self.config.adaptive_policy_switch_count += 1
+                self.adaptive_policy_switch_steps.append(int(self.current_step))
+            if (
+                self.config.predicted_mission == self._true_mission_label()
+                and self.config.belief_recovery_time < 0
+            ):
+                reference_step = self.mission_mutation_step if self.mission_mutation_step is not None else self.first_reclassification_step
+                self.config.belief_recovery_time = max(0, int(self.current_step) - int(reference_step or self.current_step))
+        self._record_reclassification_accuracy()
+        return str(self.config.predicted_mission)
 
     def _apply_mtd(self, t: int) -> np.ndarray:
         self.mtd_active = False
@@ -2427,6 +4243,31 @@ class CyberDefenseSimulator:
     def _target_moves_closer_to_critical(self, current_node: int, target_node: int) -> bool:
         current_distance = self._distance_to_nearest_critical(current_node)
         target_distance = self._distance_to_nearest_critical(target_node)
+        if current_distance is None or target_distance is None:
+            return False
+        return target_distance < current_distance
+
+    def _distance_to_nearest_critical_static(self, source: int) -> Optional[int]:
+        if source < 0 or source >= self.config.n_nodes:
+            return None
+        critical = {int(node) for node in self.config.critical_nodes}
+        visited = {int(source)}
+        queue = [(int(source), 0)]
+        while queue:
+            node, distance = queue.pop(0)
+            for neighbor in np.flatnonzero(self.config.adjacency_matrix[node] > 0).astype(int).tolist():
+                neighbor = int(neighbor)
+                if neighbor in visited:
+                    continue
+                if neighbor in critical:
+                    return distance + 1
+                visited.add(neighbor)
+                queue.append((neighbor, distance + 1))
+        return None
+
+    def _target_moves_closer_to_critical_static(self, current_node: int, target_node: int) -> bool:
+        current_distance = self._distance_to_nearest_critical_static(current_node)
+        target_distance = self._distance_to_nearest_critical_static(target_node)
         if current_distance is None or target_distance is None:
             return False
         return target_distance < current_distance
@@ -3100,6 +4941,140 @@ class CyberDefenseSimulator:
         planning_history = np.asarray(self.history.get('planning_score', []), dtype=float)
         trust_history = np.asarray(self.history.get('trust_score', []), dtype=float)
         expected_utility_history = np.asarray(self.history.get('expected_utility', []), dtype=float)
+        attacker_phase_history = np.asarray(self.history.get('attacker_phase', []), dtype='<U64')
+        adaptive_policy_id_history = np.asarray(self.history.get('adaptive_policy_id', []), dtype='<U64')
+        mission_belief_history = np.asarray(self.history.get('mission_belief', []), dtype=float)
+        state_belief_history = np.asarray(self.history.get('state_belief', []), dtype=float)
+        observable_event_history = np.asarray(self.history.get('observable_events', []), dtype='<U128')
+        critical_path_event_history = np.asarray(self.history.get('critical_path_events', []), dtype='<U128')
+        risk_score_history = np.asarray(self.history.get('risk_score', []), dtype=float)
+        mission_weight, state_weight, critical_path_weight = self._normalized_intelligence_weights()
+        mission_satisfaction_series = np.asarray(self.history.get('mission_satisfaction', []), dtype=float)
+        mission_objective_series = np.asarray(self.history.get('mission_objective_history', []), dtype=float)
+        mission_failure_reason_history = np.asarray(self.history.get('mission_failure_reason_history', []), dtype='<U64')
+        observed_defense_history = np.asarray(self.history.get('observed_defense_history', []), dtype='<U64')
+        adaptation_history = np.asarray(self.history.get('adaptation_history', []), dtype='<U64')
+        mission_history = np.asarray(self.history.get('mission_history', []), dtype='<U64')
+        reclassified_mission_history = np.asarray(self.history.get('reclassified_mission_history', []), dtype='<U64')
+        selected_strategy_history = np.asarray(self.history.get('selected_strategy_history', []), dtype='<U64')
+        true_mission_history = np.asarray(self.history.get('true_mission_history', []), dtype='<U64')
+        observed_mission_history = np.asarray(self.history.get('observed_mission_history', []), dtype='<U64')
+        deception_history = np.asarray(self.history.get('deception_history', []), dtype='<U128')
+        noise_history = np.asarray(self.history.get('noise_history', []), dtype='<U128')
+        signal_history = np.asarray(self.history.get('signal_history', []), dtype='<U128')
+        fake_signal_history = np.asarray(self.history.get('fake_signal_history', []), dtype='<U128')
+        signal_consistency_history = np.asarray(self.history.get('signal_consistency_history', []), dtype=float)
+        mission_change_count = int(self.config.mission_change_count)
+        mission_stability_score = float(
+            np.clip(1.0 - mission_change_count / max(float(len(mission_history)), 1.0), 0.0, 1.0)
+        )
+        mission_truth_for_accuracy = true_mission_history if len(true_mission_history) > 0 else mission_history
+        if len(reclassified_mission_history) > 0 and len(mission_truth_for_accuracy) > 0:
+            n_reclassification = min(len(reclassified_mission_history), len(mission_truth_for_accuracy))
+            self.config.reclassification_accuracy = float(
+                np.mean(reclassified_mission_history[:n_reclassification] == mission_truth_for_accuracy[:n_reclassification])
+            )
+        mission_belief_error = float(self.config.mission_belief_error)
+        belief_confusion_score = float(self.config.belief_confusion_score)
+        mission_masking_success = bool(self.config.mission_masking_success)
+        if len(mission_belief_history) > 0 and len(true_mission_history) > 0:
+            true_probs = []
+            observed_matches = []
+            true_matches = []
+            n_belief = min(len(mission_belief_history), len(true_mission_history))
+            for idx in range(n_belief):
+                true_mission = str(true_mission_history[idx])
+                observed_mission = str(observed_mission_history[idx]) if idx < len(observed_mission_history) else true_mission
+                predicted = self.mission_names[int(np.argmax(mission_belief_history[idx]))]
+                true_prob = mission_belief_history[idx][self.mission_names.index(true_mission)] if true_mission in self.mission_names else 0.0
+                true_probs.append(float(true_prob))
+                observed_matches.append(predicted == observed_mission and observed_mission != true_mission)
+                true_matches.append(predicted == true_mission)
+            mission_belief_error = float(np.clip(1.0 - np.mean(true_probs), 0.0, 1.0)) if true_probs else 0.0
+            belief_confusion_score = float(np.mean(observed_matches)) if observed_matches else 0.0
+            mission_masking_success = bool(any(observed_matches) and not all(true_matches))
+        self.config.mission_belief_error = mission_belief_error
+        self.config.belief_confusion_score = belief_confusion_score
+        self.config.mission_masking_success = mission_masking_success
+        noise_tokens = [
+            token
+            for entry in noise_history.tolist()
+            for token in str(entry).split("|")
+            if token
+        ]
+        signal_tokens = [
+            token
+            for entry in signal_history.tolist()
+            for token in str(entry).split("|")
+            if token
+        ]
+        fake_signal_tokens = [
+            token
+            for entry in fake_signal_history.tolist()
+            for token in str(entry).split("|")
+            if token
+        ]
+        noise_event_count = len(noise_tokens)
+        signal_event_count = len(signal_tokens)
+        fake_signal_count = len(fake_signal_tokens)
+        adversarial_signal_count = fake_signal_count
+        signal_to_noise_ratio = float(signal_event_count / max(noise_event_count, 1))
+        if self.config.signal_extraction_enabled:
+            noise_filter_accuracy = float(np.clip(self.config.noise_filter_accuracy, 0.0, 1.0))
+        else:
+            noise_filter_accuracy = 0.0 if noise_event_count > 0 else 1.0
+        false_signal_acceptance_rate = float(np.clip(self.config.false_signal_acceptance_rate, 0.0, 1.0))
+        signal_confusion_score = false_signal_acceptance_rate
+        signal_consistency_score = (
+            float(np.mean(signal_consistency_history))
+            if len(signal_consistency_history) > 0
+            else float(self.config.signal_consistency_score)
+        )
+        decision_confidence = float(
+            np.clip(
+                0.55 * (signal_to_noise_ratio / (1.0 + signal_to_noise_ratio))
+                + 0.45 * noise_filter_accuracy,
+                0.0,
+                1.0,
+            )
+        )
+        self.config.noise_event_count = noise_event_count
+        self.config.signal_event_count = signal_event_count
+        self.config.signal_to_noise_ratio = signal_to_noise_ratio
+        self.config.noise_filter_accuracy = noise_filter_accuracy
+        self.config.fake_signal_count = fake_signal_count
+        self.config.adversarial_signal_count = adversarial_signal_count
+        self.config.false_signal_acceptance_rate = false_signal_acceptance_rate
+        self.config.signal_confusion_score = signal_confusion_score
+        self.config.signal_consistency_score = signal_consistency_score
+        self.config.decision_confidence = decision_confidence
+        mission_mutation_success = False
+        if self.mission_mutation_step is not None and len(mission_objective_series) > 1:
+            pre = mission_objective_series[: max(int(self.mission_mutation_step), 1)]
+            post = mission_objective_series[int(self.mission_mutation_step) + 1 :]
+            mission_mutation_success = bool(len(post) > 0 and float(np.mean(post)) >= float(np.mean(pre)))
+        self.config.mission_stability_score = mission_stability_score
+        self.config.mission_mutation_success = mission_mutation_success
+        observable_event_tokens = [
+            token
+            for entry in observable_event_history.tolist()
+            for token in str(entry).split("|")
+            if token
+        ]
+        critical_path_event_tokens = [
+            token
+            for entry in critical_path_event_history.tolist()
+            for token in str(entry).split("|")
+            if token
+        ]
+        selected_target_series = np.asarray(self.history.get('attacker_selected_target', []), dtype=int)
+        critical_path_nodes_for_metrics = self._static_critical_path_nodes()
+        proximity_values = []
+        for target in selected_target_series.tolist():
+            if int(target) < 0:
+                continue
+            distance = self._distance_to_nearest_critical_static(int(target))
+            proximity_values.append(0.0 if distance is None else 1.0 / (1.0 + float(distance)))
         ai_weighted_cost = (
             float(np.mean(ai_total_decision_cost_series))
             if len(ai_total_decision_cost_series) > 0
@@ -3426,6 +5401,112 @@ class CyberDefenseSimulator:
             'cns_weight_ai': float(self.config.cns_weight_ai),
             'cns_weight_protection': float(self.config.cns_weight_protection),
             **cns_objective_scores,
+            'adaptive_defender_enabled': bool(self.config.adaptive_defender_enabled),
+            'adaptive_defender_mode': self.config.adaptive_defender_mode,
+            'adaptive_selected_policy': self.config.adaptive_selected_policy or self.config.adaptive_policy_default,
+            'adaptive_policy_switch_count': int(self.config.adaptive_policy_switch_count),
+            'adaptive_policy_reason': self.config.adaptive_policy_reason,
+            'adaptive_policy_score': float(self.config.adaptive_policy_score),
+            'adaptive_policy_rank': int(self.config.adaptive_policy_rank),
+            'adaptive_selection_reason': self.config.adaptive_selection_reason,
+            'adaptive_estimated_cns': float(self.config.adaptive_estimated_cns),
+            'step_adaptive_defender_enabled': bool(self.config.step_adaptive_defender_enabled),
+            'adaptive_recheck_interval': int(self.config.adaptive_recheck_interval),
+            'adaptive_policy_switch_cost': float(self.config.adaptive_policy_switch_cost),
+            'adaptive_min_improvement': float(self.config.adaptive_min_improvement),
+            'mission_aware_defender_enabled': bool(self.config.mission_aware_defender_enabled),
+            'mission_aware_selected_policy': self.config.mission_aware_selected_policy or self.config.adaptive_selected_policy or self.config.adaptive_policy_default,
+            'mission_policy_match': bool(self.config.mission_policy_match),
+            'mission_policy_switch_count': int(self.config.mission_policy_switch_count),
+            'mission_aware_selection_reason': self.config.mission_aware_selection_reason,
+            'mission_aware_cns': (
+                float(cns_objective_scores.get('cns_objective_score', 0.0))
+                if self.config.mission_aware_defender_enabled
+                else 0.0
+            ),
+            'mission_belief_inference_enabled': bool(self.config.mission_belief_inference_enabled),
+            'belief_profit': float(self.config.belief_profit),
+            'belief_achievement': float(self.config.belief_achievement),
+            'belief_persistence': float(self.config.belief_persistence),
+            'belief_critical_hunter': float(self.config.belief_critical_hunter),
+            'predicted_mission': self.config.predicted_mission,
+            'mission_prediction_confidence': float(self.config.mission_prediction_confidence),
+            'mission_prediction_correct': bool(self.config.mission_prediction_correct),
+            'state_belief_inference_enabled': bool(self.config.state_belief_inference_enabled),
+            'belief_recon': float(self.config.belief_recon),
+            'belief_exploitation': float(self.config.belief_exploitation),
+            'belief_lateral_movement': float(self.config.belief_lateral_movement),
+            'belief_targeting': float(self.config.belief_targeting),
+            'belief_action_on_objective': float(self.config.belief_action_on_objective),
+            'predicted_state': self.config.predicted_state,
+            'state_prediction_confidence': float(self.config.state_prediction_confidence),
+            'state_transition_count': int(self.config.state_transition_count),
+            'virtual_topology_enabled': bool(self.config.virtual_topology_enabled),
+            'observable_events_enabled': bool(self.config.observable_events_enabled),
+            'critical_path_events_enabled': bool(self.config.critical_path_events_enabled),
+            'node_roles': {str(k): str(v) for k, v in (self.config.node_roles or {}).items()},
+            'observable_event_count': int(len(observable_event_tokens)),
+            'scan_count': int(observable_event_tokens.count("scan")),
+            'credential_use_count': int(observable_event_tokens.count("credential_use")),
+            'lateral_move_count': int(observable_event_tokens.count("lateral_move")),
+            'critical_probe_count': int(observable_event_tokens.count("critical_probe")),
+            'objective_action_count': int(observable_event_tokens.count("objective_action")),
+            'critical_path_proximity': float(np.mean(proximity_values)) if proximity_values else 0.0,
+            'critical_path_step_count': int(len(critical_path_event_tokens)),
+            'critical_node_visit_count': int(
+                sum(1 for target in selected_target_series.tolist() if int(target) in critical_path_nodes_for_metrics)
+            ),
+            'critical_edge_traversal_count': int(critical_path_event_tokens.count("critical_path_progress")),
+            'critical_path_entry_count': int(critical_path_event_tokens.count("critical_path_entry")),
+            'critical_path_progress_count': int(critical_path_event_tokens.count("critical_path_progress")),
+            'critical_path_near_target_count': int(critical_path_event_tokens.count("critical_path_near_target")),
+            'critical_asset_reach_count': int(critical_path_event_tokens.count("critical_asset_reach")),
+            'intelligence_defender_enabled': bool(self.config.intelligence_defender_enabled),
+            'selected_intelligence_policy': self.config.selected_intelligence_policy or self.config.adaptive_selected_policy,
+            'intelligence_risk_score': (
+                float(risk_score_history[-1])
+                if len(risk_score_history) > 0
+                else float(self.config.intelligence_risk_score)
+            ),
+            'intelligence_risk_score_mean': float(np.mean(risk_score_history)) if len(risk_score_history) > 0 else 0.0,
+            'risk_level': self.config.risk_level,
+            'risk_level_transition_count': int(self.config.risk_level_transition_count),
+            'decision_matrix_defender_enabled': bool(self.config.decision_matrix_defender_enabled),
+            'decision_matrix_policy': self.config.decision_matrix_policy,
+            'decision_matrix_match_count': int(self.config.decision_matrix_match_count),
+            'decision_matrix_override_count': int(self.config.decision_matrix_override_count),
+            'defense_campaign_enabled': bool(self.config.defense_campaign_enabled),
+            'campaign_effectiveness_score': (
+                float(cns_objective_scores.get('cns_objective_score', 0.0))
+                if self.config.defense_campaign_enabled
+                else 0.0
+            ),
+            'campaign_stage': self.config.campaign_stage,
+            'campaign_transition_count': int(self.config.campaign_transition_count),
+            'campaign_policy_switch_count': int(self.config.campaign_policy_switch_count),
+            'campaign_stage_history': [str(stage) for stage in self.history.get('campaign_stage_history', [])],
+            'campaign_policy_history': [str(policy) for policy in self.history.get('campaign_policy_history', [])],
+            'strategy_profile': self.config.campaign_strategy_profile,
+            'strategy_effectiveness_score': (
+                float(cns_objective_scores.get('cns_objective_score', 0.0))
+                if self.config.defense_campaign_enabled
+                else 0.0
+            ),
+            'profile_rank': int(self.config.profile_rank),
+            'best_weight_configuration': self.config.best_weight_configuration,
+            'mission_weight': float(mission_weight),
+            'state_weight': float(state_weight),
+            'critical_path_weight': float(critical_path_weight),
+            'weight_sweep_rank': int(self.config.weight_sweep_rank),
+            'adaptive_policy_switch_steps': [int(step) for step in self.adaptive_policy_switch_steps],
+            'adaptive_policy_history': adaptive_policy_id_history.astype(str).tolist(),
+            'adaptive_cns_gain': float(self.adaptive_cns_gain),
+            'adaptive_switch_cost_total': float(self.adaptive_switch_cost_total),
+            'adaptive_defender_effectiveness': (
+                float(cns_objective_scores.get('cns_objective_score', 0.0))
+                if self.config.adaptive_defender_enabled
+                else 0.0
+            ),
             'attacker_total_cost': float(self.attacker.total_cost),
             'attacker_compromised_value': float(self.attacker.compromised_value),
             'attacker_no_success_steps': int(self.attacker.no_success_steps),
@@ -3591,6 +5672,97 @@ class CyberDefenseSimulator:
             'node_trust_score': [float(value) for value in final_trust.tolist()],
             'expected_utility_final': float(np.max(expected_utility_final_values)) if len(expected_utility_final_values) > 0 else 0.0,
             'expected_utility_mean': float(np.mean(expected_utility_values)) if len(expected_utility_values) > 0 else 0.0,
+            'attacker_mission': self.config.attacker_mission,
+            'mission_expected_utility_weight': float(self.config.mission_expected_utility_weight),
+            'mission_trust_weight': float(self.config.mission_trust_weight),
+            'mission_planning_weight': float(self.config.mission_planning_weight),
+            'mission_critical_target_weight': float(self.config.mission_critical_target_weight),
+            'mission_success_score': float(mission_satisfaction_series[-1]) if len(mission_satisfaction_series) > 0 else 0.0,
+            'mission_satisfaction_score': float(np.mean(mission_satisfaction_series)) if len(mission_satisfaction_series) > 0 else 0.0,
+            'mission_objectives_enabled': bool(self.config.mission_objectives_enabled),
+            'mission_satisfaction': float(mission_satisfaction_series[-1]) if len(mission_satisfaction_series) > 0 else 0.0,
+            'mission_objective_score': float(np.mean(mission_objective_series)) if len(mission_objective_series) > 0 else 0.0,
+            'mission_failure_reason': (
+                str(mission_failure_reason_history[-1])
+                if len(mission_failure_reason_history) > 0
+                else str(self.config.mission_failure_reason)
+            ),
+            'objective_weight_profile': self.config.objective_weight_profile,
+            'mission_strategy_change': bool(self.config.mission_strategy_change),
+            'mission_sensitivity_score': float(self.config.mission_sensitivity_score),
+            'adaptive_mission_attacker_enabled': bool(self.config.adaptive_mission_attacker_enabled),
+            'observed_defense_strategy': self.config.observed_defense_strategy,
+            'defense_effectiveness_memory': float(self.config.defense_effectiveness_memory),
+            'strategy_failure_memory': float(self.config.strategy_failure_memory),
+            'strategy_success_memory': float(self.config.strategy_success_memory),
+            'adaptation_count': int(self.config.adaptation_count),
+            'ttp_change_count': int(self.config.ttp_change_count),
+            'strategy_avoidance_score': float(self.config.strategy_avoidance_score),
+            'alternative_path_usage': float(self.config.alternative_path_usage),
+            'observed_defense_history': observed_defense_history.astype(str).tolist(),
+            'adaptation_history': adaptation_history.astype(str).tolist(),
+            'mission_mutation_enabled': bool(self.config.mission_mutation_enabled),
+            'mission_change_count': mission_change_count,
+            'mission_stability_score': mission_stability_score,
+            'mission_mutation_reason': self.config.mission_mutation_reason,
+            'mission_mutation_success': mission_mutation_success,
+            'mission_history': mission_history.astype(str).tolist(),
+            'attacker_type': self.config.attacker_type,
+            'mission_reclassification_enabled': bool(self.config.mission_reclassification_enabled),
+            'mission_reclassification_count': int(self.config.mission_reclassification_count),
+            'defense_reoptimization_count': int(self.config.defense_reoptimization_count),
+            'reclassification_accuracy': float(self.config.reclassification_accuracy),
+            'belief_recovery_time': int(self.config.belief_recovery_time),
+            'reclassified_mission_history': reclassified_mission_history.astype(str).tolist(),
+            'selected_strategy_history': selected_strategy_history.astype(str).tolist(),
+            'multi_objective_mission_enabled': bool(self.config.multi_objective_mission_enabled),
+            'mission_weight_profit': float(self._mission_weight_vector().get("profit", 0.0)),
+            'mission_weight_achievement': float(self._mission_weight_vector().get("achievement", 0.0)),
+            'mission_weight_persistence': float(self._mission_weight_vector().get("persistence", 0.0)),
+            'mission_weight_critical_hunter': float(self._mission_weight_vector().get("critical_hunter", 0.0)),
+            'intent_deception_enabled': bool(self.config.intent_deception_enabled),
+            'deception_event_count': int(self.config.deception_event_count),
+            'mission_belief_error': mission_belief_error,
+            'belief_confusion_score': belief_confusion_score,
+            'true_mission': self.config.true_mission,
+            'observed_mission': self.config.observed_mission,
+            'mission_masking_success': mission_masking_success,
+            'true_mission_history': true_mission_history.astype(str).tolist(),
+            'observed_mission_history': observed_mission_history.astype(str).tolist(),
+            'deception_history': deception_history.astype(str).tolist(),
+            'noise_injection_enabled': bool(self.config.noise_injection_enabled),
+            'signal_extraction_enabled': bool(self.config.signal_extraction_enabled),
+            'noise_event_count': int(noise_event_count),
+            'signal_event_count': int(signal_event_count),
+            'signal_to_noise_ratio': signal_to_noise_ratio,
+            'noise_filter_accuracy': noise_filter_accuracy,
+            'decision_confidence': decision_confidence,
+            'adversarial_signal_enabled': bool(self.config.adversarial_signal_enabled),
+            'fake_signal_count': int(fake_signal_count),
+            'adversarial_signal_count': int(adversarial_signal_count),
+            'signal_confusion_score': signal_confusion_score,
+            'false_signal_acceptance_rate': false_signal_acceptance_rate,
+            'signal_consistency_score': signal_consistency_score,
+            'noise_history': noise_history.astype(str).tolist(),
+            'signal_history': signal_history.astype(str).tolist(),
+            'fake_signal_history': fake_signal_history.astype(str).tolist(),
+            'signal_consistency_history': signal_consistency_history.astype(float).tolist(),
+            'profit_expected_utility_weight': float(self.config.profit_expected_utility_weight),
+            'profit_success_weight': float(self.config.profit_success_weight),
+            'persistence_survival_weight': float(self.config.persistence_survival_weight),
+            'persistence_trust_weight': float(self.config.persistence_trust_weight),
+            'persistence_stealth_weight': float(self.config.persistence_stealth_weight),
+            'critical_progress_weight': float(self.config.critical_progress_weight),
+            'critical_reach_weight': float(self.config.critical_reach_weight),
+            'achievement_progress_weight': float(self.config.achievement_progress_weight),
+            'achievement_critical_weight': float(self.config.achievement_critical_weight),
+            'nonstationary_attacker_enabled': bool(self.config.nonstationary_attacker_enabled),
+            'attacker_phase_change_step': int(self.config.attacker_phase_change_step),
+            'nonstationary_attacker_pattern': self.config.nonstationary_attacker_pattern,
+            'attacker_phase': self.attacker_phase,
+            'attacker_phase_switch_count': int(self.attacker_phase_switch_count),
+            'attacker_strategy_name': self.attacker_strategy_name,
+            'attacker_phase_history': attacker_phase_history.astype(str).tolist(),
             'expected_gain_estimate': float(np.mean(expected_gain_vector)) if len(expected_gain_vector) > 0 else 0.0,
             'expected_detection_risk': float(np.mean(expected_detection_vector)) if len(expected_detection_vector) > 0 else 0.0,
             'expected_search_cost': float(np.mean(expected_search_vector)) if len(expected_search_vector) > 0 else 0.0,
@@ -3801,6 +5973,16 @@ class CyberDefenseSimulator:
                 planning_score=np.asarray(self.history['planning_score'], dtype=float),
                 trust_score=np.asarray(self.history['trust_score'], dtype=float),
                 expected_utility=np.asarray(self.history['expected_utility'], dtype=float),
+                attacker_phase=np.asarray(self.history['attacker_phase'], dtype='<U64'),
+                adaptive_policy_id=np.asarray(self.history['adaptive_policy_id'], dtype='<U64'),
+                selected_policy_history=np.asarray(self.history['selected_policy_history'], dtype='<U64'),
+                campaign_stage_history=np.asarray(self.history['campaign_stage_history'], dtype='<U64'),
+                campaign_policy_history=np.asarray(self.history['campaign_policy_history'], dtype='<U64'),
+                mission_belief=np.asarray(self.history['mission_belief'], dtype=float),
+                state_belief=np.asarray(self.history['state_belief'], dtype=float),
+                observable_events=np.asarray(self.history['observable_events'], dtype='<U128'),
+                critical_path_events=np.asarray(self.history['critical_path_events'], dtype='<U128'),
+                risk_score=np.asarray(self.history['risk_score'], dtype=float),
                 defender_observed_belief=np.asarray(self.history['defender_observed_belief'], dtype=float),
                 defender_estimated_belief=np.asarray(self.history['defender_estimated_belief'], dtype=float),
                 defender_target_counts=np.asarray(self.history['defender_target_counts'], dtype=float),
@@ -3838,6 +6020,21 @@ class CyberDefenseSimulator:
                 attacker_perceived_gain=np.asarray(self.history['attacker_perceived_gain'], dtype=float),
                 attacker_critical_true_gain=np.asarray(self.history['attacker_critical_true_gain'], dtype=float),
                 belief_entropy=np.asarray(self.history['belief_entropy'], dtype=float),
+                mission_satisfaction=np.asarray(self.history['mission_satisfaction'], dtype=float),
+                mission_objective_history=np.asarray(self.history['mission_objective_history'], dtype=float),
+                mission_failure_reason=np.asarray(self.history['mission_failure_reason_history'], dtype='<U64'),
+                observed_defense_history=np.asarray(self.history['observed_defense_history'], dtype='<U64'),
+                adaptation_history=np.asarray(self.history['adaptation_history'], dtype='<U64'),
+                mission_history=np.asarray(self.history['mission_history'], dtype='<U64'),
+                reclassified_mission_history=np.asarray(self.history['reclassified_mission_history'], dtype='<U64'),
+                selected_strategy_history=np.asarray(self.history['selected_strategy_history'], dtype='<U64'),
+                true_mission_history=np.asarray(self.history['true_mission_history'], dtype='<U64'),
+                observed_mission_history=np.asarray(self.history['observed_mission_history'], dtype='<U64'),
+                deception_history=np.asarray(self.history['deception_history'], dtype='<U128'),
+                noise_history=np.asarray(self.history['noise_history'], dtype='<U128'),
+                signal_history=np.asarray(self.history['signal_history'], dtype='<U128'),
+                fake_signal_history=np.asarray(self.history['fake_signal_history'], dtype='<U128'),
+                signal_consistency_history=np.asarray(self.history['signal_consistency_history'], dtype=float),
             )
             logger.info(f"History saved to {history_path}")
         return metrics

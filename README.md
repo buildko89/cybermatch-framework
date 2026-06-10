@@ -6,6 +6,7 @@ CyberMatch is a cyber-defense evaluation framework for both:
 - Decision Neutralization
 
 It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost. Phase3 validates Decision Neutralization against adaptive and rational attackers.
+Phase4 extends CyberMatch from adaptive defense to intelligence-driven active defense.
 
 ## Quick Start
 
@@ -103,6 +104,41 @@ Run:
 python scripts/run_phase3b.py
 ```
 
+### Phase4 - Intelligence-Driven Active Defense
+
+Goal:
+Extend CyberMatch from adaptive defense to intelligence-driven active defense.
+
+Major components:
+
+- Adaptive Defender
+- Mission Belief
+- State Belief
+- Virtual Enterprise Topology
+- Critical Path Intelligence
+- Intelligence Decision Matrix
+- Defense Campaign
+- Mission Mutation
+- Intent Deception
+- Noise Injection
+- Adversarial Signal Robustness
+
+Final interpretation:
+
+CyberMatch now evaluates attacker-defender co-evolution under mission mutation, deception, noise, and adversarial signal conditions.
+
+Run representative Phase4 publication milestones:
+
+```bash
+python scripts/run_phase4.py --quick
+```
+
+Run the full Phase4.1-Phase4.25 publication workflow:
+
+```bash
+python scripts/run_phase4.py --publication
+```
+
 ### All Evaluations
 
 Run:
@@ -149,6 +185,14 @@ Main Phase3-B finding:
 
 - Expected Utility is the strongest attacker model evaluated so far, and Decision Neutralization still remains effective.
 
+### Phase4 Summary
+
+Phase4 introduces Intelligence-Driven Active Defense. It adds mission belief, state belief, virtual topology, observable critical-path events, intelligence decision matrices, defense campaigns, mission mutation, intent deception, noise injection, adversarial signal evaluation, and consistency-check robustness.
+
+Main Phase4 finding:
+
+- CyberMatch evolved from an adaptive defense simulator into an intelligence-driven active defense co-evolution simulator.
+
 ### Recommended Policies
 
 - Defense Neutralization: `gated_edge_pressure_count_2`
@@ -178,6 +222,11 @@ Phase3-B:
 - [Phase3-B final report](docs/CYBERMATCH_PHASE3B_FINAL_REPORT.md)
 - [Phase3-B artifacts](docs/PHASE3B_ARTIFACTS.md)
 
+Phase4:
+
+- [Phase4 final report](docs/CYBERMATCH_PHASE4_FINAL_REPORT.md)
+- [Phase4 artifacts](docs/PHASE4_ARTIFACTS.md)
+
 Release and reproducibility:
 
 - [GitHub release notes](docs/GITHUB_RELEASE_NOTES.md)
@@ -199,6 +248,7 @@ cybermatch-framework/
     run_phase3.py
     run_phase3a.py
     run_phase3b.py
+    run_phase4.py
     run_all.py
   tests/
   docs/

@@ -31,7 +31,7 @@ python -m pytest
 Expected current result:
 
 ```text
-205 passed
+See the current validation output from `python -m pytest`.
 ```
 
 ## Compile Check
@@ -64,6 +64,18 @@ Run Phase3-B Rational Attacker Validation only:
 
 ```powershell
 python .\scripts\run_phase3b.py
+```
+
+Run Phase4 representative publication milestones:
+
+```powershell
+python .\scripts\run_phase4.py --quick
+```
+
+Run Phase4 full publication workflow:
+
+```powershell
+python .\scripts\run_phase4.py --publication
 ```
 
 Run all publication evaluations:
@@ -132,3 +144,46 @@ Expected Phase3-B artifacts:
 - `output/phase3_expected_utility/PHASE3_EXPECTED_UTILITY_REPORT.md`
 - `output/phase3_expected_utility/runs/summary_runs.csv`
 - `output/phase3_expected_utility/runs/summary_stats.json`
+
+Primary Phase4 outputs:
+
+- `output/phase4_adaptive_defender/`
+- `output/phase4_cns_guided/`
+- `output/phase4_step_adaptive/`
+- `output/phase4_nonstationary/`
+- `output/phase4_switch_benefit/`
+- `output/phase4_specialized_policy/`
+- `output/phase47_mission_profiles/`
+- `output/phase48_mission_aware/`
+- `output/phase49_mission_belief/`
+- `output/phase410_state_belief/`
+- `output/phase411_virtual_topology/`
+- `output/phase412_critical_path/`
+- `output/phase413_intelligence_defender/`
+- `output/phase414_weight_sweep/`
+- `output/phase415_decision_matrix/`
+- `output/phase416_defense_campaign/`
+- `output/phase417_campaign_profiles/`
+- `output/phase418_mission_objectives/`
+- `output/phase419_mission_sensitivity/`
+- `output/phase420_adaptive_mission/`
+- `output/phase421_mission_mutation/`
+- `output/phase422_adaptive_intelligence/`
+- `output/phase423_intent_deception/`
+- `output/phase424_signal_extraction/`
+- `output/phase425_adversarial_signal/`
+
+Expected Phase4 quick artifacts:
+
+- `output/phase4_publication/phase413_intelligence_defender/intelligence_summary.csv`
+- `output/phase4_publication/phase413_intelligence_defender/intelligence_summary.json`
+- `output/phase4_publication/phase413_intelligence_defender/PHASE413_INTELLIGENCE_DEFENDER_REPORT.md`
+- `output/phase4_publication/phase418_mission_objectives/mission_objective_summary.csv`
+- `output/phase4_publication/phase418_mission_objectives/mission_objective_summary.json`
+- `output/phase4_publication/phase418_mission_objectives/PHASE418_MISSION_OBJECTIVE_REPORT.md`
+- `output/phase4_publication/phase422_adaptive_intelligence/adaptive_intelligence_summary.csv`
+- `output/phase4_publication/phase422_adaptive_intelligence/adaptive_intelligence_summary.json`
+- `output/phase4_publication/phase422_adaptive_intelligence/PHASE422_ADAPTIVE_INTELLIGENCE_REPORT.md`
+- `output/phase4_publication/phase425_adversarial_signal/adversarial_signal_summary.csv`
+- `output/phase4_publication/phase425_adversarial_signal/adversarial_signal_summary.json`
+- `output/phase4_publication/phase425_adversarial_signal/PHASE425_ADVERSARIAL_SIGNAL_REPORT.md`
