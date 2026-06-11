@@ -45,6 +45,8 @@ from run_scenarios import (
     run_phase423_intent_deception_evaluation,
     run_phase424_signal_extraction_evaluation,
     run_phase425_adversarial_signal_evaluation,
+    run_phase51_coalition_evaluation,
+    run_phase52_coordination_cost_evaluation,
     run_scenarios,
     run_scenarios_multi_seed,
     _select_cns_guided_policy,
@@ -1590,6 +1592,105 @@ def test_phase425_adversarial_signal_outputs_exist(tmp_path):
     assert (tmp_path / "phase425_adversarial_signal" / "signal_confusion_score.png").exists()
     assert (tmp_path / "phase425_adversarial_signal" / "phase425_vs_phase424.png").exists()
     assert (tmp_path / "phase425_adversarial_signal" / "PHASE425_ADVERSARIAL_SIGNAL_REPORT.md").exists()
+
+
+def test_coalition_metrics_and_history_saved(tmp_path):
+    config = small_config(
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        adaptive_attacker_enabled=True,
+        attacker_lateral_enabled=True,
+        observable_events_enabled=True,
+        critical_path_events_enabled=True,
+        coalition_enabled=True,
+        coalition_size=2,
+        coalition_role="recon_specialist",
+        attacker_type="coalition_attacker",
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    metrics = sim.save_outputs(str(tmp_path))
+
+    assert metrics["coalition_enabled"] is True
+    assert metrics["coalition_handover_count"] > 0
+    assert metrics["coalition_success_rate"] >= 0.0
+    assert metrics["campaign_completion_score"] >= 0.0
+    assert len(history["coalition_role_history"]) == config.T
+    assert len(history["coalition_handover_history"]) == config.T
+    saved = np.load(tmp_path / "history.npz")
+    assert "coalition_role_history" in saved.files
+    assert "coalition_handover_history" in saved.files
+    assert "coordination_history" in saved.files
+    assert "trust_history" in saved.files
+    assert "handover_failure_history" in saved.files
+
+
+def test_coalition_coordination_cost_can_fail_handover(tmp_path):
+    config = small_config(
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        adaptive_attacker_enabled=True,
+        attacker_lateral_enabled=True,
+        observable_events_enabled=True,
+        critical_path_events_enabled=True,
+        coalition_enabled=True,
+        coalition_size=3,
+        coalition_role="recon_specialist",
+        attacker_type="coalition_attacker",
+        coalition_coordination_cost_enabled=True,
+        coordination_cost=0.95,
+        coalition_information_loss_enabled=True,
+        coalition_trust_enabled=True,
+    )
+    sim = CyberDefenseSimulator(config)
+    sim.run()
+    metrics = sim.save_outputs(str(tmp_path))
+
+    assert metrics["failed_handover_count"] > 0
+    assert metrics["coordination_efficiency"] < 1.0
+    assert metrics["coalition_trust_score"] < 1.0
+
+
+def test_phase51_coalition_outputs_exist(tmp_path):
+    rows = run_phase51_coalition_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase51_coalition"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["balanced"],
+    )
+
+    modes = {row["attacker_mode"] for row in rows}
+    assert {"single_attacker", "coalition_attacker", "coalition_mutation", "coalition_adaptive_defender"}.issubset(modes)
+    coalition_rows = [row for row in rows if bool(row["coalition_enabled"])]
+    assert any(row["coalition_handover_count"] > 0 for row in coalition_rows)
+    assert (tmp_path / "phase51_coalition" / "coalition_summary.csv").exists()
+    assert (tmp_path / "phase51_coalition" / "coalition_summary.json").exists()
+    assert (tmp_path / "phase51_coalition" / "coalition_handover_count.png").exists()
+    assert (tmp_path / "phase51_coalition" / "coalition_role_efficiency.png").exists()
+    assert (tmp_path / "phase51_coalition" / "phase51_vs_phase425.png").exists()
+    assert (tmp_path / "phase51_coalition" / "PHASE51_COALITION_REPORT.md").exists()
+
+
+def test_phase52_coordination_cost_outputs_exist(tmp_path):
+    rows = run_phase52_coordination_cost_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase52_coordination_cost"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["balanced"],
+        coordination_costs=[0.0, 0.3],
+        coalition_sizes=[2],
+    )
+
+    modes = {row["phase52_mode"] for row in rows}
+    assert {"single_attacker", "coalition_attacker", "coalition_coordination_cost"}.issubset(modes)
+    cost_rows = [row for row in rows if row["phase52_mode"] == "coalition_coordination_cost"]
+    assert any(row["coordination_cost"] == 0.3 for row in cost_rows)
+    assert (tmp_path / "phase52_coordination_cost" / "coordination_cost_summary.csv").exists()
+    assert (tmp_path / "phase52_coordination_cost" / "coordination_cost_summary.json").exists()
+    assert (tmp_path / "phase52_coordination_cost" / "coordination_efficiency.png").exists()
+    assert (tmp_path / "phase52_coordination_cost" / "failed_handover_count.png").exists()
+    assert (tmp_path / "phase52_coordination_cost" / "phase52_vs_phase51.png").exists()
+    assert (tmp_path / "phase52_coordination_cost" / "PHASE52_COORDINATION_COST_REPORT.md").exists()
 
 
 def test_best_policy_fields_exist(tmp_path):

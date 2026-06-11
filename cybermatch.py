@@ -310,6 +310,20 @@ class SimulationConfig:
     signal_confusion_score: float = 0.0
     false_signal_acceptance_rate: float = 0.0
     signal_consistency_score: float = 1.0
+    coalition_enabled: bool = False
+    coalition_size: int = 2
+    coalition_id: str = "coalition_0"
+    coalition_role: str = "recon_specialist"
+    coalition_handover_count: int = 0
+    coalition_coordination_score: float = 0.0
+    coalition_delegation_state: str = "Active Owner"
+    coalition_coordination_cost_enabled: bool = False
+    coordination_cost: float = 0.0
+    coalition_information_loss_enabled: bool = False
+    coalition_trust_enabled: bool = False
+    coalition_trust_score: float = 1.0
+    trust_degradation_count: int = 0
+    failed_handover_count: int = 0
     attacker_lateral_enabled: bool = False
     attacker_lateral_success_prob: float = 0.8
     attacker_lateral_detection_prob: float = 0.2
@@ -422,6 +436,16 @@ class SimulationConfig:
             errors.append("dynamic_matching_delta_threshold must be >= 0")
         if self.attacker_attack_budget < 0:
             errors.append("attacker_attack_budget must be >= 0")
+        if self.coalition_size <= 0:
+            errors.append("coalition_size must be > 0")
+        if self.coalition_role not in ("single_attacker", "recon_specialist", "access_specialist", "objective_specialist"):
+            errors.append("coalition_role must be one of: single_attacker, recon_specialist, access_specialist, objective_specialist")
+        if self.coalition_delegation_state not in ("Active Owner", "Preparing Handover", "Delegated"):
+            errors.append("coalition_delegation_state must be one of: Active Owner, Preparing Handover, Delegated")
+        if self.coordination_cost < 0:
+            errors.append("coordination_cost must be >= 0")
+        if not 0 <= self.coalition_trust_score <= 1:
+            errors.append("coalition_trust_score must be between 0 and 1")
         if self.attacker_target_selection not in ("greedy", "random", "adaptive"):
             errors.append("attacker_target_selection must be one of: greedy, random, adaptive")
         if self.attacker_effort_cost_rate < 0:
@@ -644,8 +668,8 @@ class SimulationConfig:
         ):
             if value < 0:
                 errors.append(f"{key} must be >= 0")
-        if self.attacker_type not in ("standard", "adaptive_mission_attacker", "adaptive_mission_mutator", "intent_deception_attacker"):
-            errors.append("attacker_type must be one of: standard, adaptive_mission_attacker, adaptive_mission_mutator, intent_deception_attacker")
+        if self.attacker_type not in ("standard", "adaptive_mission_attacker", "adaptive_mission_mutator", "intent_deception_attacker", "coalition_attacker"):
+            errors.append("attacker_type must be one of: standard, adaptive_mission_attacker, adaptive_mission_mutator, intent_deception_attacker, coalition_attacker")
         if self.mission_reclassification_count < 0:
             errors.append("mission_reclassification_count must be >= 0")
         if self.defense_reoptimization_count < 0:
@@ -1981,6 +2005,20 @@ class CyberDefenseSimulator:
         self.previous_risk_level = "unknown"
         self.previous_campaign_stage = "none"
         self.previous_campaign_policy = ""
+        self.coalition_role_order = ["recon_specialist", "access_specialist", "objective_specialist"]
+        self.current_coalition_role = (
+            self.config.coalition_role
+            if self.config.coalition_role in self.coalition_role_order
+            else "recon_specialist"
+        )
+        self.coalition_delegation_state = "Active Owner"
+        self.coalition_handover_events: List[str] = []
+        self.current_handover_quality = 1.0
+        self.coalition_trust_score = float(np.clip(self.config.coalition_trust_score, 0.0, 1.0))
+        self.trust_degradation_count = int(self.config.trust_degradation_count)
+        self.failed_handover_count = int(self.config.failed_handover_count)
+        self.effective_handover_count = int(self.config.coalition_handover_count)
+        self.coalition_information_loss_score = 0.0
         self.history = {
             'x': [],
             'raw_x': [],
@@ -2089,6 +2127,12 @@ class CyberDefenseSimulator:
             'signal_history': [],
             'fake_signal_history': [],
             'signal_consistency_history': [],
+            'coalition_role_history': [],
+            'coalition_handover_history': [],
+            'coalition_delegation_state_history': [],
+            'coordination_history': [],
+            'trust_history': [],
+            'handover_failure_history': [],
         }
 
     def _create_attacker(self) -> AttackerModel:
@@ -2237,6 +2281,140 @@ class CyberDefenseSimulator:
             return "stage2"
         return "none"
 
+    def _coalition_target_override(self, selected_target: int) -> int:
+        if not self.config.coalition_enabled or selected_target < 0:
+            return selected_target
+        role = self.current_coalition_role
+        critical_nodes = {int(node) for node in self.config.critical_nodes}
+        if role == "recon_specialist":
+            for node in self.config.entry_nodes:
+                node_id = int(node)
+                if node_id not in critical_nodes:
+                    return node_id
+        if role == "access_specialist":
+            candidates = [
+                int(node)
+                for node in range(self.config.n_nodes)
+                if int(node) not in critical_nodes
+                and self._target_moves_closer_to_critical(int(self.attacker.current_node), int(node))
+            ]
+            if candidates:
+                return max(candidates, key=lambda node: float(self.config.attacker_belief[node]))
+        if role == "objective_specialist" and critical_nodes:
+            return max(critical_nodes, key=lambda node: float(self.config.attacker_belief[node]))
+        return selected_target
+
+    def _coalition_success_bonus(self, selected_target: int, attack_active: bool) -> float:
+        if not self.config.coalition_enabled or not attack_active or selected_target < 0:
+            return 0.0
+        role = self.current_coalition_role
+        bonus = {
+            "recon_specialist": 0.03,
+            "access_specialist": 0.08,
+            "objective_specialist": 0.06,
+        }.get(role, 0.0)
+        if role == "objective_specialist" and int(selected_target) in {int(node) for node in self.config.critical_nodes}:
+            bonus += 0.04
+        return float(bonus * self.current_handover_quality)
+
+    def _coalition_handover_success_probability(self) -> float:
+        cost = float(self.config.coordination_cost) if self.config.coalition_coordination_cost_enabled else 0.0
+        trust_penalty = 1.0 - self.coalition_trust_score if self.config.coalition_trust_enabled else 0.0
+        information_penalty = 0.15 if self.config.coalition_information_loss_enabled else 0.0
+        size_penalty = max(int(self.config.coalition_size) - 2, 0) * 0.05
+        return float(np.clip(1.0 - cost - 0.5 * trust_penalty - information_penalty - size_penalty, 0.05, 1.0))
+
+    def _apply_coalition_information_loss(self, selected_target: int, failed: bool) -> float:
+        if not self.config.coalition_information_loss_enabled:
+            self.coalition_information_loss_score = 0.0
+            return 0.0
+        base_loss = 0.12 + float(self.config.coordination_cost) * 0.25
+        loss = float(np.clip(base_loss + (0.10 if failed else 0.0), 0.0, 0.6))
+        if 0 <= selected_target < len(self.config.attacker_belief):
+            belief = np.asarray(self.config.attacker_belief, dtype=float).copy()
+            belief[int(selected_target)] = max(float(belief[int(selected_target)]) * (1.0 - loss), 0.0)
+            total = float(np.sum(belief))
+            if total > 0.0:
+                belief = belief / total
+            self.config.attacker_belief = belief
+        self.coalition_information_loss_score = loss
+        return loss
+
+    def _update_coalition_delegation(
+        self,
+        step: int,
+        observable_events: List[str],
+        critical_path_events: List[str],
+        selected_target: int,
+        credential_used: bool,
+        success: bool,
+    ) -> str:
+        if not self.config.coalition_enabled:
+            self.config.coalition_role = "single_attacker"
+            self.config.coalition_delegation_state = "Active Owner"
+            self.config.coalition_coordination_score = 0.0
+            return "none"
+
+        role = self.current_coalition_role
+        all_events = set(observable_events) | set(critical_path_events)
+        next_role = role
+        if role == "recon_specialist" and (
+            "scan" in all_events or "critical_path_discovery" in all_events or step >= 1
+        ):
+            next_role = "access_specialist"
+        elif role == "access_specialist" and (
+            credential_used or "credential_use" in all_events or "lateral_move" in all_events or step >= 3
+        ):
+            next_role = "objective_specialist"
+
+        handover_event = "none"
+        if next_role != role:
+            handover_prob = self._coalition_handover_success_probability()
+            handover_success = bool(self.rng.random() < handover_prob)
+            information_loss = self._apply_coalition_information_loss(selected_target, failed=not handover_success)
+            if handover_success:
+                self.config.coalition_handover_count += 1
+                self.effective_handover_count += 1
+                self.coalition_delegation_state = "Preparing Handover"
+                handover_event = f"{role}->{next_role}"
+                self.coalition_handover_events.append(handover_event)
+                self.current_coalition_role = next_role
+                if self.config.coalition_trust_enabled:
+                    self.coalition_trust_score = float(np.clip(self.coalition_trust_score + 0.02, 0.0, 1.0))
+            else:
+                self.failed_handover_count += 1
+                self.config.failed_handover_count = self.failed_handover_count
+                self.coalition_delegation_state = "Active Owner"
+                handover_event = f"failed:{role}->{next_role}"
+                if self.config.coalition_trust_enabled:
+                    self.coalition_trust_score = float(np.clip(self.coalition_trust_score - 0.15, 0.0, 1.0))
+                    self.trust_degradation_count += 1
+                    self.config.trust_degradation_count = self.trust_degradation_count
+            cost = float(self.config.coordination_cost) if self.config.coalition_coordination_cost_enabled else 0.0
+            self.current_handover_quality = float(np.clip(1.0 - cost - information_loss - (0.10 if not handover_success else 0.0), 0.1, 1.0))
+        elif self.coalition_delegation_state == "Preparing Handover":
+            self.coalition_delegation_state = "Delegated"
+            self.current_handover_quality = float(np.clip(self.current_handover_quality + 0.03, 0.1, 1.0))
+        else:
+            self.coalition_delegation_state = "Active Owner"
+            self.current_handover_quality = float(np.clip(self.current_handover_quality + 0.01, 0.1, 1.0))
+
+        role_index = self.coalition_role_order.index(self.current_coalition_role)
+        self.config.coalition_role = self.current_coalition_role
+        self.config.coalition_delegation_state = self.coalition_delegation_state
+        self.config.coalition_trust_score = self.coalition_trust_score
+        self.config.coalition_coordination_score = float(
+            np.clip(
+                self.current_handover_quality
+                * (self.effective_handover_count + int(success))
+                / max(len(self.coalition_role_order), 1),
+                0.0,
+                1.0,
+            )
+        )
+        self.config.coalition_id = f"coalition_{role_index % max(int(self.config.coalition_size), 1)}"
+        return handover_event
+
     def run(self):
         logger.info(f"Starting simulation for T={self.config.T} steps...")
         for t in range(self.config.T):
@@ -2261,6 +2439,13 @@ class CyberDefenseSimulator:
             mtd_affected_belief = self._apply_mtd(t)
             attack_vector = self.attacker.select_attack(self._attacker_risk_view(), self.M)
             selected_target = int(self.attacker.last_selected_target)
+            coalition_selected_target = self._coalition_target_override(selected_target)
+            if coalition_selected_target != selected_target:
+                selected_target = int(coalition_selected_target)
+                attack_vector = np.zeros(self.config.n_nodes, dtype=float)
+                attack_vector[selected_target] = float(self.attacker.attack_budget)
+                self.attacker.previous_selected_target = int(self.attacker.last_selected_target)
+                self.attacker.last_selected_target = selected_target
             attacked_decoy = self._is_decoy_target(selected_target)
             target_defense_strength = self._target_defense_strength(selected_target, r_opt)
             d_current = self.config.d_base + self.config.beta * np.tanh(self.x_current) + attack_vector
@@ -2279,6 +2464,11 @@ class CyberDefenseSimulator:
             if attack_active:
                 if self.config.attacker_lateral_enabled:
                     success_prob = self._lateral_success_probability(attacked_decoy)
+                    success_prob = float(np.clip(
+                        success_prob + self._coalition_success_bonus(selected_target, attack_active),
+                        0.0,
+                        1.0,
+                    ))
                     success = bool(self.rng.random() < success_prob)
                 else:
                     success_prob = self._attack_success_probability(
@@ -2286,7 +2476,14 @@ class CyberDefenseSimulator:
                         attacked_decoy,
                         target_defense_strength,
                     )
+                    success_prob = float(np.clip(
+                        success_prob + self._coalition_success_bonus(selected_target, attack_active),
+                        0.0,
+                        1.0,
+                    ))
                     success = self._attack_succeeds(gained, attacked_decoy, target_defense_strength)
+                    if self.config.coalition_enabled and not success and self.rng.random() < success_prob:
+                        success = True
                 if not success:
                     gained = 0.0
                 # Perceived gain: what the attacker believes they gained (belief-based, no decoy penalty).
@@ -2436,6 +2633,14 @@ class CyberDefenseSimulator:
                 critical_path_events,
                 selected_target,
             )
+            coalition_handover_event = self._update_coalition_delegation(
+                step=t,
+                observable_events=extracted_observable_events,
+                critical_path_events=critical_path_events,
+                selected_target=selected_target,
+                credential_used=credential_used,
+                success=success,
+            )
             if attack_active and attacked_decoy and self.first_decoy_step is None:
                 self.first_decoy_step = t
             if self.attacker.retreated and self.attacker_retreat_step is None:
@@ -2540,6 +2745,12 @@ class CyberDefenseSimulator:
             self.history['signal_history'].append("|".join(signal_events))
             self.history['fake_signal_history'].append("|".join(fake_signal_events))
             self.history['signal_consistency_history'].append(float(consistency_score))
+            self.history['coalition_role_history'].append(str(self.config.coalition_role))
+            self.history['coalition_handover_history'].append(str(coalition_handover_event))
+            self.history['coalition_delegation_state_history'].append(str(self.config.coalition_delegation_state))
+            self.history['coordination_history'].append(float(self.config.coalition_coordination_score))
+            self.history['trust_history'].append(float(self.coalition_trust_score))
+            self.history['handover_failure_history'].append(1 if str(coalition_handover_event).startswith("failed:") else 0)
             self._mission_belief_update(
                 credential_decoy_trigger=bool(credential_decoy_trigger),
                 selected_target=int(selected_target) if selected_target is not None else None,
@@ -4964,6 +5175,12 @@ class CyberDefenseSimulator:
         signal_history = np.asarray(self.history.get('signal_history', []), dtype='<U128')
         fake_signal_history = np.asarray(self.history.get('fake_signal_history', []), dtype='<U128')
         signal_consistency_history = np.asarray(self.history.get('signal_consistency_history', []), dtype=float)
+        coalition_role_history = np.asarray(self.history.get('coalition_role_history', []), dtype='<U64')
+        coalition_handover_history = np.asarray(self.history.get('coalition_handover_history', []), dtype='<U128')
+        coalition_delegation_state_history = np.asarray(self.history.get('coalition_delegation_state_history', []), dtype='<U64')
+        coordination_history = np.asarray(self.history.get('coordination_history', []), dtype=float)
+        coalition_trust_history = np.asarray(self.history.get('trust_history', []), dtype=float)
+        handover_failure_history = np.asarray(self.history.get('handover_failure_history', []), dtype=int)
         mission_change_count = int(self.config.mission_change_count)
         mission_stability_score = float(
             np.clip(1.0 - mission_change_count / max(float(len(mission_history)), 1.0), 0.0, 1.0)
@@ -5135,6 +5352,51 @@ class CyberDefenseSimulator:
         attacker_cost_per_success = float(self.attacker.total_cost / successes_for_ratio)
         attacker_detection_rate = float(attacker_detected_count / successes_for_ratio)
         attacker_success_rate = float(attacker_success_count / steps_for_rate)
+        failed_handover_count = int(np.count_nonzero(handover_failure_history > 0))
+        effective_handover_count = int(np.count_nonzero((coalition_handover_history != "none") & (np.char.startswith(coalition_handover_history, "failed:") == False)))
+        coalition_handover_count = effective_handover_count
+        coalition_delegated_steps = int(np.count_nonzero(coalition_delegation_state_history == "Delegated"))
+        coalition_preparing_steps = int(np.count_nonzero(coalition_delegation_state_history == "Preparing Handover"))
+        attempted_handover_count = effective_handover_count + failed_handover_count
+        coordination_efficiency = float(effective_handover_count / max(attempted_handover_count, 1))
+        campaign_delay_score = float(np.clip(failed_handover_count / max(len(hx), 1), 0.0, 1.0))
+        coalition_trust_score = float(coalition_trust_history[-1]) if len(coalition_trust_history) else float(self.coalition_trust_score)
+        coalition_relevant_events = 0
+        coalition_role_steps = 0
+        for role, event_text, critical_text in zip(coalition_role_history, observable_event_history, critical_path_event_history):
+            role = str(role)
+            events = set(str(event_text).split("|")) | set(str(critical_text).split("|"))
+            if role == "recon_specialist":
+                relevant = {"scan", "critical_path_discovery"}
+            elif role == "access_specialist":
+                relevant = {"credential_use", "lateral_move"}
+            elif role == "objective_specialist":
+                relevant = {"critical_path_near_target", "objective_action", "critical_asset_reach"}
+            else:
+                relevant = set()
+            if relevant:
+                coalition_role_steps += 1
+                if events & relevant:
+                    coalition_relevant_events += 1
+        coalition_role_efficiency = float(coalition_relevant_events / max(coalition_role_steps, 1))
+        campaign_completion_score = 0.0
+        if self.config.coalition_enabled:
+            stage_score = min(float(coalition_handover_count) / 2.0, 1.0)
+            objective_score = 1.0 if self.critical_compromise else float(
+                np.count_nonzero([("objective_action" in str(value)) or ("critical_asset_reach" in str(value)) for value in observable_event_history])
+                > 0
+            )
+            cost = float(self.config.coordination_cost) if self.config.coalition_coordination_cost_enabled else 0.0
+            campaign_completion_score = float(np.clip(
+                (0.6 * stage_score + 0.4 * objective_score) * coordination_efficiency - 0.2 * cost - 0.2 * campaign_delay_score,
+                0.0,
+                1.0,
+            ))
+        coalition_success_rate = (
+            float(np.clip(0.5 * attacker_success_rate + 0.5 * campaign_completion_score, 0.0, 1.0))
+            if self.config.coalition_enabled
+            else attacker_success_rate
+        )
         selected_targets = np.asarray(self.history['attacker_selected_target'], dtype=int)
         valid_targets = selected_targets[selected_targets >= 0]
         valid_attack_mask = selected_targets >= 0
@@ -5346,6 +5608,32 @@ class CyberDefenseSimulator:
             'attacker_enabled': bool(self.attacker.enabled),
             'attacker_retreated': bool(self.attacker.retreated),
             'attacker_retreat_step': self.attacker_retreat_step,
+            'coalition_enabled': bool(self.config.coalition_enabled),
+            'coalition_size': int(self.config.coalition_size),
+            'coalition_id': self.config.coalition_id,
+            'coalition_role': self.config.coalition_role,
+            'coalition_handover_count': coalition_handover_count,
+            'coalition_coordination_score': float(self.config.coalition_coordination_score),
+            'coalition_delegation_state': self.config.coalition_delegation_state,
+            'coalition_coordination_cost_enabled': bool(self.config.coalition_coordination_cost_enabled),
+            'coordination_cost': float(self.config.coordination_cost),
+            'coalition_information_loss_enabled': bool(self.config.coalition_information_loss_enabled),
+            'coalition_trust_enabled': bool(self.config.coalition_trust_enabled),
+            'effective_handover_count': effective_handover_count,
+            'failed_handover_count': failed_handover_count,
+            'coordination_efficiency': coordination_efficiency,
+            'campaign_delay_score': campaign_delay_score,
+            'coalition_trust_score': coalition_trust_score,
+            'trust_degradation_count': int(self.trust_degradation_count),
+            'coalition_success_rate': coalition_success_rate,
+            'coalition_role_efficiency': coalition_role_efficiency,
+            'campaign_completion_score': campaign_completion_score,
+            'campaign_delegation_observed': bool(coalition_handover_count > 0 and coalition_delegated_steps > 0),
+            'coalition_preparing_handover_steps': coalition_preparing_steps,
+            'coalition_delegated_steps': coalition_delegated_steps,
+            'coalition_role_history': coalition_role_history.astype(str).tolist(),
+            'coalition_handover_history': coalition_handover_history.astype(str).tolist(),
+            'coalition_delegation_state_history': coalition_delegation_state_history.astype(str).tolist(),
             'attacker_utility_final': float(self.attacker.utility),
             'actual_utility_final': float(self.attacker.actual_utility),
             'perceived_utility_final': float(self.attacker.perceived_utility),
@@ -6035,6 +6323,12 @@ class CyberDefenseSimulator:
                 signal_history=np.asarray(self.history['signal_history'], dtype='<U128'),
                 fake_signal_history=np.asarray(self.history['fake_signal_history'], dtype='<U128'),
                 signal_consistency_history=np.asarray(self.history['signal_consistency_history'], dtype=float),
+                coalition_role_history=np.asarray(self.history['coalition_role_history'], dtype='<U64'),
+                coalition_handover_history=np.asarray(self.history['coalition_handover_history'], dtype='<U128'),
+                coalition_delegation_state_history=np.asarray(self.history['coalition_delegation_state_history'], dtype='<U64'),
+                coordination_history=np.asarray(self.history['coordination_history'], dtype=float),
+                trust_history=np.asarray(self.history['trust_history'], dtype=float),
+                handover_failure_history=np.asarray(self.history['handover_failure_history'], dtype=int),
             )
             logger.info(f"History saved to {history_path}")
         return metrics

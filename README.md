@@ -22,6 +22,16 @@ Run tests:
 python -m pytest
 ```
 
+For normal development, prefer the shorter test profiles:
+
+```bash
+python scripts/run_tests.py --smoke
+python scripts/run_tests.py --phase phase5
+python scripts/run_tests.py --full
+```
+
+The full regression suite includes slow evaluation artifact tests. Use smoke or phase-specific tests for routine iteration.
+
 ### Phase1
 
 Goal:

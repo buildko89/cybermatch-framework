@@ -2244,6 +2244,32 @@ MULTI_SEED_RUN_COLUMNS = [
     "mission_mutation_success",
     "mission_history",
     "attacker_type",
+    "coalition_enabled",
+    "coalition_size",
+    "coalition_id",
+    "coalition_role",
+    "coalition_handover_count",
+    "coalition_coordination_score",
+    "coalition_delegation_state",
+    "coalition_coordination_cost_enabled",
+    "coordination_cost",
+    "coalition_information_loss_enabled",
+    "coalition_trust_enabled",
+    "effective_handover_count",
+    "failed_handover_count",
+    "coordination_efficiency",
+    "campaign_delay_score",
+    "coalition_trust_score",
+    "trust_degradation_count",
+    "coalition_success_rate",
+    "coalition_role_efficiency",
+    "campaign_completion_score",
+    "campaign_delegation_observed",
+    "coalition_preparing_handover_steps",
+    "coalition_delegated_steps",
+    "coalition_role_history",
+    "coalition_handover_history",
+    "coalition_delegation_state_history",
     "mission_reclassification_enabled",
     "mission_reclassification_count",
     "defense_reoptimization_count",
@@ -2701,6 +2727,43 @@ MULTI_SEED_STATS_COLUMNS = [
     "mission_mutation_success_rate",
     "mission_history",
     "attacker_type",
+    "coalition_enabled",
+    "coalition_size",
+    "coalition_id",
+    "coalition_role",
+    "coalition_handover_count_mean",
+    "coalition_handover_count_std",
+    "coalition_coordination_score_mean",
+    "coalition_coordination_score_std",
+    "coalition_delegation_state",
+    "coalition_coordination_cost_enabled",
+    "coordination_cost",
+    "coalition_information_loss_enabled",
+    "coalition_trust_enabled",
+    "effective_handover_count_mean",
+    "effective_handover_count_std",
+    "failed_handover_count_mean",
+    "failed_handover_count_std",
+    "coordination_efficiency_mean",
+    "coordination_efficiency_std",
+    "campaign_delay_score_mean",
+    "campaign_delay_score_std",
+    "coalition_trust_score_mean",
+    "coalition_trust_score_std",
+    "trust_degradation_count_mean",
+    "trust_degradation_count_std",
+    "coalition_success_rate_mean",
+    "coalition_success_rate_std",
+    "coalition_role_efficiency_mean",
+    "coalition_role_efficiency_std",
+    "campaign_completion_score_mean",
+    "campaign_completion_score_std",
+    "campaign_delegation_observed_rate",
+    "coalition_preparing_handover_steps_mean",
+    "coalition_delegated_steps_mean",
+    "coalition_role_history",
+    "coalition_handover_history",
+    "coalition_delegation_state_history",
     "mission_reclassification_enabled",
     "mission_reclassification_count_mean",
     "mission_reclassification_count_std",
@@ -3769,6 +3832,18 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "mission_mutation_reason": rows[0].get("mission_mutation_reason") if rows else None,
         "mission_history": rows[0].get("mission_history") if rows else None,
         "attacker_type": rows[0].get("attacker_type") if rows else None,
+        "coalition_enabled": rows[0].get("coalition_enabled") if rows else None,
+        "coalition_size": rows[0].get("coalition_size") if rows else None,
+        "coalition_id": rows[0].get("coalition_id") if rows else None,
+        "coalition_role": rows[0].get("coalition_role") if rows else None,
+        "coalition_delegation_state": rows[0].get("coalition_delegation_state") if rows else None,
+        "coalition_coordination_cost_enabled": rows[0].get("coalition_coordination_cost_enabled") if rows else None,
+        "coordination_cost": rows[0].get("coordination_cost") if rows else None,
+        "coalition_information_loss_enabled": rows[0].get("coalition_information_loss_enabled") if rows else None,
+        "coalition_trust_enabled": rows[0].get("coalition_trust_enabled") if rows else None,
+        "coalition_role_history": rows[0].get("coalition_role_history") if rows else None,
+        "coalition_handover_history": rows[0].get("coalition_handover_history") if rows else None,
+        "coalition_delegation_state_history": rows[0].get("coalition_delegation_state_history") if rows else None,
         "mission_reclassification_enabled": rows[0].get("mission_reclassification_enabled") if rows else None,
         "reclassified_mission_history": rows[0].get("reclassified_mission_history") if rows else None,
         "selected_strategy_history": rows[0].get("selected_strategy_history") if rows else None,
@@ -3888,6 +3963,20 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "mission_change_count",
         "mission_stability_score",
         "mission_mutation_success",
+        "coalition_handover_count",
+        "coalition_coordination_score",
+        "coalition_success_rate",
+        "coalition_role_efficiency",
+        "campaign_completion_score",
+        "campaign_delegation_observed",
+        "effective_handover_count",
+        "failed_handover_count",
+        "coordination_efficiency",
+        "campaign_delay_score",
+        "coalition_trust_score",
+        "trust_degradation_count",
+        "coalition_preparing_handover_steps",
+        "coalition_delegated_steps",
         "mission_reclassification_count",
         "defense_reoptimization_count",
         "reclassification_accuracy",
@@ -4037,6 +4126,9 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
     result["confidence_mean"] = result.get("mean_confidence_mean")
     result["confidence_std"] = result.get("mean_confidence_std")
     result["mission_mutation_success_rate"] = result.get("mission_mutation_success_mean")
+    result["campaign_delegation_observed_rate"] = result.get("campaign_delegation_observed_mean")
+    result["coalition_preparing_handover_steps_mean"] = result.get("coalition_preparing_handover_steps_mean")
+    result["coalition_delegated_steps_mean"] = result.get("coalition_delegated_steps_mean")
     result["frustration_mean"] = result.get("frustration_mean_mean")
     result["frustration_std"] = result.get("frustration_mean_std")
     result["frustration_max"] = result.get("frustration_max_mean")
@@ -14079,6 +14171,490 @@ def _write_phase425_adversarial_signal_report(rows: List[Dict[str, object]], ana
             f"{_to_float(row.get('decision_confidence')):.3f} | {_to_float(row.get('mission_objective_defense_score')):.3f} |"
         )
     with open(os.path.join(output_dir, "PHASE425_ADVERSARIAL_SIGNAL_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE51_COALITION_COLUMNS = [
+    "mission_scenario",
+    "attacker_mode",
+    "true_mission",
+    "strategy_profile",
+    "coalition_enabled",
+    "coalition_size",
+    "coalition_success_rate",
+    "single_success_reference",
+    "coalition_handover_count",
+    "coalition_role_efficiency",
+    "coalition_coordination_score",
+    "coalition_coordination_cost_enabled",
+    "coordination_cost",
+    "coalition_information_loss_enabled",
+    "coalition_trust_enabled",
+    "effective_handover_count",
+    "failed_handover_count",
+    "coordination_efficiency",
+    "campaign_delay_score",
+    "coalition_trust_score",
+    "trust_degradation_count",
+    "campaign_completion_score",
+    "campaign_delegation_observed",
+    "mission_mutation_enabled",
+    "mission_change_count",
+    "defense_reoptimization_count",
+    "adaptive_defender_effectiveness",
+    "mission_objective_score",
+    "attacker_success_rate",
+    "critical_path_step_count",
+    "coalition_role_history",
+    "coalition_handover_history",
+]
+
+
+def run_phase51_coalition_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase51_coalition"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    modes = [
+        ("single_attacker", False, False, False),
+        ("coalition_attacker", True, False, False),
+        ("coalition_mutation", True, True, False),
+        ("coalition_adaptive_defender", True, True, True),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase51_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for mode, coalition_enabled, mutation_enabled, adaptive_defender in modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase51_{mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": mutation_enabled,
+                        "mission_reclassification_enabled": adaptive_defender,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": True,
+                        "noise_injection_enabled": True,
+                        "adversarial_signal_enabled": True,
+                        "signal_extraction_enabled": adaptive_defender,
+                        "coalition_enabled": coalition_enabled,
+                        "coalition_size": 2,
+                        "coalition_role": "recon_specialist",
+                        "attacker_type": "coalition_attacker" if coalition_enabled else "intent_deception_attacker",
+                    }
+                )
+                scenarios[f"{scenario_name}__{mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase51_coalition_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("attacker_mode")), str(row.get("strategy_profile"))))
+    _apply_phase51_single_references(rows)
+    analysis = _analyze_phase51_coalition_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase51_coalition_summary(rows, analysis, output_dir)
+    _plot_phase51_metric(rows, "coalition_handover_count", os.path.join(output_dir, "coalition_handover_count.png"))
+    _plot_phase51_metric(rows, "coalition_role_efficiency", os.path.join(output_dir, "coalition_role_efficiency.png"))
+    _plot_phase51_metric(rows, "coalition_success_rate", os.path.join(output_dir, "phase51_vs_phase425.png"))
+    _write_phase51_coalition_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase51_coalition_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    mode = parts[1] if len(parts) > 1 else "single_attacker"
+    strategy = parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced")
+    return {
+        "mission_scenario": mission_scenario,
+        "attacker_mode": mode,
+        "true_mission": str(row.get("true_mission") or row.get("attacker_mission") or ""),
+        "strategy_profile": strategy,
+        "coalition_enabled": bool(row.get("coalition_enabled")),
+        "coalition_size": row.get("coalition_size"),
+        "coalition_success_rate": row.get("coalition_success_rate_mean"),
+        "single_success_reference": 0.0,
+        "coalition_handover_count": row.get("coalition_handover_count_mean"),
+        "coalition_role_efficiency": row.get("coalition_role_efficiency_mean"),
+        "coalition_coordination_score": row.get("coalition_coordination_score_mean"),
+        "coalition_coordination_cost_enabled": bool(row.get("coalition_coordination_cost_enabled")),
+        "coordination_cost": row.get("coordination_cost"),
+        "coalition_information_loss_enabled": bool(row.get("coalition_information_loss_enabled")),
+        "coalition_trust_enabled": bool(row.get("coalition_trust_enabled")),
+        "effective_handover_count": row.get("effective_handover_count_mean"),
+        "failed_handover_count": row.get("failed_handover_count_mean"),
+        "coordination_efficiency": row.get("coordination_efficiency_mean"),
+        "campaign_delay_score": row.get("campaign_delay_score_mean"),
+        "coalition_trust_score": row.get("coalition_trust_score_mean"),
+        "trust_degradation_count": row.get("trust_degradation_count_mean"),
+        "campaign_completion_score": row.get("campaign_completion_score_mean"),
+        "campaign_delegation_observed": row.get("campaign_delegation_observed_rate"),
+        "mission_mutation_enabled": bool(row.get("mission_mutation_enabled")),
+        "mission_change_count": row.get("mission_change_count_mean"),
+        "defense_reoptimization_count": row.get("defense_reoptimization_count_mean"),
+        "adaptive_defender_effectiveness": row.get("adaptive_defender_effectiveness_mean"),
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "attacker_success_rate": row.get("attacker_success_count_mean"),
+        "critical_path_step_count": row.get("critical_path_step_count_mean"),
+        "coalition_role_history": _phase416_list_value(row.get("coalition_role_history")),
+        "coalition_handover_history": _phase416_list_value(row.get("coalition_handover_history")),
+    }
+
+
+def _apply_phase51_single_references(rows: List[Dict[str, object]]) -> None:
+    references = {
+        str(row.get("true_mission")): _to_float(row.get("coalition_success_rate"))
+        for row in rows
+        if row.get("attacker_mode") == "single_attacker"
+    }
+    for row in rows:
+        row["single_success_reference"] = references.get(str(row.get("true_mission")), 0.0)
+
+
+def _analyze_phase51_coalition_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    single_rows = [row for row in rows if row.get("attacker_mode") == "single_attacker"]
+    coalition_rows = [row for row in rows if row.get("attacker_mode") == "coalition_attacker"]
+    mutation_rows = [row for row in rows if row.get("attacker_mode") == "coalition_mutation"]
+    adaptive_rows = [row for row in rows if row.get("attacker_mode") == "coalition_adaptive_defender"]
+    single_success = _mean_or_none([_to_float(row.get("coalition_success_rate")) for row in single_rows]) or 0.0
+    coalition_success = _mean_or_none([_to_float(row.get("coalition_success_rate")) for row in coalition_rows]) or 0.0
+    mutation_success = _mean_or_none([_to_float(row.get("coalition_success_rate")) for row in mutation_rows]) or 0.0
+    adaptive_success = _mean_or_none([_to_float(row.get("coalition_success_rate")) for row in adaptive_rows]) or 0.0
+    handovers = [_to_float(row.get("coalition_handover_count")) for row in rows if bool(row.get("coalition_enabled"))]
+    adaptive_reopt = _mean_or_none([_to_float(row.get("defense_reoptimization_count")) for row in adaptive_rows]) or 0.0
+    mutation_changes = _mean_or_none([_to_float(row.get("mission_change_count")) for row in mutation_rows + adaptive_rows]) or 0.0
+    delegation_rate = _mean_or_none([_to_float(row.get("campaign_delegation_observed")) for row in rows if bool(row.get("coalition_enabled"))]) or 0.0
+    return {
+        "coalition_established": bool(coalition_rows),
+        "handover_observed": any(value > 0.0 for value in handovers),
+        "coalition_stronger_than_single": coalition_success > single_success,
+        "mission_mutation_coexists": mutation_changes > 0.0 and bool(mutation_rows),
+        "adaptive_defender_value_increases": adaptive_reopt > 0.0 and adaptive_success >= mutation_success * 0.9,
+        "campaign_delegation_effective": delegation_rate > 0.0,
+        "co_evolution_strengthened": mutation_changes > 0.0 and adaptive_reopt > 0.0 and any(value > 0.0 for value in handovers),
+        "single_success_rate": single_success,
+        "coalition_success_rate": coalition_success,
+        "mutation_success_rate": mutation_success,
+        "adaptive_success_rate": adaptive_success,
+        "mean_handover_count": _mean_or_none(handovers) or 0.0,
+        "mean_delegation_rate": delegation_rate,
+        "mean_adaptive_reoptimization": adaptive_reopt,
+        "mean_mutation_changes": mutation_changes,
+    }
+
+
+def _write_phase51_coalition_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "coalition_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE51_COALITION_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE51_COALITION_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "coalition_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase51_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    modes = ["single_attacker", "coalition_attacker", "coalition_mutation", "coalition_adaptive_defender"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("attacker_mode") == mode]))
+        for mode in modes
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(modes)), values, color=["#4e79a7", "#59a14f", "#f28e2b", "#b07aa1"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(modes)))
+    ax.set_xticklabels(modes, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase51_coalition_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase5.1 Multi-Attacker Coalition Foundation Report",
+        "",
+        "## Research Questions",
+        f"1. Coalition は成立するか: `{analysis.get('coalition_established')}`.",
+        f"2. Handover は発生するか: `{analysis.get('handover_observed')}`.",
+        f"3. Single Attacker より強いか: `{analysis.get('coalition_stronger_than_single')}`.",
+        f"4. Mission Mutation と共存するか: `{analysis.get('mission_mutation_coexists')}`.",
+        f"5. Adaptive Defender の価値は増すか: `{analysis.get('adaptive_defender_value_increases')}`.",
+        f"6. Campaign Delegation は有効か: `{analysis.get('campaign_delegation_effective')}`.",
+        f"7. Co-Evolution は強まるか: `{analysis.get('co_evolution_strengthened')}`.",
+        "",
+        "## Summary",
+        f"- Single success rate: `{_to_float(analysis.get('single_success_rate')):.3f}`.",
+        f"- Coalition success rate: `{_to_float(analysis.get('coalition_success_rate')):.3f}`.",
+        f"- Coalition mutation success rate: `{_to_float(analysis.get('mutation_success_rate')):.3f}`.",
+        f"- Adaptive coalition success rate: `{_to_float(analysis.get('adaptive_success_rate')):.3f}`.",
+        f"- Mean handover count: `{_to_float(analysis.get('mean_handover_count')):.3f}`.",
+        f"- Mean delegation rate: `{_to_float(analysis.get('mean_delegation_rate')):.3f}`.",
+        "",
+        "## Interpretation",
+        "Phase5.1 does not create a strongest attacker. It introduces a lightweight coalition foundation where one attacker campaign can be observed as role-based delegation from recon to access to objective execution.",
+        "",
+        "## Rows",
+        "| mission | mode | success | single_ref | handover | role_eff | completion | mutation | reopt |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('true_mission')} | {row.get('attacker_mode')} | "
+            f"{_to_float(row.get('coalition_success_rate')):.3f} | {_to_float(row.get('single_success_reference')):.3f} | "
+            f"{_to_float(row.get('coalition_handover_count')):.3f} | {_to_float(row.get('coalition_role_efficiency')):.3f} | "
+            f"{_to_float(row.get('campaign_completion_score')):.3f} | {_to_float(row.get('mission_change_count')):.3f} | "
+            f"{_to_float(row.get('defense_reoptimization_count')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE51_COALITION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE52_COORDINATION_COST_COLUMNS = PHASE51_COALITION_COLUMNS + [
+    "phase52_mode",
+    "coalition_size_candidate",
+]
+
+
+def run_phase52_coordination_cost_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase52_coordination_cost"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+    coordination_costs: Optional[List[float]] = None,
+    coalition_sizes: Optional[List[int]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    costs = coordination_costs if coordination_costs is not None else [0.0, 0.1, 0.2, 0.3]
+    sizes = coalition_sizes if coalition_sizes is not None else [2, 3, 4]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase52_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for strategy in profiles:
+            base_cases = [("single_attacker", False, 1, 0.0), ("coalition_attacker", True, 2, 0.0)]
+            cost_cases = [
+                ("coalition_coordination_cost", True, size, cost)
+                for size in sizes
+                for cost in costs
+            ]
+            for mode, coalition_enabled, coalition_size, cost in base_cases + cost_cases:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase52_{mode}_{strategy}_{coalition_size}_{cost:.1f}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": False,
+                        "mission_reclassification_enabled": mode == "coalition_coordination_cost",
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": True,
+                        "noise_injection_enabled": True,
+                        "adversarial_signal_enabled": True,
+                        "signal_extraction_enabled": mode == "coalition_coordination_cost",
+                        "coalition_enabled": coalition_enabled,
+                        "coalition_size": coalition_size,
+                        "coalition_role": "recon_specialist",
+                        "attacker_type": "coalition_attacker" if coalition_enabled else "intent_deception_attacker",
+                        "coalition_coordination_cost_enabled": mode == "coalition_coordination_cost",
+                        "coordination_cost": cost,
+                        "coalition_information_loss_enabled": mode == "coalition_coordination_cost",
+                        "coalition_trust_enabled": mode == "coalition_coordination_cost",
+                    }
+                )
+                scenarios[f"{scenario_name}__{mode}__{strategy}__size{coalition_size}__cost{cost:.1f}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase52_coordination_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (
+        str(row.get("true_mission")),
+        str(row.get("phase52_mode")),
+        int(row.get("coalition_size_candidate") or 0),
+        float(row.get("coordination_cost") or 0.0),
+    ))
+    _apply_phase51_single_references(rows)
+    analysis = _analyze_phase52_coordination_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase52_coordination_summary(rows, analysis, output_dir)
+    _plot_phase52_metric(rows, "coordination_efficiency", os.path.join(output_dir, "coordination_efficiency.png"))
+    _plot_phase52_metric(rows, "failed_handover_count", os.path.join(output_dir, "failed_handover_count.png"))
+    _plot_phase52_metric(rows, "coalition_success_rate", os.path.join(output_dir, "phase52_vs_phase51.png"))
+    _write_phase52_coordination_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase52_coordination_row(row: Dict[str, object]) -> Dict[str, object]:
+    result = _build_phase51_coalition_row(row)
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    result["phase52_mode"] = parts[1] if len(parts) > 1 else result.get("attacker_mode")
+    result["attacker_mode"] = result["phase52_mode"]
+    result["coalition_size_candidate"] = row.get("coalition_size")
+    return result
+
+
+def _analyze_phase52_coordination_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    single_rows = [row for row in rows if row.get("phase52_mode") == "single_attacker"]
+    coalition_rows = [row for row in rows if row.get("phase52_mode") == "coalition_attacker"]
+    cost_rows = [row for row in rows if row.get("phase52_mode") == "coalition_coordination_cost"]
+    single_success = _mean_or_none([_to_float(row.get("coalition_success_rate")) for row in single_rows]) or 0.0
+    coalition_success = _mean_or_none([_to_float(row.get("coalition_success_rate")) for row in coalition_rows]) or 0.0
+    cost_success = _mean_or_none([_to_float(row.get("coalition_success_rate")) for row in cost_rows]) or 0.0
+    failed_handovers = [_to_float(row.get("failed_handover_count")) for row in cost_rows]
+    efficiency_by_cost = {
+        str(cost): _mean_or_none([
+            _to_float(row.get("coordination_efficiency"))
+            for row in cost_rows
+            if abs(_to_float(row.get("coordination_cost")) - float(cost)) < 1e-9
+        ]) or 0.0
+        for cost in sorted({_to_float(row.get("coordination_cost")) for row in cost_rows})
+    }
+    success_by_cost = {
+        str(cost): _mean_or_none([
+            _to_float(row.get("coalition_success_rate"))
+            for row in cost_rows
+            if abs(_to_float(row.get("coordination_cost")) - float(cost)) < 1e-9
+        ]) or 0.0
+        for cost in sorted({_to_float(row.get("coordination_cost")) for row in cost_rows})
+    }
+    success_by_size = {
+        str(size): _mean_or_none([
+            _to_float(row.get("coalition_success_rate"))
+            for row in cost_rows
+            if int(row.get("coalition_size_candidate") or 0) == int(size)
+        ]) or 0.0
+        for size in sorted({int(row.get("coalition_size_candidate") or 0) for row in cost_rows})
+    }
+    optimal_size = max(success_by_size, key=success_by_size.get) if success_by_size else None
+    adaptive_rows = [row for row in cost_rows if _to_float(row.get("defense_reoptimization_count")) > 0.0]
+    trust_degradation = _mean_or_none([_to_float(row.get("trust_degradation_count")) for row in cost_rows]) or 0.0
+    info_loss_signal = (coalition_success - cost_success) > 0.01 or any(value > 0.0 for value in failed_handovers)
+    return {
+        "coalition_advantage_maintained": cost_success >= single_success,
+        "coordination_cost_has_effect": bool(len(set(success_by_cost.values())) > 1 or any(value > 0.0 for value in failed_handovers)),
+        "information_loss_significant": info_loss_signal,
+        "trust_degradation_observed": trust_degradation > 0.0,
+        "optimal_coalition_size": optimal_size,
+        "adaptive_defender_value_increases": bool(adaptive_rows),
+        "campaign_delegation_limit": "handover failure, trust degradation, and information loss reduce completion when coordination cost rises",
+        "single_success_rate": single_success,
+        "phase51_coalition_success_rate": coalition_success,
+        "coordination_cost_success_rate": cost_success,
+        "mean_failed_handover_count": _mean_or_none(failed_handovers) or 0.0,
+        "mean_coordination_efficiency": _mean_or_none([_to_float(row.get("coordination_efficiency")) for row in cost_rows]) or 0.0,
+        "mean_trust_score": _mean_or_none([_to_float(row.get("coalition_trust_score")) for row in cost_rows]) or 0.0,
+        "success_by_cost": success_by_cost,
+        "efficiency_by_cost": efficiency_by_cost,
+        "success_by_size": success_by_size,
+    }
+
+
+def _write_phase52_coordination_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "coordination_cost_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE52_COORDINATION_COST_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE52_COORDINATION_COST_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "coordination_cost_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase52_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    groups = ["single_attacker", "coalition_attacker", "coalition_coordination_cost"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("phase52_mode") == group]))
+        for group in groups
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(groups)), values, color=["#4e79a7", "#59a14f", "#e15759"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(groups)))
+    ax.set_xticklabels(groups, rotation=18, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase52_coordination_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase5.2 Coalition Coordination Cost Report",
+        "",
+        "## Research Questions",
+        f"1. Coalition優位は維持されるか: `{analysis.get('coalition_advantage_maintained')}`.",
+        f"2. Coordination Costは影響するか: `{analysis.get('coordination_cost_has_effect')}`.",
+        f"3. Information Lossは有意か: `{analysis.get('information_loss_significant')}`.",
+        f"4. Trust低下は発生するか: `{analysis.get('trust_degradation_observed')}`.",
+        f"5. Coalitionの最適規模はあるか: `{analysis.get('optimal_coalition_size')}`.",
+        f"6. Adaptive Defender価値は増すか: `{analysis.get('adaptive_defender_value_increases')}`.",
+        f"7. Campaign Delegationの限界は何か: `{analysis.get('campaign_delegation_limit')}`.",
+        "",
+        "## Summary",
+        f"- Single success rate: `{_to_float(analysis.get('single_success_rate')):.3f}`.",
+        f"- Phase5.1-style coalition success rate: `{_to_float(analysis.get('phase51_coalition_success_rate')):.3f}`.",
+        f"- Coordination-cost coalition success rate: `{_to_float(analysis.get('coordination_cost_success_rate')):.3f}`.",
+        f"- Mean failed handover count: `{_to_float(analysis.get('mean_failed_handover_count')):.3f}`.",
+        f"- Mean coordination efficiency: `{_to_float(analysis.get('mean_coordination_efficiency')):.3f}`.",
+        f"- Mean trust score: `{_to_float(analysis.get('mean_trust_score')):.3f}`.",
+        "",
+        "## Cost Sweep",
+        f"- Success by cost: `{analysis.get('success_by_cost')}`.",
+        f"- Efficiency by cost: `{analysis.get('efficiency_by_cost')}`.",
+        f"- Success by coalition size: `{analysis.get('success_by_size')}`.",
+        "",
+        "## Interpretation",
+        "Phase5.2 keeps the Phase5.1 coalition mechanism intact by default, then adds realistic coordination constraints only when the new flags are enabled. The objective is robustness validation: coalition remains useful, but handover is no longer assumed to be lossless.",
+    ]
+    with open(os.path.join(output_dir, "PHASE52_COORDINATION_COST_REPORT.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 

@@ -34,6 +34,30 @@ Expected current result:
 See the current validation output from `python -m pytest`.
 ```
 
+## Test Strategy
+
+CyberMatch separates routine validation from full regression because Phase1-Phase5 evaluation tests generate many artifacts.
+
+Smoke tests are intended for normal development:
+
+```powershell
+python scripts/run_tests.py --smoke
+```
+
+Phase-specific tests validate one marker group:
+
+```powershell
+python scripts/run_tests.py --phase phase5
+```
+
+Full regression runs every test, including slow end-to-end evaluation and artifact-generation tests:
+
+```powershell
+python scripts/run_tests.py --full
+```
+
+Full regression can take substantially longer than smoke or phase-specific validation. Use smoke and phase-specific tests during iterative development, then run full regression before release or larger integration changes.
+
 ## Compile Check
 
 ```powershell
