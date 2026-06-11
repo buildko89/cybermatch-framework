@@ -2261,6 +2261,45 @@ MULTI_SEED_RUN_COLUMNS = [
     "campaign_delay_score",
     "coalition_trust_score",
     "trust_degradation_count",
+    "counter_deception_enabled",
+    "fake_asset_enabled",
+    "fake_credential_enabled",
+    "fake_critical_path_enabled",
+    "honey_node_enabled",
+    "fake_asset_interaction_count",
+    "fake_asset_success_rate",
+    "fake_credential_usage_count",
+    "credential_trap_trigger_count",
+    "fake_path_follow_count",
+    "path_diversion_score",
+    "honey_node_visit_count",
+    "honey_detection_count",
+    "counter_deception_score",
+    "attacker_diversion_score",
+    "campaign_disruption_score",
+    "counter_deception_awareness_enabled",
+    "deception_suspicion_score",
+    "fake_asset_detection_rate",
+    "fake_asset_suspicion_count",
+    "fake_credential_detection_rate",
+    "path_validation_count",
+    "path_validation_success_rate",
+    "honey_node_detection_rate",
+    "awareness_score",
+    "deception_resistance_score",
+    "false_suspicion_rate",
+    "counter_deception_hunting_enabled",
+    "fake_asset_hunt_count",
+    "fake_asset_confirmed_count",
+    "credential_validation_count",
+    "credential_validation_success_rate",
+    "honey_probe_count",
+    "honey_probe_success_rate",
+    "deception_knowledge_score",
+    "hunting_success_rate",
+    "deception_discovery_rate",
+    "verified_false_signal_count",
+    "verified_fake_asset_count",
     "coalition_success_rate",
     "coalition_role_efficiency",
     "campaign_completion_score",
@@ -2752,6 +2791,77 @@ MULTI_SEED_STATS_COLUMNS = [
     "coalition_trust_score_std",
     "trust_degradation_count_mean",
     "trust_degradation_count_std",
+    "counter_deception_enabled",
+    "fake_asset_enabled",
+    "fake_credential_enabled",
+    "fake_critical_path_enabled",
+    "honey_node_enabled",
+    "fake_asset_interaction_count_mean",
+    "fake_asset_interaction_count_std",
+    "fake_asset_success_rate_mean",
+    "fake_asset_success_rate_std",
+    "fake_credential_usage_count_mean",
+    "fake_credential_usage_count_std",
+    "credential_trap_trigger_count_mean",
+    "credential_trap_trigger_count_std",
+    "fake_path_follow_count_mean",
+    "fake_path_follow_count_std",
+    "path_diversion_score_mean",
+    "path_diversion_score_std",
+    "honey_node_visit_count_mean",
+    "honey_node_visit_count_std",
+    "honey_detection_count_mean",
+    "honey_detection_count_std",
+    "counter_deception_score_mean",
+    "counter_deception_score_std",
+    "attacker_diversion_score_mean",
+    "attacker_diversion_score_std",
+    "campaign_disruption_score_mean",
+    "campaign_disruption_score_std",
+    "counter_deception_awareness_enabled",
+    "deception_suspicion_score_mean",
+    "deception_suspicion_score_std",
+    "fake_asset_detection_rate_mean",
+    "fake_asset_detection_rate_std",
+    "fake_asset_suspicion_count_mean",
+    "fake_asset_suspicion_count_std",
+    "fake_credential_detection_rate_mean",
+    "fake_credential_detection_rate_std",
+    "path_validation_count_mean",
+    "path_validation_count_std",
+    "path_validation_success_rate_mean",
+    "path_validation_success_rate_std",
+    "honey_node_detection_rate_mean",
+    "honey_node_detection_rate_std",
+    "awareness_score_mean",
+    "awareness_score_std",
+    "deception_resistance_score_mean",
+    "deception_resistance_score_std",
+    "false_suspicion_rate_mean",
+    "false_suspicion_rate_std",
+    "counter_deception_hunting_enabled",
+    "fake_asset_hunt_count_mean",
+    "fake_asset_hunt_count_std",
+    "fake_asset_confirmed_count_mean",
+    "fake_asset_confirmed_count_std",
+    "credential_validation_count_mean",
+    "credential_validation_count_std",
+    "credential_validation_success_rate_mean",
+    "credential_validation_success_rate_std",
+    "honey_probe_count_mean",
+    "honey_probe_count_std",
+    "honey_probe_success_rate_mean",
+    "honey_probe_success_rate_std",
+    "deception_knowledge_score_mean",
+    "deception_knowledge_score_std",
+    "hunting_success_rate_mean",
+    "hunting_success_rate_std",
+    "deception_discovery_rate_mean",
+    "deception_discovery_rate_std",
+    "verified_false_signal_count_mean",
+    "verified_false_signal_count_std",
+    "verified_fake_asset_count_mean",
+    "verified_fake_asset_count_std",
     "coalition_success_rate_mean",
     "coalition_success_rate_std",
     "coalition_role_efficiency_mean",
@@ -3841,6 +3951,13 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "coordination_cost": rows[0].get("coordination_cost") if rows else None,
         "coalition_information_loss_enabled": rows[0].get("coalition_information_loss_enabled") if rows else None,
         "coalition_trust_enabled": rows[0].get("coalition_trust_enabled") if rows else None,
+        "counter_deception_enabled": rows[0].get("counter_deception_enabled") if rows else None,
+        "fake_asset_enabled": rows[0].get("fake_asset_enabled") if rows else None,
+        "fake_credential_enabled": rows[0].get("fake_credential_enabled") if rows else None,
+        "fake_critical_path_enabled": rows[0].get("fake_critical_path_enabled") if rows else None,
+        "honey_node_enabled": rows[0].get("honey_node_enabled") if rows else None,
+        "counter_deception_awareness_enabled": rows[0].get("counter_deception_awareness_enabled") if rows else None,
+        "counter_deception_hunting_enabled": rows[0].get("counter_deception_hunting_enabled") if rows else None,
         "coalition_role_history": rows[0].get("coalition_role_history") if rows else None,
         "coalition_handover_history": rows[0].get("coalition_handover_history") if rows else None,
         "coalition_delegation_state_history": rows[0].get("coalition_delegation_state_history") if rows else None,
@@ -3975,6 +4092,38 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "campaign_delay_score",
         "coalition_trust_score",
         "trust_degradation_count",
+        "fake_asset_interaction_count",
+        "fake_asset_success_rate",
+        "fake_credential_usage_count",
+        "credential_trap_trigger_count",
+        "fake_path_follow_count",
+        "path_diversion_score",
+        "honey_node_visit_count",
+        "honey_detection_count",
+        "counter_deception_score",
+        "attacker_diversion_score",
+        "campaign_disruption_score",
+        "deception_suspicion_score",
+        "fake_asset_detection_rate",
+        "fake_asset_suspicion_count",
+        "fake_credential_detection_rate",
+        "path_validation_count",
+        "path_validation_success_rate",
+        "honey_node_detection_rate",
+        "awareness_score",
+        "deception_resistance_score",
+        "false_suspicion_rate",
+        "fake_asset_hunt_count",
+        "fake_asset_confirmed_count",
+        "credential_validation_count",
+        "credential_validation_success_rate",
+        "honey_probe_count",
+        "honey_probe_success_rate",
+        "deception_knowledge_score",
+        "hunting_success_rate",
+        "deception_discovery_rate",
+        "verified_false_signal_count",
+        "verified_fake_asset_count",
         "coalition_preparing_handover_steps",
         "coalition_delegated_steps",
         "mission_reclassification_count",
@@ -14655,6 +14804,698 @@ def _write_phase52_coordination_report(rows: List[Dict[str, object]], analysis: 
         "Phase5.2 keeps the Phase5.1 coalition mechanism intact by default, then adds realistic coordination constraints only when the new flags are enabled. The objective is robustness validation: coalition remains useful, but handover is no longer assumed to be lossless.",
     ]
     with open(os.path.join(output_dir, "PHASE52_COORDINATION_COST_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE53_COUNTER_DECEPTION_COLUMNS = [
+    "mission_scenario",
+    "phase53_mode",
+    "true_mission",
+    "strategy_profile",
+    "mission_success_score",
+    "mission_objective_score",
+    "expected_utility_mean",
+    "counter_deception_enabled",
+    "fake_asset_interaction_count",
+    "fake_asset_success_rate",
+    "fake_credential_usage_count",
+    "credential_trap_trigger_count",
+    "fake_path_follow_count",
+    "path_diversion_score",
+    "honey_node_visit_count",
+    "honey_detection_count",
+    "counter_deception_score",
+    "attacker_diversion_score",
+    "campaign_disruption_score",
+    "deception_event_count",
+    "fake_signal_count",
+    "signal_confusion_score",
+    "adaptive_mission_attacker_enabled",
+    "mission_change_count",
+]
+
+
+def run_phase53_counter_deception_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase53_counter_deception"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    modes = [
+        ("baseline", False, False, False),
+        ("intent_deception_attacker", True, False, False),
+        ("counter_deception_defender", True, True, True),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase53_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for mode, attacker_deception, counter_deception, adaptive_mission in modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase53_{mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": adaptive_mission,
+                        "mission_mutation_enabled": adaptive_mission,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": attacker_deception,
+                        "noise_injection_enabled": attacker_deception,
+                        "adversarial_signal_enabled": attacker_deception,
+                        "signal_extraction_enabled": counter_deception,
+                        "counter_deception_enabled": counter_deception,
+                        "fake_asset_enabled": counter_deception,
+                        "fake_credential_enabled": counter_deception,
+                        "fake_critical_path_enabled": counter_deception,
+                        "honey_node_enabled": counter_deception,
+                        "honeypot_credential_enabled": counter_deception,
+                        "credential_node_ids": [1],
+                        "credential_attraction_bonus": 3.0,
+                        "attacker_type": "intent_deception_attacker" if attacker_deception else "adaptive_mission_attacker",
+                    }
+                )
+                scenarios[f"{scenario_name}__{mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase53_counter_deception_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("phase53_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase53_counter_deception_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase53_counter_deception_summary(rows, analysis, output_dir)
+    _plot_phase53_metric(rows, "fake_asset_interaction_count", os.path.join(output_dir, "fake_asset_interactions.png"))
+    _plot_phase53_metric(rows, "fake_path_follow_count", os.path.join(output_dir, "fake_path_follow_count.png"))
+    _plot_phase53_metric(rows, "counter_deception_score", os.path.join(output_dir, "counter_deception_score.png"))
+    _plot_phase53_metric(rows, "mission_success_score", os.path.join(output_dir, "phase53_vs_phase423.png"))
+    _write_phase53_counter_deception_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase53_counter_deception_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    return {
+        "mission_scenario": parts[0] if parts else scenario,
+        "phase53_mode": parts[1] if len(parts) > 1 else "baseline",
+        "true_mission": str(row.get("true_mission") or row.get("attacker_mission") or ""),
+        "strategy_profile": parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced"),
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "counter_deception_enabled": bool(row.get("counter_deception_enabled")),
+        "fake_asset_interaction_count": row.get("fake_asset_interaction_count_mean"),
+        "fake_asset_success_rate": row.get("fake_asset_success_rate_mean"),
+        "fake_credential_usage_count": row.get("fake_credential_usage_count_mean"),
+        "credential_trap_trigger_count": row.get("credential_trap_trigger_count_mean"),
+        "fake_path_follow_count": row.get("fake_path_follow_count_mean"),
+        "path_diversion_score": row.get("path_diversion_score_mean"),
+        "honey_node_visit_count": row.get("honey_node_visit_count_mean"),
+        "honey_detection_count": row.get("honey_detection_count_mean"),
+        "counter_deception_score": row.get("counter_deception_score_mean"),
+        "attacker_diversion_score": row.get("attacker_diversion_score_mean"),
+        "campaign_disruption_score": row.get("campaign_disruption_score_mean"),
+        "deception_event_count": row.get("deception_event_count_mean"),
+        "fake_signal_count": row.get("fake_signal_count_mean"),
+        "signal_confusion_score": row.get("signal_confusion_score_mean"),
+        "adaptive_mission_attacker_enabled": bool(row.get("adaptive_mission_attacker_enabled")),
+        "mission_change_count": row.get("mission_change_count_mean"),
+    }
+
+
+def _analyze_phase53_counter_deception_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    baseline_rows = [row for row in rows if row.get("phase53_mode") == "baseline"]
+    deception_rows = [row for row in rows if row.get("phase53_mode") == "intent_deception_attacker"]
+    counter_rows = [row for row in rows if row.get("phase53_mode") == "counter_deception_defender"]
+    baseline_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in baseline_rows]) or 0.0
+    deception_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in deception_rows]) or 0.0
+    counter_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in counter_rows]) or 0.0
+    fake_asset = _mean_or_none([_to_float(row.get("fake_asset_interaction_count")) for row in counter_rows]) or 0.0
+    fake_credential = _mean_or_none([_to_float(row.get("credential_trap_trigger_count")) for row in counter_rows]) or 0.0
+    fake_path = _mean_or_none([_to_float(row.get("fake_path_follow_count")) for row in counter_rows]) or 0.0
+    honey = _mean_or_none([_to_float(row.get("honey_node_visit_count")) for row in counter_rows]) or 0.0
+    adaptive_changes = _mean_or_none([_to_float(row.get("mission_change_count")) for row in counter_rows]) or 0.0
+    return {
+        "fake_asset_effective": fake_asset > 0.0,
+        "fake_credential_effective": fake_credential > 0.0,
+        "fake_critical_path_effective": fake_path > 0.0,
+        "honey_node_effective": honey > 0.0,
+        "mission_success_decreased": counter_success < deception_success,
+        "adaptive_mission_attacker_misdirected": adaptive_changes > 0.0 or fake_asset > 0.0 or fake_path > 0.0,
+        "counter_deception_strengthens_coevolution": counter_success < deception_success and (fake_asset + fake_path + honey) > 0.0,
+        "baseline_success_rate": baseline_success,
+        "intent_deception_success_rate": deception_success,
+        "counter_deception_success_rate": counter_success,
+        "mean_fake_asset_interactions": fake_asset,
+        "mean_fake_credential_traps": fake_credential,
+        "mean_fake_path_follow_count": fake_path,
+        "mean_honey_node_visits": honey,
+        "mean_counter_deception_score": _mean_or_none([_to_float(row.get("counter_deception_score")) for row in counter_rows]) or 0.0,
+        "mean_campaign_disruption_score": _mean_or_none([_to_float(row.get("campaign_disruption_score")) for row in counter_rows]) or 0.0,
+    }
+
+
+def _write_phase53_counter_deception_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "counter_deception_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE53_COUNTER_DECEPTION_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE53_COUNTER_DECEPTION_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "counter_deception_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase53_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    groups = ["baseline", "intent_deception_attacker", "counter_deception_defender"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("phase53_mode") == group]))
+        for group in groups
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(groups)), values, color=["#4e79a7", "#e15759", "#59a14f"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(groups)))
+    ax.set_xticklabels(groups, rotation=18, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase53_counter_deception_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase5.3 Counter-Deception Campaign Report",
+        "",
+        "## Research Questions",
+        f"1. Fake Asset は有効か: `{analysis.get('fake_asset_effective')}`.",
+        f"2. Fake Credential は有効か: `{analysis.get('fake_credential_effective')}`.",
+        f"3. Fake Critical Path は有効か: `{analysis.get('fake_critical_path_effective')}`.",
+        f"4. Honey Node は有効か: `{analysis.get('honey_node_effective')}`.",
+        f"5. Mission Success は低下するか: `{analysis.get('mission_success_decreased')}`.",
+        f"6. Adaptive Mission Attacker は騙されるか: `{analysis.get('adaptive_mission_attacker_misdirected')}`.",
+        f"7. Counter-Deception は Co-Evolution を強化するか: `{analysis.get('counter_deception_strengthens_coevolution')}`.",
+        "",
+        "## Summary",
+        f"- Baseline mission success: `{_to_float(analysis.get('baseline_success_rate')):.3f}`.",
+        f"- Intent deception attacker mission success: `{_to_float(analysis.get('intent_deception_success_rate')):.3f}`.",
+        f"- Counter-deception defender mission success: `{_to_float(analysis.get('counter_deception_success_rate')):.3f}`.",
+        f"- Mean fake asset interactions: `{_to_float(analysis.get('mean_fake_asset_interactions')):.3f}`.",
+        f"- Mean fake credential traps: `{_to_float(analysis.get('mean_fake_credential_traps')):.3f}`.",
+        f"- Mean fake path follows: `{_to_float(analysis.get('mean_fake_path_follow_count')):.3f}`.",
+        f"- Mean honey node visits: `{_to_float(analysis.get('mean_honey_node_visits')):.3f}`.",
+        f"- Mean counter-deception score: `{_to_float(analysis.get('mean_counter_deception_score')):.3f}`.",
+        "",
+        "## Interpretation",
+        "Phase5.3 shifts defender intelligence from passive detection, filtering, and validation to active attacker manipulation. The defender does not need to stop every attack; it can reduce mission success by diverting attacker attention toward fake assets, fake credentials, fake critical paths, and honey nodes.",
+    ]
+    with open(os.path.join(output_dir, "PHASE53_COUNTER_DECEPTION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE54_AWARENESS_COLUMNS = [
+    "mission_scenario",
+    "phase54_mode",
+    "true_mission",
+    "strategy_profile",
+    "mission_success_score",
+    "mission_objective_score",
+    "expected_utility_mean",
+    "counter_deception_enabled",
+    "counter_deception_awareness_enabled",
+    "fake_asset_interaction_count",
+    "fake_asset_detection_rate",
+    "fake_asset_suspicion_count",
+    "fake_credential_usage_count",
+    "fake_credential_detection_rate",
+    "fake_path_follow_count",
+    "path_validation_count",
+    "path_validation_success_rate",
+    "honey_node_visit_count",
+    "honey_node_detection_rate",
+    "awareness_score",
+    "deception_suspicion_score",
+    "deception_resistance_score",
+    "false_suspicion_rate",
+    "counter_deception_score",
+    "campaign_disruption_score",
+]
+
+
+def run_phase54_awareness_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase54_awareness"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    modes = [
+        ("adaptive_mission_attacker", False, False),
+        ("counter_deception_defender", True, False),
+        ("aware_attacker_counter_deception", True, True),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase54_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for mode, counter_deception, awareness in modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase54_{mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": True,
+                        "noise_injection_enabled": True,
+                        "adversarial_signal_enabled": True,
+                        "signal_extraction_enabled": counter_deception,
+                        "counter_deception_enabled": counter_deception,
+                        "fake_asset_enabled": counter_deception,
+                        "fake_credential_enabled": counter_deception,
+                        "fake_critical_path_enabled": counter_deception,
+                        "honey_node_enabled": counter_deception,
+                        "honeypot_credential_enabled": counter_deception,
+                        "counter_deception_awareness_enabled": awareness,
+                        "credential_node_ids": [1],
+                        "credential_attraction_bonus": 3.0,
+                        "attacker_type": "counter_deception_aware_attacker" if awareness else "adaptive_mission_attacker",
+                    }
+                )
+                scenarios[f"{scenario_name}__{mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase54_awareness_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("phase54_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase54_awareness_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase54_awareness_summary(rows, analysis, output_dir)
+    _plot_phase54_metric(rows, "fake_asset_detection_rate", os.path.join(output_dir, "fake_asset_detection_rate.png"))
+    _plot_phase54_metric(rows, "honey_node_detection_rate", os.path.join(output_dir, "honey_node_detection_rate.png"))
+    _plot_phase54_metric(rows, "awareness_score", os.path.join(output_dir, "awareness_score.png"))
+    _plot_phase54_metric(rows, "mission_success_score", os.path.join(output_dir, "phase54_vs_phase53.png"))
+    _write_phase54_awareness_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase54_awareness_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    return {
+        "mission_scenario": parts[0] if parts else scenario,
+        "phase54_mode": parts[1] if len(parts) > 1 else "adaptive_mission_attacker",
+        "true_mission": str(row.get("true_mission") or row.get("attacker_mission") or ""),
+        "strategy_profile": parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced"),
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "expected_utility_mean": row.get("expected_utility_mean_mean"),
+        "counter_deception_enabled": bool(row.get("counter_deception_enabled")),
+        "counter_deception_awareness_enabled": bool(row.get("counter_deception_awareness_enabled")),
+        "fake_asset_interaction_count": row.get("fake_asset_interaction_count_mean"),
+        "fake_asset_detection_rate": row.get("fake_asset_detection_rate_mean"),
+        "fake_asset_suspicion_count": row.get("fake_asset_suspicion_count_mean"),
+        "fake_credential_usage_count": row.get("fake_credential_usage_count_mean"),
+        "fake_credential_detection_rate": row.get("fake_credential_detection_rate_mean"),
+        "fake_path_follow_count": row.get("fake_path_follow_count_mean"),
+        "path_validation_count": row.get("path_validation_count_mean"),
+        "path_validation_success_rate": row.get("path_validation_success_rate_mean"),
+        "honey_node_visit_count": row.get("honey_node_visit_count_mean"),
+        "honey_node_detection_rate": row.get("honey_node_detection_rate_mean"),
+        "awareness_score": row.get("awareness_score_mean"),
+        "deception_suspicion_score": row.get("deception_suspicion_score_mean"),
+        "deception_resistance_score": row.get("deception_resistance_score_mean"),
+        "false_suspicion_rate": row.get("false_suspicion_rate_mean"),
+        "counter_deception_score": row.get("counter_deception_score_mean"),
+        "campaign_disruption_score": row.get("campaign_disruption_score_mean"),
+    }
+
+
+def _analyze_phase54_awareness_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    adaptive_rows = [row for row in rows if row.get("phase54_mode") == "adaptive_mission_attacker"]
+    counter_rows = [row for row in rows if row.get("phase54_mode") == "counter_deception_defender"]
+    aware_rows = [row for row in rows if row.get("phase54_mode") == "aware_attacker_counter_deception"]
+    adaptive_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in adaptive_rows]) or 0.0
+    counter_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in counter_rows]) or 0.0
+    aware_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in aware_rows]) or 0.0
+    fake_asset_detection = _mean_or_none([_to_float(row.get("fake_asset_detection_rate")) for row in aware_rows]) or 0.0
+    fake_credential_detection = _mean_or_none([_to_float(row.get("fake_credential_detection_rate")) for row in aware_rows]) or 0.0
+    path_detection = _mean_or_none([_to_float(row.get("path_validation_success_rate")) for row in aware_rows]) or 0.0
+    honey_detection = _mean_or_none([_to_float(row.get("honey_node_detection_rate")) for row in aware_rows]) or 0.0
+    return {
+        "fake_asset_detection_possible": fake_asset_detection > 0.0,
+        "fake_credential_detection_possible": fake_credential_detection > 0.0,
+        "fake_path_detection_possible": path_detection > 0.0,
+        "honey_node_detection_possible": honey_detection > 0.0,
+        "mission_success_recovers": aware_success > counter_success,
+        "counter_deception_still_effective": aware_success < adaptive_success,
+        "coevolution_strengthened": aware_success > counter_success and aware_success < adaptive_success,
+        "adaptive_mission_success_rate": adaptive_success,
+        "counter_deception_success_rate": counter_success,
+        "aware_attacker_success_rate": aware_success,
+        "mean_fake_asset_detection_rate": fake_asset_detection,
+        "mean_fake_credential_detection_rate": fake_credential_detection,
+        "mean_path_validation_success_rate": path_detection,
+        "mean_honey_node_detection_rate": honey_detection,
+        "mean_awareness_score": _mean_or_none([_to_float(row.get("awareness_score")) for row in aware_rows]) or 0.0,
+        "mean_deception_resistance_score": _mean_or_none([_to_float(row.get("deception_resistance_score")) for row in aware_rows]) or 0.0,
+        "mean_false_suspicion_rate": _mean_or_none([_to_float(row.get("false_suspicion_rate")) for row in aware_rows]) or 0.0,
+    }
+
+
+def _write_phase54_awareness_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "awareness_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE54_AWARENESS_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE54_AWARENESS_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "awareness_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase54_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    groups = ["adaptive_mission_attacker", "counter_deception_defender", "aware_attacker_counter_deception"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("phase54_mode") == group]))
+        for group in groups
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(groups)), values, color=["#4e79a7", "#e15759", "#59a14f"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(groups)))
+    ax.set_xticklabels(groups, rotation=18, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase54_awareness_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase5.4 Counter-Deception Awareness Report",
+        "",
+        "## Research Questions",
+        f"1. Fake Asset 検出は可能か: `{analysis.get('fake_asset_detection_possible')}`.",
+        f"2. Fake Credential 検出は可能か: `{analysis.get('fake_credential_detection_possible')}`.",
+        f"3. Fake Path 検出は可能か: `{analysis.get('fake_path_detection_possible')}`.",
+        f"4. Honey Node 検出は可能か: `{analysis.get('honey_node_detection_possible')}`.",
+        f"5. Mission Success は回復するか: `{analysis.get('mission_success_recovers')}`.",
+        f"6. Counter-Deception は依然有効か: `{analysis.get('counter_deception_still_effective')}`.",
+        f"7. Co-Evolution は強化されるか: `{analysis.get('coevolution_strengthened')}`.",
+        "",
+        "## Summary",
+        f"- Adaptive mission attacker success: `{_to_float(analysis.get('adaptive_mission_success_rate')):.3f}`.",
+        f"- Counter-deception defender success: `{_to_float(analysis.get('counter_deception_success_rate')):.3f}`.",
+        f"- Aware attacker success: `{_to_float(analysis.get('aware_attacker_success_rate')):.3f}`.",
+        f"- Mean fake asset detection rate: `{_to_float(analysis.get('mean_fake_asset_detection_rate')):.3f}`.",
+        f"- Mean fake credential detection rate: `{_to_float(analysis.get('mean_fake_credential_detection_rate')):.3f}`.",
+        f"- Mean path validation success rate: `{_to_float(analysis.get('mean_path_validation_success_rate')):.3f}`.",
+        f"- Mean honey node detection rate: `{_to_float(analysis.get('mean_honey_node_detection_rate')):.3f}`.",
+        f"- Mean awareness score: `{_to_float(analysis.get('mean_awareness_score')):.3f}`.",
+        f"- Mean deception resistance score: `{_to_float(analysis.get('mean_deception_resistance_score')):.3f}`.",
+        "",
+        "## Interpretation",
+        "Phase5.4 adds a lightweight attacker awareness layer. The attacker does not disable counter-deception; it raises suspicion after repeated deceptive encounters, validates critical paths, and partially resists future manipulation.",
+        "",
+        "日本語補足: Phase5.4 は Counter-Deception を無効化する段階ではなく、攻撃者が騙される可能性を考慮し始める段階です。騙す側と学習する側の均衡が始まることを確認します。",
+    ]
+    with open(os.path.join(output_dir, "PHASE54_AWARENESS_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE55_HUNTING_COLUMNS = [
+    "mission_scenario",
+    "phase55_mode",
+    "true_mission",
+    "strategy_profile",
+    "mission_success_score",
+    "mission_objective_score",
+    "counter_deception_enabled",
+    "counter_deception_awareness_enabled",
+    "counter_deception_hunting_enabled",
+    "fake_asset_hunt_count",
+    "fake_asset_confirmed_count",
+    "credential_validation_count",
+    "credential_validation_success_rate",
+    "honey_probe_count",
+    "honey_probe_success_rate",
+    "deception_knowledge_score",
+    "hunting_success_rate",
+    "deception_discovery_rate",
+    "verified_false_signal_count",
+    "verified_fake_asset_count",
+    "fake_asset_detection_rate",
+    "path_validation_success_rate",
+    "honey_node_detection_rate",
+    "awareness_score",
+    "counter_deception_score",
+    "campaign_disruption_score",
+]
+
+
+def run_phase55_hunting_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase55_hunting"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    modes = [
+        ("counter_deception_defender", False, False),
+        ("awareness_attacker", True, False),
+        ("hunting_attacker", True, True),
+    ]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase55_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for mode, awareness, hunting in modes:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase55_{mode}_{strategy}",
+                    intelligence=True,
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                scenario_config.update(
+                    {
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "intent_deception_enabled": True,
+                        "noise_injection_enabled": True,
+                        "adversarial_signal_enabled": True,
+                        "signal_extraction_enabled": True,
+                        "counter_deception_enabled": True,
+                        "fake_asset_enabled": True,
+                        "fake_credential_enabled": True,
+                        "fake_critical_path_enabled": True,
+                        "honey_node_enabled": True,
+                        "honeypot_credential_enabled": True,
+                        "counter_deception_awareness_enabled": awareness,
+                        "counter_deception_hunting_enabled": hunting,
+                        "credential_node_ids": [1],
+                        "credential_attraction_bonus": 3.0,
+                        "attacker_type": "counter_deception_aware_attacker" if awareness else "adaptive_mission_attacker",
+                    }
+                )
+                scenarios[f"{scenario_name}__{mode}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase55_hunting_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("phase55_mode")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase55_hunting_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase55_hunting_summary(rows, analysis, output_dir)
+    _plot_phase55_metric(rows, "fake_asset_hunt_count", os.path.join(output_dir, "fake_asset_hunt_count.png"))
+    _plot_phase55_metric(rows, "honey_probe_success_rate", os.path.join(output_dir, "honey_probe_success_rate.png"))
+    _plot_phase55_metric(rows, "deception_discovery_rate", os.path.join(output_dir, "deception_discovery_rate.png"))
+    _plot_phase55_metric(rows, "mission_success_score", os.path.join(output_dir, "phase55_vs_phase54.png"))
+    _write_phase55_hunting_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase55_hunting_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    return {
+        "mission_scenario": parts[0] if parts else scenario,
+        "phase55_mode": parts[1] if len(parts) > 1 else "counter_deception_defender",
+        "true_mission": str(row.get("true_mission") or row.get("attacker_mission") or ""),
+        "strategy_profile": parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced"),
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_objective_score": row.get("mission_objective_score_mean"),
+        "counter_deception_enabled": bool(row.get("counter_deception_enabled")),
+        "counter_deception_awareness_enabled": bool(row.get("counter_deception_awareness_enabled")),
+        "counter_deception_hunting_enabled": bool(row.get("counter_deception_hunting_enabled")),
+        "fake_asset_hunt_count": row.get("fake_asset_hunt_count_mean"),
+        "fake_asset_confirmed_count": row.get("fake_asset_confirmed_count_mean"),
+        "credential_validation_count": row.get("credential_validation_count_mean"),
+        "credential_validation_success_rate": row.get("credential_validation_success_rate_mean"),
+        "honey_probe_count": row.get("honey_probe_count_mean"),
+        "honey_probe_success_rate": row.get("honey_probe_success_rate_mean"),
+        "deception_knowledge_score": row.get("deception_knowledge_score_mean"),
+        "hunting_success_rate": row.get("hunting_success_rate_mean"),
+        "deception_discovery_rate": row.get("deception_discovery_rate_mean"),
+        "verified_false_signal_count": row.get("verified_false_signal_count_mean"),
+        "verified_fake_asset_count": row.get("verified_fake_asset_count_mean"),
+        "fake_asset_detection_rate": row.get("fake_asset_detection_rate_mean"),
+        "path_validation_success_rate": row.get("path_validation_success_rate_mean"),
+        "honey_node_detection_rate": row.get("honey_node_detection_rate_mean"),
+        "awareness_score": row.get("awareness_score_mean"),
+        "counter_deception_score": row.get("counter_deception_score_mean"),
+        "campaign_disruption_score": row.get("campaign_disruption_score_mean"),
+    }
+
+
+def _analyze_phase55_hunting_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    counter_rows = [row for row in rows if row.get("phase55_mode") == "counter_deception_defender"]
+    awareness_rows = [row for row in rows if row.get("phase55_mode") == "awareness_attacker"]
+    hunting_rows = [row for row in rows if row.get("phase55_mode") == "hunting_attacker"]
+    counter_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in counter_rows]) or 0.0
+    awareness_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in awareness_rows]) or 0.0
+    hunting_success = _mean_or_none([_to_float(row.get("mission_success_score")) for row in hunting_rows]) or 0.0
+    fake_asset_hunts = _mean_or_none([_to_float(row.get("fake_asset_hunt_count")) for row in hunting_rows]) or 0.0
+    credential_validation = _mean_or_none([_to_float(row.get("credential_validation_success_rate")) for row in hunting_rows]) or 0.0
+    honey_probe = _mean_or_none([_to_float(row.get("honey_probe_success_rate")) for row in hunting_rows]) or 0.0
+    hunting_path = _mean_or_none([_to_float(row.get("path_validation_success_rate")) for row in hunting_rows]) or 0.0
+    awareness_path = _mean_or_none([_to_float(row.get("path_validation_success_rate")) for row in awareness_rows]) or 0.0
+    return {
+        "fake_asset_hunting_effective": fake_asset_hunts > 0.0 and (_mean_or_none([_to_float(row.get("fake_asset_confirmed_count")) for row in hunting_rows]) or 0.0) > 0.0,
+        "credential_validation_effective": credential_validation > 0.0,
+        "honey_probe_effective": honey_probe > 0.0,
+        "fake_path_discovery_increases": hunting_path >= awareness_path and hunting_path > 0.0,
+        "mission_success_recovers_further": hunting_success > awareness_success,
+        "counter_deception_still_effective": hunting_success < 0.90,
+        "arms_race_strengthened": hunting_success > counter_success and (_mean_or_none([_to_float(row.get("deception_discovery_rate")) for row in hunting_rows]) or 0.0) > 0.0,
+        "counter_deception_success_rate": counter_success,
+        "awareness_success_rate": awareness_success,
+        "hunting_success_rate": hunting_success,
+        "mean_fake_asset_hunt_count": fake_asset_hunts,
+        "mean_honey_probe_success_rate": honey_probe,
+        "mean_deception_discovery_rate": _mean_or_none([_to_float(row.get("deception_discovery_rate")) for row in hunting_rows]) or 0.0,
+        "mean_deception_knowledge_score": _mean_or_none([_to_float(row.get("deception_knowledge_score")) for row in hunting_rows]) or 0.0,
+    }
+
+
+def _write_phase55_hunting_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "hunting_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE55_HUNTING_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE55_HUNTING_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "hunting_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase55_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    groups = ["counter_deception_defender", "awareness_attacker", "hunting_attacker"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("phase55_mode") == group]))
+        for group in groups
+    ]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(groups)), values, color=["#e15759", "#4e79a7", "#59a14f"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(groups)))
+    ax.set_xticklabels(groups, rotation=18, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase55_hunting_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase5.5 Counter-Deception Hunting Report",
+        "",
+        "## Research Questions",
+        f"1. Fake Asset Hunting は有効か: `{analysis.get('fake_asset_hunting_effective')}`.",
+        f"2. Credential Validation は有効か: `{analysis.get('credential_validation_effective')}`.",
+        f"3. Honey Probe は有効か: `{analysis.get('honey_probe_effective')}`.",
+        f"4. Fake Path Discovery は増えるか: `{analysis.get('fake_path_discovery_increases')}`.",
+        f"5. Mission Success はさらに回復するか: `{analysis.get('mission_success_recovers_further')}`.",
+        f"6. Counter-Deception は依然有効か: `{analysis.get('counter_deception_still_effective')}`.",
+        f"7. Deception Arms Race は強化されるか: `{analysis.get('arms_race_strengthened')}`.",
+        "",
+        "## Summary",
+        f"- Counter-deception defender success: `{_to_float(analysis.get('counter_deception_success_rate')):.3f}`.",
+        f"- Awareness attacker success: `{_to_float(analysis.get('awareness_success_rate')):.3f}`.",
+        f"- Hunting attacker success: `{_to_float(analysis.get('hunting_success_rate')):.3f}`.",
+        f"- Mean fake asset hunt count: `{_to_float(analysis.get('mean_fake_asset_hunt_count')):.3f}`.",
+        f"- Mean honey probe success rate: `{_to_float(analysis.get('mean_honey_probe_success_rate')):.3f}`.",
+        f"- Mean deception discovery rate: `{_to_float(analysis.get('mean_deception_discovery_rate')):.3f}`.",
+        f"- Mean deception knowledge score: `{_to_float(analysis.get('mean_deception_knowledge_score')):.3f}`.",
+        "",
+        "## Interpretation",
+        "Phase5.5 moves the attacker from passive suspicion to active deception hunting. The attacker validates assets, credentials, paths, and honey nodes, then reuses discovered deception knowledge to reduce future manipulation.",
+        "",
+        "日本語補足: Phase5.5 は防御側の欺瞞を無効化するものではなく、Awareness の次段階として欺瞞を能動探索する基盤です。",
+    ]
+    with open(os.path.join(output_dir, "PHASE55_HUNTING_REPORT.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 

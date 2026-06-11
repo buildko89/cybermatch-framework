@@ -18,7 +18,7 @@ SLOW_TEST_NAME_TOKENS = (
 def pytest_collection_modifyitems(items):
     for item in items:
         name = item.name
-        if "phase51" in name or "phase52" in name or "coalition" in name:
+        if "phase51" in name or "phase52" in name or "phase53" in name or "phase54" in name or "phase55" in name or "coalition" in name or "counter_deception" in name or "awareness" in name or "hunting" in name:
             item.add_marker(pytest.mark.phase5)
         elif "phase4" in name or any(f"phase4{suffix}" in name for suffix in range(7, 26)):
             item.add_marker(pytest.mark.phase4)

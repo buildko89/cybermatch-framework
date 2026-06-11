@@ -324,6 +324,45 @@ class SimulationConfig:
     coalition_trust_score: float = 1.0
     trust_degradation_count: int = 0
     failed_handover_count: int = 0
+    counter_deception_enabled: bool = False
+    fake_asset_enabled: bool = False
+    fake_credential_enabled: bool = False
+    fake_critical_path_enabled: bool = False
+    honey_node_enabled: bool = False
+    fake_asset_interaction_count: int = 0
+    fake_asset_success_rate: float = 0.0
+    fake_credential_usage_count: int = 0
+    credential_trap_trigger_count: int = 0
+    fake_path_follow_count: int = 0
+    path_diversion_score: float = 0.0
+    honey_node_visit_count: int = 0
+    honey_detection_count: int = 0
+    counter_deception_score: float = 0.0
+    attacker_diversion_score: float = 0.0
+    campaign_disruption_score: float = 0.0
+    counter_deception_awareness_enabled: bool = False
+    deception_suspicion_score: float = 0.0
+    fake_asset_detection_rate: float = 0.0
+    fake_asset_suspicion_count: int = 0
+    fake_credential_detection_rate: float = 0.0
+    path_validation_count: int = 0
+    path_validation_success_rate: float = 0.0
+    honey_node_detection_rate: float = 0.0
+    awareness_score: float = 0.0
+    deception_resistance_score: float = 0.0
+    false_suspicion_rate: float = 0.0
+    counter_deception_hunting_enabled: bool = False
+    fake_asset_hunt_count: int = 0
+    fake_asset_confirmed_count: int = 0
+    credential_validation_count: int = 0
+    credential_validation_success_rate: float = 0.0
+    honey_probe_count: int = 0
+    honey_probe_success_rate: float = 0.0
+    deception_knowledge_score: float = 0.0
+    hunting_success_rate: float = 0.0
+    deception_discovery_rate: float = 0.0
+    verified_false_signal_count: int = 0
+    verified_fake_asset_count: int = 0
     attacker_lateral_enabled: bool = False
     attacker_lateral_success_prob: float = 0.8
     attacker_lateral_detection_prob: float = 0.2
@@ -668,8 +707,8 @@ class SimulationConfig:
         ):
             if value < 0:
                 errors.append(f"{key} must be >= 0")
-        if self.attacker_type not in ("standard", "adaptive_mission_attacker", "adaptive_mission_mutator", "intent_deception_attacker", "coalition_attacker"):
-            errors.append("attacker_type must be one of: standard, adaptive_mission_attacker, adaptive_mission_mutator, intent_deception_attacker, coalition_attacker")
+        if self.attacker_type not in ("standard", "adaptive_mission_attacker", "adaptive_mission_mutator", "intent_deception_attacker", "coalition_attacker", "counter_deception_aware_attacker"):
+            errors.append("attacker_type must be one of: standard, adaptive_mission_attacker, adaptive_mission_mutator, intent_deception_attacker, coalition_attacker, counter_deception_aware_attacker")
         if self.mission_reclassification_count < 0:
             errors.append("mission_reclassification_count must be >= 0")
         if self.defense_reoptimization_count < 0:
@@ -704,6 +743,38 @@ class SimulationConfig:
             errors.append("false_signal_acceptance_rate must be between 0 and 1")
         if not 0 <= self.signal_consistency_score <= 1:
             errors.append("signal_consistency_score must be between 0 and 1")
+        if not 0 <= self.deception_suspicion_score <= 1:
+            errors.append("deception_suspicion_score must be between 0 and 1")
+        for key, value in (
+            ("fake_asset_detection_rate", self.fake_asset_detection_rate),
+            ("fake_credential_detection_rate", self.fake_credential_detection_rate),
+            ("path_validation_success_rate", self.path_validation_success_rate),
+            ("honey_node_detection_rate", self.honey_node_detection_rate),
+            ("awareness_score", self.awareness_score),
+            ("deception_resistance_score", self.deception_resistance_score),
+            ("false_suspicion_rate", self.false_suspicion_rate),
+            ("credential_validation_success_rate", self.credential_validation_success_rate),
+            ("honey_probe_success_rate", self.honey_probe_success_rate),
+            ("deception_knowledge_score", self.deception_knowledge_score),
+            ("hunting_success_rate", self.hunting_success_rate),
+            ("deception_discovery_rate", self.deception_discovery_rate),
+        ):
+            if not 0 <= value <= 1:
+                errors.append(f"{key} must be between 0 and 1")
+        if self.fake_asset_suspicion_count < 0:
+            errors.append("fake_asset_suspicion_count must be >= 0")
+        if self.path_validation_count < 0:
+            errors.append("path_validation_count must be >= 0")
+        for key, value in (
+            ("fake_asset_hunt_count", self.fake_asset_hunt_count),
+            ("fake_asset_confirmed_count", self.fake_asset_confirmed_count),
+            ("credential_validation_count", self.credential_validation_count),
+            ("honey_probe_count", self.honey_probe_count),
+            ("verified_false_signal_count", self.verified_false_signal_count),
+            ("verified_fake_asset_count", self.verified_fake_asset_count),
+        ):
+            if value < 0:
+                errors.append(f"{key} must be >= 0")
         for key, value in (
             ("profit_expected_utility_weight", self.profit_expected_utility_weight),
             ("profit_success_weight", self.profit_success_weight),
@@ -2019,6 +2090,38 @@ class CyberDefenseSimulator:
         self.failed_handover_count = int(self.config.failed_handover_count)
         self.effective_handover_count = int(self.config.coalition_handover_count)
         self.coalition_information_loss_score = 0.0
+        self.fake_asset_nodes = self._counter_deception_fake_asset_nodes()
+        self.fake_path_nodes = self._counter_deception_fake_path_nodes()
+        self.honey_nodes = self._counter_deception_honey_nodes()
+        self.fake_asset_interaction_count = 0
+        self.fake_credential_usage_count = 0
+        self.credential_trap_trigger_count = 0
+        self.fake_path_follow_count = 0
+        self.honey_node_visit_count = 0
+        self.honey_detection_count = 0
+        self.deception_suspicion_score = float(np.clip(self.config.deception_suspicion_score, 0.0, 1.0))
+        self.fake_asset_suspicion_count = int(self.config.fake_asset_suspicion_count)
+        self.fake_asset_detection_count = 0
+        self.fake_credential_detection_count = 0
+        self.path_validation_count = int(self.config.path_validation_count)
+        self.path_validation_success_count = 0
+        self.honey_node_detection_count = 0
+        self.false_suspicion_count = 0
+        self.fake_asset_hunt_count = int(self.config.fake_asset_hunt_count)
+        self.fake_asset_confirmed_count = int(self.config.fake_asset_confirmed_count)
+        self.credential_validation_count = int(self.config.credential_validation_count)
+        self.credential_validation_success_count = 0
+        self.honey_probe_count = int(self.config.honey_probe_count)
+        self.honey_probe_success_count = 0
+        self.verified_false_signal_count = int(self.config.verified_false_signal_count)
+        self.verified_fake_asset_count = int(self.config.verified_fake_asset_count)
+        self.deception_knowledge_score = float(np.clip(self.config.deception_knowledge_score, 0.0, 1.0))
+        self.verified_fake_asset_nodes = set()
+        self.verified_fake_path_nodes = set()
+        self.verified_honey_nodes = set()
+        self.suspicious_fake_asset_nodes = set()
+        self.suspicious_fake_path_nodes = set()
+        self.suspicious_honey_nodes = set()
         self.history = {
             'x': [],
             'raw_x': [],
@@ -2133,6 +2236,16 @@ class CyberDefenseSimulator:
             'coordination_history': [],
             'trust_history': [],
             'handover_failure_history': [],
+            'fake_asset_interaction_history': [],
+            'fake_credential_usage_history': [],
+            'credential_trap_trigger_history': [],
+            'fake_path_follow_history': [],
+            'honey_node_visit_history': [],
+            'honey_detection_history': [],
+            'counter_deception_score_history': [],
+            'awareness_history': [],
+            'suspicion_history': [],
+            'deception_knowledge_history': [],
         }
 
     def _create_attacker(self) -> AttackerModel:
@@ -2317,6 +2430,249 @@ class CyberDefenseSimulator:
             bonus += 0.04
         return float(bonus * self.current_handover_quality)
 
+    def _counter_deception_active(self) -> bool:
+        return bool(self.config.counter_deception_enabled)
+
+    def _counter_deception_fake_asset_nodes(self) -> set:
+        if not self._counter_deception_active():
+            return set()
+        decoys = [idx for idx, value in enumerate(self.config.node_type) if str(value) == "decoy"]
+        if decoys:
+            return {int(max(decoys, key=lambda node: float(self.config.attacker_belief[int(node)])))}
+        critical = {int(node) for node in self.config.critical_nodes}
+        candidates = [idx for idx in range(self.config.n_nodes) if idx not in critical]
+        return {int(max(candidates, key=lambda node: float(self.config.attacker_belief[int(node)])))} if candidates else set()
+
+    def _counter_deception_fake_path_nodes(self) -> set:
+        if not self._counter_deception_active():
+            return set()
+        critical_path_nodes = self._static_critical_path_nodes()
+        candidates = [
+            idx
+            for idx in range(self.config.n_nodes)
+            if idx not in critical_path_nodes and idx not in self.config.critical_nodes
+        ]
+        if not candidates:
+            candidates = [idx for idx in range(self.config.n_nodes) if idx not in self.config.critical_nodes]
+        return {int(max(candidates, key=lambda node: float(self.config.attacker_belief[int(node)])))} if candidates else set()
+
+    def _counter_deception_honey_nodes(self) -> set:
+        if not self._counter_deception_active():
+            return set()
+        credential_nodes = {int(node) for node in self.config.credential_node_ids if 0 <= int(node) < self.config.n_nodes}
+        if credential_nodes:
+            return credential_nodes
+        return set(self.fake_asset_nodes) | set(self.fake_path_nodes)
+
+    def _counter_deception_target_override(self, selected_target: int) -> int:
+        if not self._counter_deception_active() or selected_target < 0:
+            return selected_target
+        resistance = 0.0
+        if self.config.counter_deception_awareness_enabled:
+            hunting_bonus = 0.25 * self.deception_knowledge_score if self.config.counter_deception_hunting_enabled else 0.0
+            resistance = float(np.clip(0.65 * self.deception_suspicion_score + hunting_bonus, 0.0, 0.90))
+        if self.config.fake_critical_path_enabled and self.fake_path_nodes:
+            path_candidates = list(self.fake_path_nodes - self.suspicious_fake_path_nodes - self.verified_fake_path_nodes) or list(self.fake_path_nodes)
+            if self.rng.random() < max(0.10, 0.55 * (1.0 - resistance)):
+                return int(max(path_candidates, key=lambda node: float(self.config.attacker_belief[int(node)])))
+        if self.config.fake_asset_enabled and self.fake_asset_nodes:
+            asset_candidates = list(self.fake_asset_nodes - self.suspicious_fake_asset_nodes - self.verified_fake_asset_nodes) or list(self.fake_asset_nodes)
+            if self.rng.random() < max(0.10, 0.45 * (1.0 - resistance)):
+                return int(max(asset_candidates, key=lambda node: float(self.config.attacker_belief[int(node)])))
+        return selected_target
+
+    def _counter_deception_awareness_active(self) -> bool:
+        return bool(self._counter_deception_active() and self.config.counter_deception_awareness_enabled)
+
+    def _counter_deception_hunting_active(self) -> bool:
+        return bool(self._counter_deception_awareness_active() and self.config.counter_deception_hunting_enabled)
+
+    def _counter_deception_awareness_score(self) -> float:
+        detection_rates = [
+            self.fake_asset_detection_count / max(self.fake_asset_interaction_count, 1),
+            self.fake_credential_detection_count / max(self.fake_credential_usage_count, 1),
+            self.path_validation_success_count / max(self.path_validation_count, 1),
+            self.honey_node_detection_count / max(self.honey_node_visit_count, 1),
+        ]
+        return float(np.clip(0.50 * self.deception_suspicion_score + 0.50 * float(np.mean(detection_rates)), 0.0, 1.0))
+
+    def _update_deception_knowledge_score(self) -> None:
+        discoveries = (
+            len(self.verified_fake_asset_nodes)
+            + len(self.verified_fake_path_nodes)
+            + len(self.verified_honey_nodes)
+            + self.credential_validation_success_count
+            + self.verified_false_signal_count
+        )
+        possible = max(
+            len(self.fake_asset_nodes) + len(self.fake_path_nodes) + len(self.honey_nodes) + self.fake_credential_usage_count + 1,
+            1,
+        )
+        self.deception_knowledge_score = float(np.clip(discoveries / possible, 0.0, 1.0))
+        self.config.deception_knowledge_score = self.deception_knowledge_score
+
+    def _run_counter_deception_hunting(
+        self,
+        selected_target: int,
+        fake_asset_hit: bool,
+        fake_credential_hit: bool,
+        fake_path_hit: bool,
+        honey_hit: bool,
+        events: List[str],
+    ) -> None:
+        if not self._counter_deception_hunting_active() or selected_target < 0:
+            return
+        if self.deception_suspicion_score < 0.20 and not (fake_asset_hit or fake_credential_hit or fake_path_hit or honey_hit):
+            return
+
+        if fake_asset_hit or selected_target in self.suspicious_fake_asset_nodes:
+            self.fake_asset_hunt_count += 1
+            events.append("asset_verification")
+            if fake_asset_hit:
+                self.fake_asset_confirmed_count += 1
+                self.verified_fake_asset_count += 1
+                self.verified_fake_asset_nodes.add(int(selected_target))
+                events.append("fake_asset_confirmed")
+
+        if fake_credential_hit or self.fake_credential_usage_count > 0:
+            self.credential_validation_count += 1
+            events.append("credential_validation")
+            if fake_credential_hit:
+                self.credential_validation_success_count += 1
+                self.verified_false_signal_count += 1
+                events.append("credential_trap_confirmed")
+
+        if fake_path_hit or selected_target in self.suspicious_fake_path_nodes:
+            self.path_validation_count += 1
+            events.append("path_verification")
+            if fake_path_hit:
+                self.path_validation_success_count += 1
+                self.verified_fake_path_nodes.add(int(selected_target))
+                events.append("fake_path_confirmed")
+
+        if honey_hit or selected_target in self.suspicious_honey_nodes:
+            self.honey_probe_count += 1
+            events.append("honey_probe")
+            if honey_hit:
+                self.honey_probe_success_count += 1
+                self.verified_honey_nodes.add(int(selected_target))
+                events.append("honey_node_confirmed")
+
+        self._update_deception_knowledge_score()
+
+    def _update_counter_deception_awareness(
+        self,
+        selected_target: int,
+        fake_asset_hit: bool,
+        fake_credential_hit: bool,
+        fake_path_hit: bool,
+        honey_hit: bool,
+        events: List[str],
+    ) -> None:
+        if not self._counter_deception_awareness_active() or selected_target < 0:
+            return
+
+        suspicion_delta = 0.0
+        if fake_asset_hit:
+            self.fake_asset_suspicion_count += 1
+            suspicion_delta += 0.08
+            if self.fake_asset_suspicion_count >= 1:
+                self.fake_asset_detection_count += 1
+                self.suspicious_fake_asset_nodes.add(int(selected_target))
+                events.append("fake_asset_suspected")
+        if fake_credential_hit:
+            suspicion_delta += 0.12
+            self.fake_credential_detection_count += 1
+            events.append("fake_credential_suspected")
+
+        if self.config.fake_critical_path_enabled:
+            self.path_validation_count += 1
+            path_nodes = self._static_critical_path_nodes()
+            path_consistent = int(selected_target) in path_nodes
+            proximity = self._distance_to_nearest_critical_static(int(selected_target))
+            critical_proximity = proximity is not None and proximity <= 1
+            event_consistent = not fake_path_hit
+            validation_success = bool(fake_path_hit or not (path_consistent or critical_proximity or event_consistent))
+            if validation_success:
+                self.path_validation_success_count += 1
+                suspicion_delta += 0.08 if fake_path_hit else 0.03
+                if fake_path_hit:
+                    self.suspicious_fake_path_nodes.add(int(selected_target))
+                    events.append("fake_path_suspected")
+            elif path_consistent and critical_proximity:
+                self.false_suspicion_count += 1
+
+        if honey_hit:
+            suspicion_delta += 0.07
+            self.honey_node_detection_count += 1
+            self.suspicious_honey_nodes.add(int(selected_target))
+            events.append("honey_node_suspected")
+
+        if selected_target in self.config.critical_nodes and not (fake_asset_hit or fake_credential_hit or fake_path_hit or honey_hit):
+            self.false_suspicion_count += 1
+            suspicion_delta -= 0.02
+
+        self.deception_suspicion_score = float(np.clip(self.deception_suspicion_score + suspicion_delta, 0.0, 1.0))
+        self.config.deception_suspicion_score = self.deception_suspicion_score
+        self._run_counter_deception_hunting(
+            selected_target=selected_target,
+            fake_asset_hit=fake_asset_hit,
+            fake_credential_hit=fake_credential_hit,
+            fake_path_hit=fake_path_hit,
+            honey_hit=honey_hit,
+            events=events,
+        )
+
+    def _counter_deception_step_effects(
+        self,
+        selected_target: int,
+        detected: bool,
+        credential_decoy_trigger: bool,
+        critical_true_gain: float,
+    ) -> Tuple[bool, bool, bool, bool, List[str], float]:
+        if not self._counter_deception_active() or selected_target < 0:
+            return False, False, False, False, [], critical_true_gain
+
+        events: List[str] = []
+        fake_asset_hit = bool(self.config.fake_asset_enabled and selected_target in self.fake_asset_nodes)
+        fake_path_hit = bool(self.config.fake_critical_path_enabled and selected_target in self.fake_path_nodes)
+        fake_credential_hit = bool(self.config.fake_credential_enabled and credential_decoy_trigger)
+        honey_hit = bool(self.config.honey_node_enabled and selected_target in self.honey_nodes)
+
+        if fake_asset_hit:
+            self.fake_asset_interaction_count += 1
+            self.attacker.confidence *= 0.92
+            if self.attacker.last_expected_utility is not None and len(self.attacker.last_expected_utility) > selected_target:
+                self.attacker.last_expected_utility[selected_target] *= 0.70
+            events.append("fake_asset_interaction")
+        if fake_credential_hit:
+            self.fake_credential_usage_count += 1
+            self.credential_trap_trigger_count += 1
+            self.attacker.confidence *= 0.85
+            events.append("fake_credential_use")
+            events.append("credential_trap_trigger")
+        if fake_path_hit:
+            self.fake_path_follow_count += 1
+            critical_true_gain = 0.0
+            self.attacker.confidence *= 0.90
+            events.append("fake_critical_path_follow")
+        if honey_hit:
+            self.honey_node_visit_count += 1
+            if detected:
+                self.honey_detection_count += 1
+            events.append("honey_node_visit")
+            if detected:
+                events.append("honey_detection")
+        self._update_counter_deception_awareness(
+            selected_target=selected_target,
+            fake_asset_hit=fake_asset_hit,
+            fake_credential_hit=fake_credential_hit,
+            fake_path_hit=fake_path_hit,
+            honey_hit=honey_hit,
+            events=events,
+        )
+        return fake_asset_hit, fake_credential_hit, fake_path_hit, honey_hit, events, critical_true_gain
+
     def _coalition_handover_success_probability(self) -> float:
         cost = float(self.config.coordination_cost) if self.config.coalition_coordination_cost_enabled else 0.0
         trust_penalty = 1.0 - self.coalition_trust_score if self.config.coalition_trust_enabled else 0.0
@@ -2446,6 +2802,13 @@ class CyberDefenseSimulator:
                 attack_vector[selected_target] = float(self.attacker.attack_budget)
                 self.attacker.previous_selected_target = int(self.attacker.last_selected_target)
                 self.attacker.last_selected_target = selected_target
+            counter_deception_selected_target = self._counter_deception_target_override(selected_target)
+            if counter_deception_selected_target != selected_target:
+                selected_target = int(counter_deception_selected_target)
+                attack_vector = np.zeros(self.config.n_nodes, dtype=float)
+                attack_vector[selected_target] = float(self.attacker.attack_budget)
+                self.attacker.previous_selected_target = int(self.attacker.last_selected_target)
+                self.attacker.last_selected_target = selected_target
             attacked_decoy = self._is_decoy_target(selected_target)
             target_defense_strength = self._target_defense_strength(selected_target, r_opt)
             d_current = self.config.d_base + self.config.beta * np.tanh(self.x_current) + attack_vector
@@ -2555,6 +2918,12 @@ class CyberDefenseSimulator:
                 credential_decoy_trigger = False
                 perceived_gain = 0.0
                 critical_true_gain = 0.0
+            fake_asset_hit, fake_credential_hit, fake_path_hit, honey_hit, counter_deception_events, critical_true_gain = self._counter_deception_step_effects(
+                selected_target=selected_target,
+                detected=detected,
+                credential_decoy_trigger=credential_decoy_trigger,
+                critical_true_gain=critical_true_gain,
+            )
             path_changed = (
                 self.config.attacker_lateral_enabled
                 and self.attacker.previous_selected_target >= 0
@@ -2627,6 +2996,7 @@ class CyberDefenseSimulator:
                 path_changed=path_changed,
                 critical_reached=critical_reached,
             )
+            observable_events = list(dict.fromkeys(observable_events + counter_deception_events))
             observable_events = list(dict.fromkeys(observable_events + critical_path_events))
             observable_events, signal_events, noise_events, fake_signal_events, consistency_score, extracted_observable_events = self._apply_noise_and_signal_extraction(
                 observable_events,
@@ -2751,6 +3121,23 @@ class CyberDefenseSimulator:
             self.history['coordination_history'].append(float(self.config.coalition_coordination_score))
             self.history['trust_history'].append(float(self.coalition_trust_score))
             self.history['handover_failure_history'].append(1 if str(coalition_handover_event).startswith("failed:") else 0)
+            disruption = float(
+                np.clip(
+                    (int(fake_asset_hit) + int(fake_credential_hit) + int(fake_path_hit) + int(honey_hit)) / 4.0,
+                    0.0,
+                    1.0,
+                )
+            )
+            self.history['fake_asset_interaction_history'].append(1 if fake_asset_hit else 0)
+            self.history['fake_credential_usage_history'].append(1 if fake_credential_hit else 0)
+            self.history['credential_trap_trigger_history'].append(1 if fake_credential_hit else 0)
+            self.history['fake_path_follow_history'].append(1 if fake_path_hit else 0)
+            self.history['honey_node_visit_history'].append(1 if honey_hit else 0)
+            self.history['honey_detection_history'].append(1 if honey_hit and detected else 0)
+            self.history['counter_deception_score_history'].append(disruption)
+            self.history['awareness_history'].append(self._counter_deception_awareness_score() if self._counter_deception_awareness_active() else 0.0)
+            self.history['suspicion_history'].append(float(self.deception_suspicion_score))
+            self.history['deception_knowledge_history'].append(float(self.deception_knowledge_score))
             self._mission_belief_update(
                 credential_decoy_trigger=bool(credential_decoy_trigger),
                 selected_target=int(selected_target) if selected_target is not None else None,
@@ -2812,6 +3199,15 @@ class CyberDefenseSimulator:
             self.history['attacker_critical_true_gain'].append(float(critical_true_gain))
             self.history['belief_entropy'].append(float(belief_entropy_step))
             mission_objective_score, mission_failure_reason = self._mission_objective_step()
+            if self._counter_deception_active():
+                disruption_penalty = 0.08 * int(fake_asset_hit) + 0.10 * int(fake_credential_hit) + 0.12 * int(fake_path_hit)
+                if self._counter_deception_awareness_active():
+                    disruption_penalty *= max(0.35, 1.0 - 0.65 * self.deception_suspicion_score)
+                if self._counter_deception_hunting_active():
+                    disruption_penalty *= max(0.45, 1.0 - 0.50 * self.deception_knowledge_score)
+                if disruption_penalty > 0.0:
+                    mission_objective_score = float(np.clip(mission_objective_score - disruption_penalty, 0.0, 1.0))
+                    mission_failure_reason = "counter_deception_disruption"
             self.config.mission_satisfaction = float(mission_objective_score)
             self.config.mission_objective_score = float(mission_objective_score)
             self.config.mission_failure_reason = str(mission_failure_reason)
@@ -5181,6 +5577,16 @@ class CyberDefenseSimulator:
         coordination_history = np.asarray(self.history.get('coordination_history', []), dtype=float)
         coalition_trust_history = np.asarray(self.history.get('trust_history', []), dtype=float)
         handover_failure_history = np.asarray(self.history.get('handover_failure_history', []), dtype=int)
+        fake_asset_history = np.asarray(self.history.get('fake_asset_interaction_history', []), dtype=int)
+        fake_credential_history = np.asarray(self.history.get('fake_credential_usage_history', []), dtype=int)
+        credential_trap_history = np.asarray(self.history.get('credential_trap_trigger_history', []), dtype=int)
+        fake_path_history = np.asarray(self.history.get('fake_path_follow_history', []), dtype=int)
+        honey_node_history = np.asarray(self.history.get('honey_node_visit_history', []), dtype=int)
+        honey_detection_history = np.asarray(self.history.get('honey_detection_history', []), dtype=int)
+        counter_deception_history = np.asarray(self.history.get('counter_deception_score_history', []), dtype=float)
+        awareness_history = np.asarray(self.history.get('awareness_history', []), dtype=float)
+        suspicion_history = np.asarray(self.history.get('suspicion_history', []), dtype=float)
+        deception_knowledge_history = np.asarray(self.history.get('deception_knowledge_history', []), dtype=float)
         mission_change_count = int(self.config.mission_change_count)
         mission_stability_score = float(
             np.clip(1.0 - mission_change_count / max(float(len(mission_history)), 1.0), 0.0, 1.0)
@@ -5414,6 +5820,88 @@ class CyberDefenseSimulator:
         valid_attack_count = int(len(valid_targets))
         attacker_real_attack_count = valid_attack_count - attacker_decoy_attack_count
         attacker_decoy_attack_rate = float(attacker_decoy_attack_count / max(valid_attack_count, 1))
+        fake_asset_interaction_count = int(np.count_nonzero(fake_asset_history > 0))
+        fake_credential_usage_count = int(np.count_nonzero(fake_credential_history > 0))
+        credential_trap_trigger_count = int(np.count_nonzero(credential_trap_history > 0))
+        fake_path_follow_count = int(np.count_nonzero(fake_path_history > 0))
+        honey_node_visit_count = int(np.count_nonzero(honey_node_history > 0))
+        honey_detection_count = int(np.count_nonzero(honey_detection_history > 0))
+        fake_asset_success_rate = float(fake_asset_interaction_count / max(valid_attack_count, 1))
+        path_diversion_score = float(fake_path_follow_count / max(valid_attack_count, 1))
+        attacker_diversion_score = float((fake_asset_interaction_count + fake_path_follow_count) / max(valid_attack_count, 1))
+        counter_deception_score = float(np.mean(counter_deception_history)) if len(counter_deception_history) > 0 else 0.0
+        fake_asset_detection_rate = float(self.fake_asset_detection_count / max(fake_asset_interaction_count, 1))
+        fake_credential_detection_rate = float(self.fake_credential_detection_count / max(fake_credential_usage_count, 1))
+        path_validation_success_rate = float(self.path_validation_success_count / max(self.path_validation_count, 1))
+        honey_node_detection_rate = float(self.honey_node_detection_count / max(honey_node_visit_count, 1))
+        awareness_score = (
+            float(np.mean(awareness_history))
+            if len(awareness_history) > 0
+            else self._counter_deception_awareness_score()
+        )
+        deception_resistance_score = float(np.clip(
+            np.mean([
+                fake_asset_detection_rate,
+                fake_credential_detection_rate,
+                path_validation_success_rate,
+                honey_node_detection_rate,
+            ]),
+            0.0,
+            1.0,
+        ))
+        false_suspicion_rate = float(self.false_suspicion_count / max(valid_attack_count, 1))
+        deception_suspicion_score = (
+            float(suspicion_history[-1])
+            if len(suspicion_history) > 0
+            else float(self.deception_suspicion_score)
+        )
+        self.config.fake_asset_detection_rate = fake_asset_detection_rate
+        self.config.fake_asset_suspicion_count = int(self.fake_asset_suspicion_count)
+        self.config.fake_credential_detection_rate = fake_credential_detection_rate
+        self.config.path_validation_count = int(self.path_validation_count)
+        self.config.path_validation_success_rate = path_validation_success_rate
+        self.config.honey_node_detection_rate = honey_node_detection_rate
+        self.config.awareness_score = awareness_score
+        self.config.deception_resistance_score = deception_resistance_score
+        self.config.false_suspicion_rate = false_suspicion_rate
+        credential_validation_success_rate = float(self.credential_validation_success_count / max(self.credential_validation_count, 1))
+        honey_probe_success_rate = float(self.honey_probe_success_count / max(self.honey_probe_count, 1))
+        hunting_attempt_count = self.fake_asset_hunt_count + self.credential_validation_count + self.honey_probe_count
+        hunting_success_count = self.fake_asset_confirmed_count + self.credential_validation_success_count + self.honey_probe_success_count
+        hunting_success_rate = float(hunting_success_count / max(hunting_attempt_count, 1))
+        deception_discovery_rate = float(np.clip(
+            (
+                self.fake_asset_confirmed_count
+                + self.credential_validation_success_count
+                + self.path_validation_success_count
+                + self.honey_probe_success_count
+            ) / max(fake_asset_interaction_count + fake_credential_usage_count + fake_path_follow_count + honey_node_visit_count, 1),
+            0.0,
+            1.0,
+        ))
+        deception_knowledge_score = (
+            float(deception_knowledge_history[-1])
+            if len(deception_knowledge_history) > 0
+            else float(self.deception_knowledge_score)
+        )
+        self.config.fake_asset_hunt_count = int(self.fake_asset_hunt_count)
+        self.config.fake_asset_confirmed_count = int(self.fake_asset_confirmed_count)
+        self.config.credential_validation_count = int(self.credential_validation_count)
+        self.config.credential_validation_success_rate = credential_validation_success_rate
+        self.config.honey_probe_count = int(self.honey_probe_count)
+        self.config.honey_probe_success_rate = honey_probe_success_rate
+        self.config.deception_knowledge_score = deception_knowledge_score
+        self.config.hunting_success_rate = hunting_success_rate
+        self.config.deception_discovery_rate = deception_discovery_rate
+        self.config.verified_false_signal_count = int(self.verified_false_signal_count)
+        self.config.verified_fake_asset_count = int(self.verified_fake_asset_count)
+        campaign_disruption_score = float(np.clip(
+            0.45 * attacker_diversion_score
+            + 0.35 * path_diversion_score
+            + 0.20 * (credential_trap_trigger_count + honey_detection_count) / max(valid_attack_count, 1),
+            0.0,
+            1.0,
+        ))
         credential_obtained_count = int(np.count_nonzero(credential_obtained))
         credential_used_count = int(np.count_nonzero(credential_used))
         credential_decoy_trigger_count = int(np.count_nonzero(credential_decoy_trigger))
@@ -6035,6 +6523,45 @@ class CyberDefenseSimulator:
             'signal_history': signal_history.astype(str).tolist(),
             'fake_signal_history': fake_signal_history.astype(str).tolist(),
             'signal_consistency_history': signal_consistency_history.astype(float).tolist(),
+            'counter_deception_enabled': bool(self.config.counter_deception_enabled),
+            'fake_asset_enabled': bool(self.config.fake_asset_enabled),
+            'fake_credential_enabled': bool(self.config.fake_credential_enabled),
+            'fake_critical_path_enabled': bool(self.config.fake_critical_path_enabled),
+            'honey_node_enabled': bool(self.config.honey_node_enabled),
+            'fake_asset_interaction_count': fake_asset_interaction_count,
+            'fake_asset_success_rate': fake_asset_success_rate,
+            'fake_credential_usage_count': fake_credential_usage_count,
+            'credential_trap_trigger_count': credential_trap_trigger_count,
+            'fake_path_follow_count': fake_path_follow_count,
+            'path_diversion_score': path_diversion_score,
+            'honey_node_visit_count': honey_node_visit_count,
+            'honey_detection_count': honey_detection_count,
+            'counter_deception_score': counter_deception_score,
+            'attacker_diversion_score': attacker_diversion_score,
+            'campaign_disruption_score': campaign_disruption_score,
+            'counter_deception_awareness_enabled': bool(self.config.counter_deception_awareness_enabled),
+            'deception_suspicion_score': deception_suspicion_score,
+            'fake_asset_detection_rate': fake_asset_detection_rate,
+            'fake_asset_suspicion_count': int(self.fake_asset_suspicion_count),
+            'fake_credential_detection_rate': fake_credential_detection_rate,
+            'path_validation_count': int(self.path_validation_count),
+            'path_validation_success_rate': path_validation_success_rate,
+            'honey_node_detection_rate': honey_node_detection_rate,
+            'awareness_score': awareness_score,
+            'deception_resistance_score': deception_resistance_score,
+            'false_suspicion_rate': false_suspicion_rate,
+            'counter_deception_hunting_enabled': bool(self.config.counter_deception_hunting_enabled),
+            'fake_asset_hunt_count': int(self.fake_asset_hunt_count),
+            'fake_asset_confirmed_count': int(self.fake_asset_confirmed_count),
+            'credential_validation_count': int(self.credential_validation_count),
+            'credential_validation_success_rate': credential_validation_success_rate,
+            'honey_probe_count': int(self.honey_probe_count),
+            'honey_probe_success_rate': honey_probe_success_rate,
+            'deception_knowledge_score': deception_knowledge_score,
+            'hunting_success_rate': hunting_success_rate,
+            'deception_discovery_rate': deception_discovery_rate,
+            'verified_false_signal_count': int(self.verified_false_signal_count),
+            'verified_fake_asset_count': int(self.verified_fake_asset_count),
             'profit_expected_utility_weight': float(self.config.profit_expected_utility_weight),
             'profit_success_weight': float(self.config.profit_success_weight),
             'persistence_survival_weight': float(self.config.persistence_survival_weight),
@@ -6329,6 +6856,16 @@ class CyberDefenseSimulator:
                 coordination_history=np.asarray(self.history['coordination_history'], dtype=float),
                 trust_history=np.asarray(self.history['trust_history'], dtype=float),
                 handover_failure_history=np.asarray(self.history['handover_failure_history'], dtype=int),
+                fake_asset_interaction_history=np.asarray(self.history['fake_asset_interaction_history'], dtype=int),
+                fake_credential_usage_history=np.asarray(self.history['fake_credential_usage_history'], dtype=int),
+                credential_trap_trigger_history=np.asarray(self.history['credential_trap_trigger_history'], dtype=int),
+                fake_path_follow_history=np.asarray(self.history['fake_path_follow_history'], dtype=int),
+                honey_node_visit_history=np.asarray(self.history['honey_node_visit_history'], dtype=int),
+                honey_detection_history=np.asarray(self.history['honey_detection_history'], dtype=int),
+                counter_deception_score_history=np.asarray(self.history['counter_deception_score_history'], dtype=float),
+                awareness_history=np.asarray(self.history['awareness_history'], dtype=float),
+                suspicion_history=np.asarray(self.history['suspicion_history'], dtype=float),
+                deception_knowledge_history=np.asarray(self.history['deception_knowledge_history'], dtype=float),
             )
             logger.info(f"History saved to {history_path}")
         return metrics

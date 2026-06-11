@@ -47,6 +47,9 @@ from run_scenarios import (
     run_phase425_adversarial_signal_evaluation,
     run_phase51_coalition_evaluation,
     run_phase52_coordination_cost_evaluation,
+    run_phase53_counter_deception_evaluation,
+    run_phase54_awareness_evaluation,
+    run_phase55_hunting_evaluation,
     run_scenarios,
     run_scenarios_multi_seed,
     _select_cns_guided_policy,
@@ -1691,6 +1694,186 @@ def test_phase52_coordination_cost_outputs_exist(tmp_path):
     assert (tmp_path / "phase52_coordination_cost" / "failed_handover_count.png").exists()
     assert (tmp_path / "phase52_coordination_cost" / "phase52_vs_phase51.png").exists()
     assert (tmp_path / "phase52_coordination_cost" / "PHASE52_COORDINATION_COST_REPORT.md").exists()
+
+
+def test_counter_deception_metrics_and_history_saved(tmp_path):
+    config = small_config(
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        adaptive_attacker_enabled=True,
+        adaptive_preference_enabled=True,
+        adaptive_path_enabled=True,
+        adaptive_planning_enabled=True,
+        expected_utility_enabled=True,
+        trust_enabled=True,
+        attacker_lateral_enabled=True,
+        observable_events_enabled=True,
+        critical_path_events_enabled=True,
+        mission_objectives_enabled=True,
+        counter_deception_enabled=True,
+        fake_asset_enabled=True,
+        fake_credential_enabled=True,
+        fake_critical_path_enabled=True,
+        honey_node_enabled=True,
+        honeypot_credential_enabled=True,
+        credential_node_ids=[1],
+        credential_attraction_bonus=3.0,
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    metrics = sim.save_outputs(str(tmp_path))
+
+    assert metrics["counter_deception_enabled"] is True
+    assert metrics["fake_asset_interaction_count"] + metrics["fake_path_follow_count"] > 0
+    assert metrics["counter_deception_score"] >= 0.0
+    assert len(history["fake_asset_interaction_history"]) == config.T
+    saved = np.load(tmp_path / "history.npz")
+    assert "fake_asset_interaction_history" in saved.files
+    assert "counter_deception_score_history" in saved.files
+
+
+def test_phase53_counter_deception_outputs_exist(tmp_path):
+    rows = run_phase53_counter_deception_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase53_counter_deception"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["balanced"],
+    )
+
+    modes = {row["phase53_mode"] for row in rows}
+    assert {"baseline", "intent_deception_attacker", "counter_deception_defender"}.issubset(modes)
+    counter_rows = [row for row in rows if row["phase53_mode"] == "counter_deception_defender"]
+    assert any(row["fake_asset_interaction_count"] + row["fake_path_follow_count"] > 0 for row in counter_rows)
+    assert (tmp_path / "phase53_counter_deception" / "counter_deception_summary.csv").exists()
+    assert (tmp_path / "phase53_counter_deception" / "counter_deception_summary.json").exists()
+    assert (tmp_path / "phase53_counter_deception" / "fake_asset_interactions.png").exists()
+    assert (tmp_path / "phase53_counter_deception" / "fake_path_follow_count.png").exists()
+    assert (tmp_path / "phase53_counter_deception" / "counter_deception_score.png").exists()
+    assert (tmp_path / "phase53_counter_deception" / "phase53_vs_phase423.png").exists()
+    assert (tmp_path / "phase53_counter_deception" / "PHASE53_COUNTER_DECEPTION_REPORT.md").exists()
+
+
+def test_counter_deception_awareness_metrics_and_history_saved(tmp_path):
+    config = small_config(
+        T=6,
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        adaptive_attacker_enabled=True,
+        adaptive_preference_enabled=True,
+        adaptive_path_enabled=True,
+        adaptive_planning_enabled=True,
+        expected_utility_enabled=True,
+        trust_enabled=True,
+        attacker_lateral_enabled=True,
+        observable_events_enabled=True,
+        critical_path_events_enabled=True,
+        mission_objectives_enabled=True,
+        counter_deception_enabled=True,
+        fake_asset_enabled=True,
+        fake_credential_enabled=True,
+        fake_critical_path_enabled=True,
+        honey_node_enabled=True,
+        honeypot_credential_enabled=True,
+        counter_deception_awareness_enabled=True,
+        credential_node_ids=[1],
+        credential_attraction_bonus=3.0,
+        attacker_type="counter_deception_aware_attacker",
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    metrics = sim.save_outputs(str(tmp_path))
+
+    assert metrics["counter_deception_awareness_enabled"] is True
+    assert metrics["fake_asset_detection_rate"] >= 0.0
+    assert metrics["honey_node_detection_rate"] >= 0.0
+    assert metrics["awareness_score"] >= 0.0
+    assert metrics["deception_suspicion_score"] >= 0.0
+    assert len(history["awareness_history"]) == config.T
+    saved = np.load(tmp_path / "history.npz")
+    assert "awareness_history" in saved.files
+    assert "suspicion_history" in saved.files
+
+
+def test_phase54_awareness_outputs_exist(tmp_path):
+    rows = run_phase54_awareness_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase54_awareness"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["balanced"],
+    )
+
+    modes = {row["phase54_mode"] for row in rows}
+    assert {"adaptive_mission_attacker", "counter_deception_defender", "aware_attacker_counter_deception"}.issubset(modes)
+    aware_rows = [row for row in rows if row["phase54_mode"] == "aware_attacker_counter_deception"]
+    assert any(row["fake_asset_detection_rate"] > 0 or row["honey_node_detection_rate"] > 0 for row in aware_rows)
+    assert (tmp_path / "phase54_awareness" / "awareness_summary.csv").exists()
+    assert (tmp_path / "phase54_awareness" / "awareness_summary.json").exists()
+    assert (tmp_path / "phase54_awareness" / "fake_asset_detection_rate.png").exists()
+    assert (tmp_path / "phase54_awareness" / "honey_node_detection_rate.png").exists()
+    assert (tmp_path / "phase54_awareness" / "awareness_score.png").exists()
+    assert (tmp_path / "phase54_awareness" / "phase54_vs_phase53.png").exists()
+    assert (tmp_path / "phase54_awareness" / "PHASE54_AWARENESS_REPORT.md").exists()
+
+
+def test_counter_deception_hunting_metrics_and_history_saved(tmp_path):
+    config = small_config(
+        T=6,
+        attacker_enabled=True,
+        attacker_target_selection="adaptive",
+        adaptive_attacker_enabled=True,
+        adaptive_preference_enabled=True,
+        adaptive_path_enabled=True,
+        adaptive_planning_enabled=True,
+        expected_utility_enabled=True,
+        trust_enabled=True,
+        attacker_lateral_enabled=True,
+        observable_events_enabled=True,
+        critical_path_events_enabled=True,
+        mission_objectives_enabled=True,
+        counter_deception_enabled=True,
+        fake_asset_enabled=True,
+        fake_credential_enabled=True,
+        fake_critical_path_enabled=True,
+        honey_node_enabled=True,
+        honeypot_credential_enabled=True,
+        counter_deception_awareness_enabled=True,
+        counter_deception_hunting_enabled=True,
+        credential_node_ids=[1],
+        credential_attraction_bonus=3.0,
+        attacker_type="counter_deception_aware_attacker",
+    )
+    sim = CyberDefenseSimulator(config)
+    history = sim.run()
+    metrics = sim.save_outputs(str(tmp_path))
+
+    assert metrics["counter_deception_hunting_enabled"] is True
+    assert metrics["fake_asset_hunt_count"] + metrics["honey_probe_count"] >= 0
+    assert metrics["deception_knowledge_score"] >= 0.0
+    assert metrics["deception_discovery_rate"] >= 0.0
+    assert len(history["deception_knowledge_history"]) == config.T
+    saved = np.load(tmp_path / "history.npz")
+    assert "deception_knowledge_history" in saved.files
+
+
+def test_phase55_hunting_outputs_exist(tmp_path):
+    rows = run_phase55_hunting_evaluation(
+        seeds=[0],
+        output_dir=str(tmp_path / "phase55_hunting"),
+        config_path=str(tmp_path / "missing_config.json"),
+        strategy_profiles=["balanced"],
+    )
+
+    modes = {row["phase55_mode"] for row in rows}
+    assert {"counter_deception_defender", "awareness_attacker", "hunting_attacker"}.issubset(modes)
+    hunting_rows = [row for row in rows if row["phase55_mode"] == "hunting_attacker"]
+    assert any(row["fake_asset_hunt_count"] > 0 or row["honey_probe_count"] > 0 for row in hunting_rows)
+    assert (tmp_path / "phase55_hunting" / "hunting_summary.csv").exists()
+    assert (tmp_path / "phase55_hunting" / "hunting_summary.json").exists()
+    assert (tmp_path / "phase55_hunting" / "fake_asset_hunt_count.png").exists()
+    assert (tmp_path / "phase55_hunting" / "honey_probe_success_rate.png").exists()
+    assert (tmp_path / "phase55_hunting" / "deception_discovery_rate.png").exists()
+    assert (tmp_path / "phase55_hunting" / "phase55_vs_phase54.png").exists()
+    assert (tmp_path / "phase55_hunting" / "PHASE55_HUNTING_REPORT.md").exists()
 
 
 def test_best_policy_fields_exist(tmp_path):

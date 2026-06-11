@@ -8,6 +8,17 @@ CyberMatch is a cyber-defense evaluation framework for both:
 It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost. Phase3 validates Decision Neutralization against adaptive and rational attackers.
 Phase4 extends CyberMatch from adaptive defense to intelligence-driven active defense.
 
+## Vision Documents
+
+CyberMatch's end-state, product direction, and evaluation scope are summarized in:
+
+- [CyberMatch Vision](docs/CYBERMATCH_VISION.md)
+- [CyberMatch End-State Definition](docs/CYBERMATCH_END_STATE.md)
+- [CyberMatch Use Cases](docs/CYBERMATCH_USE_CASES.md)
+- [CyberMatch Evaluation Matrix](docs/CYBERMATCH_EVALUATION_MATRIX.md)
+- [CyberMatch Gap Analysis](docs/CYBERMATCH_GAP_ANALYSIS.md)
+- [CyberMatch Roadmap](docs/CYBERMATCH_ROADMAP.md)
+
 ## Quick Start
 
 Install dependencies:
