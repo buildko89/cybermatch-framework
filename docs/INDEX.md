@@ -14,6 +14,15 @@ This index is the primary entry point for CyberMatch documentation.
 - [CyberMatch Evaluation Matrix](CYBERMATCH_EVALUATION_MATRIX.md)
 - [CyberMatch Gap Analysis](CYBERMATCH_GAP_ANALYSIS.md)
 
+## GUI and UX
+
+- [CyberMatch GUI Vision](CYBERMATCH_GUI_VISION.md)
+- [CyberMatch GUI UX Flow](CYBERMATCH_GUI_UX.md)
+- [CyberMatch GUI Screen Definitions](CYBERMATCH_GUI_SCREENS.md)
+- [CyberMatch GUI MVP Definition](CYBERMATCH_GUI_MVP.md)
+- [CyberMatch GUI Technology Evaluation](CYBERMATCH_GUI_TECHNOLOGY.md)
+- [CyberMatch GUI Wireframe](CYBERMATCH_GUI_WIREFRAME.md)
+
 ## Use Cases
 
 - [CyberMatch Use Cases](CYBERMATCH_USE_CASES.md)

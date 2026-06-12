@@ -86,6 +86,14 @@ python -m pip install -r requirements.txt
 python scripts/run_tests.py --smoke
 ```
 
+Streamlit GUI MVP を起動する場合:
+
+```bash
+streamlit run apps/streamlit_app.py
+```
+
+画面左のサイドバーで日本語/英語を切り替えられます。
+
 ### WSL2
 
 ```bash
@@ -137,6 +145,16 @@ Product Interface、Product Profile、Mission-Aware Product Evaluation を評価
 - `output/phase62_product_profiles/`
 - `output/phase63_mission_products/`
 
+### Phase7.2
+
+Product Evaluation 限定の Streamlit GUI MVP を起動します。
+
+```bash
+streamlit run apps/streamlit_app.py
+```
+
+GUIは日本語/英語の表示切替に対応しています。
+
 ## ドキュメント
 
 - [Documentation Index](docs/INDEX.md)
@@ -146,6 +164,9 @@ Product Interface、Product Profile、Mission-Aware Product Evaluation を評価
 - [End State](docs/CYBERMATCH_END_STATE.md)
 - [Use Cases](docs/CYBERMATCH_USE_CASES.md)
 - [Roadmap](docs/CYBERMATCH_ROADMAP.md)
+- [GUI Vision](docs/CYBERMATCH_GUI_VISION.md)
+- [GUI UX](docs/CYBERMATCH_GUI_UX.md)
+- [GUI MVP](docs/CYBERMATCH_GUI_MVP.md)
 - [Reproducibility](docs/REPRODUCIBILITY.md)
 
 ## 今後のロードマップ

@@ -74,6 +74,9 @@ Start here:
 - [CyberMatch End-State Definition](docs/CYBERMATCH_END_STATE.md)
 - [CyberMatch Use Cases](docs/CYBERMATCH_USE_CASES.md)
 - [CyberMatch Roadmap](docs/CYBERMATCH_ROADMAP.md)
+- [CyberMatch GUI Vision](docs/CYBERMATCH_GUI_VISION.md)
+- [CyberMatch GUI UX](docs/CYBERMATCH_GUI_UX.md)
+- [CyberMatch GUI MVP](docs/CYBERMATCH_GUI_MVP.md)
 - [Reproducibility](docs/REPRODUCIBILITY.md)
 
 Additional planning and release notes:
@@ -115,6 +118,14 @@ Run all publication evaluations:
 python scripts/run_all.py
 ```
 
+Launch the Streamlit GUI MVP:
+
+```bash
+streamlit run apps/streamlit_app.py
+```
+
+The MVP dashboard supports Japanese and English from the sidebar language selector.
+
 ## Representative Experiments
 
 Phase4 publication milestones:
@@ -140,6 +151,14 @@ Phase6 evaluation runners are exposed from the simulation framework:
 - `run_phase61_product_interface_evaluation()`
 - `run_phase62_product_profile_evaluation()`
 - `run_phase63_mission_aware_product_evaluation()`
+
+Phase7.2 adds a lightweight Streamlit dashboard for Product Evaluation:
+
+```bash
+streamlit run apps/streamlit_app.py
+```
+
+The dashboard UI can be switched between Japanese and English.
 
 ## Repository Structure
 
