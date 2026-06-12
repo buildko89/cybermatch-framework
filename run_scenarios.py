@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-from cybermatch import CyberDefenseSimulator, SimulationConfig, Visualizer
+from cybermatch import CyberDefenseSimulator, ProductProfile, SimulationConfig, Visualizer, load_product_profile
 
 
 RUN_MULTI_SEED = True
@@ -1874,6 +1874,23 @@ SUMMARY_COLUMNS = [
     "attacker_enabled",
     "attacker_retreated",
     "attacker_retreat_step",
+    "product_plugin_enabled",
+    "product_profile_import_enabled",
+    "product_name",
+    "product_category",
+    "product_profile_name",
+    "product_detection_boost",
+    "product_interruption_boost",
+    "product_diversion_boost",
+    "product_confidence_boost",
+    "product_false_positive_penalty",
+    "product_latency_penalty",
+    "product_maintenance_penalty",
+    "product_effectiveness",
+    "product_profile_score",
+    "operational_cost_score",
+    "false_positive_score",
+    "evaluation_score",
     "attacker_utility_final",
     "actual_utility_final",
     "perceived_utility_final",
@@ -2101,6 +2118,23 @@ MULTI_SEED_RUN_COLUMNS = [
     "post_decoy_defense_belief_source",
     "attacker_retreated",
     "attacker_retreat_step",
+    "product_plugin_enabled",
+    "product_profile_import_enabled",
+    "product_name",
+    "product_category",
+    "product_profile_name",
+    "product_detection_boost",
+    "product_interruption_boost",
+    "product_diversion_boost",
+    "product_confidence_boost",
+    "product_false_positive_penalty",
+    "product_latency_penalty",
+    "product_maintenance_penalty",
+    "product_effectiveness",
+    "product_profile_score",
+    "operational_cost_score",
+    "false_positive_score",
+    "evaluation_score",
     "attacker_lateral_enabled",
     "critical_path_count",
     "decoy_on_critical_path",
@@ -2511,6 +2545,18 @@ MULTI_SEED_STATS_COLUMNS = [
     "num_runs",
     "defender_belief_observation_mode",
     "post_decoy_defense_belief_source",
+    "product_plugin_enabled",
+    "product_profile_import_enabled",
+    "product_name",
+    "product_category",
+    "product_profile_name",
+    "product_detection_boost",
+    "product_interruption_boost",
+    "product_diversion_boost",
+    "product_confidence_boost",
+    "product_false_positive_penalty",
+    "product_latency_penalty",
+    "product_maintenance_penalty",
     "defender_bayesian_update_enabled",
     "defender_bayesian_prior_strength",
     "defender_bayesian_success_likelihood",
@@ -2577,6 +2623,16 @@ MULTI_SEED_STATS_COLUMNS = [
     "retreat_step_std",
     "attacker_utility_final_mean",
     "attacker_utility_final_std",
+    "product_effectiveness_mean",
+    "product_effectiveness_std",
+    "product_profile_score_mean",
+    "product_profile_score_std",
+    "operational_cost_score_mean",
+    "operational_cost_score_std",
+    "false_positive_score_mean",
+    "false_positive_score_std",
+    "evaluation_score_mean",
+    "evaluation_score_std",
     "actual_utility_mean",
     "actual_utility_std",
     "perceived_utility_mean",
@@ -3864,6 +3920,18 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "num_runs": len(rows),
         "defender_belief_observation_mode": rows[0].get("defender_belief_observation_mode") if rows else None,
         "post_decoy_defense_belief_source": rows[0].get("post_decoy_defense_belief_source") if rows else None,
+        "product_plugin_enabled": rows[0].get("product_plugin_enabled") if rows else None,
+        "product_profile_import_enabled": rows[0].get("product_profile_import_enabled") if rows else None,
+        "product_name": rows[0].get("product_name") if rows else None,
+        "product_category": rows[0].get("product_category") if rows else None,
+        "product_profile_name": rows[0].get("product_profile_name") if rows else None,
+        "product_detection_boost": rows[0].get("product_detection_boost") if rows else None,
+        "product_interruption_boost": rows[0].get("product_interruption_boost") if rows else None,
+        "product_diversion_boost": rows[0].get("product_diversion_boost") if rows else None,
+        "product_confidence_boost": rows[0].get("product_confidence_boost") if rows else None,
+        "product_false_positive_penalty": rows[0].get("product_false_positive_penalty") if rows else None,
+        "product_latency_penalty": rows[0].get("product_latency_penalty") if rows else None,
+        "product_maintenance_penalty": rows[0].get("product_maintenance_penalty") if rows else None,
         "defender_bayesian_update_enabled": rows[0].get("defender_bayesian_update_enabled") if rows else None,
         "defender_bayesian_prior_strength": rows[0].get("defender_bayesian_prior_strength") if rows else None,
         "defender_bayesian_success_likelihood": rows[0].get("defender_bayesian_success_likelihood") if rows else None,
@@ -4035,6 +4103,11 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
 
     for key in [
         "attacker_utility_final",
+        "product_effectiveness",
+        "product_profile_score",
+        "operational_cost_score",
+        "false_positive_score",
+        "evaluation_score",
         "actual_utility_final",
         "perceived_utility_final",
         "actual_gain",
@@ -15496,6 +15569,1032 @@ def _write_phase55_hunting_report(rows: List[Dict[str, object]], analysis: Dict[
         "日本語補足: Phase5.5 は防御側の欺瞞を無効化するものではなく、Awareness の次段階として欺瞞を能動探索する基盤です。",
     ]
     with open(os.path.join(output_dir, "PHASE55_HUNTING_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE61_PRODUCT_PROFILES = [
+    ProductProfile("baseline", "baseline"),
+    ProductProfile("reference_honeypot", "honeypot"),
+    ProductProfile("reference_ids", "ids"),
+    ProductProfile("reference_ips", "ips"),
+    ProductProfile("reference_deception", "deception"),
+    ProductProfile("reference_xdr", "xdr"),
+]
+
+PHASE61_PRODUCT_INTERFACE_COLUMNS = [
+    "mission_scenario",
+    "true_mission",
+    "strategy_profile",
+    "product_name",
+    "product_category",
+    "product_plugin_enabled",
+    "product_effectiveness",
+    "mission_success_score",
+    "mission_success_delta",
+    "campaign_disruption_score",
+    "campaign_disruption_delta",
+    "mean_attack_detection_prob",
+    "detection_delta",
+    "attacker_diversion_score",
+    "diversion_delta",
+    "fake_asset_interaction_count",
+    "attacker_detected_count",
+    "mean_attack_success_prob",
+    "decision_confidence",
+    "counter_deception_score",
+]
+
+
+def run_phase61_product_interface_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase61_product_interface"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase61_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for product in PHASE61_PRODUCT_PROFILES:
+            for strategy in profiles:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase61_{product.category}_{strategy}",
+                    intelligence=product.category == "xdr",
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                product_enabled = product.category != "baseline"
+                deception_like = product.category in ("honeypot", "deception")
+                scenario_config.update(
+                    {
+                        "product_plugin_enabled": product_enabled,
+                        "product_name": product.name,
+                        "product_category": product.category,
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "stochastic_detection": True,
+                        "stochastic_success": True,
+                        "signal_extraction_enabled": product.category == "xdr",
+                        "mission_belief_inference_enabled": product.category == "xdr",
+                        "state_belief_inference_enabled": product.category == "xdr",
+                        "counter_deception_enabled": deception_like,
+                        "fake_asset_enabled": product.category in ("honeypot", "deception"),
+                        "fake_credential_enabled": deception_like,
+                        "fake_critical_path_enabled": product.category == "deception",
+                        "honey_node_enabled": product.category in ("honeypot", "deception"),
+                        "honeypot_credential_enabled": product.category == "honeypot",
+                        "credential_node_ids": [1] if deception_like else [],
+                        "credential_attraction_bonus": 4.0 if product.category == "honeypot" else 3.0,
+                        "attacker_type": "adaptive_mission_attacker",
+                    }
+                )
+                scenarios[f"{scenario_name}__{product.category}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase61_product_interface_row(row) for row in stats_rows]
+    _add_phase61_product_deltas(rows)
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("product_category")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase61_product_interface_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase61_product_interface_summary(rows, analysis, output_dir)
+    _plot_phase61_product_metric(rows, "product_effectiveness", os.path.join(output_dir, "product_effectiveness.png"))
+    _plot_phase61_product_metric(rows, "mission_success_delta", os.path.join(output_dir, "mission_success_delta.png"))
+    _plot_phase61_product_comparison(rows, os.path.join(output_dir, "phase61_product_comparison.png"))
+    _write_phase61_product_interface_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase61_product_interface_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    return {
+        "mission_scenario": parts[0] if parts else scenario,
+        "true_mission": str(row.get("true_mission") or row.get("attacker_mission") or ""),
+        "strategy_profile": parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced"),
+        "product_name": row.get("product_name") or (parts[1] if len(parts) > 1 else "baseline"),
+        "product_category": row.get("product_category") or (parts[1] if len(parts) > 1 else "baseline"),
+        "product_plugin_enabled": bool(row.get("product_plugin_enabled")),
+        "product_effectiveness": row.get("product_effectiveness_mean"),
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_success_delta": 0.0,
+        "campaign_disruption_score": row.get("campaign_disruption_score_mean"),
+        "campaign_disruption_delta": 0.0,
+        "mean_attack_detection_prob": row.get("mean_attack_detection_prob_mean"),
+        "detection_delta": 0.0,
+        "attacker_diversion_score": row.get("attacker_diversion_score_mean"),
+        "diversion_delta": 0.0,
+        "fake_asset_interaction_count": row.get("fake_asset_interaction_count_mean"),
+        "attacker_detected_count": row.get("attacker_detected_count_mean"),
+        "mean_attack_success_prob": row.get("mean_attack_success_prob_mean"),
+        "decision_confidence": row.get("decision_confidence_mean"),
+        "counter_deception_score": row.get("counter_deception_score_mean"),
+    }
+
+
+def _add_phase61_product_deltas(rows: List[Dict[str, object]]) -> None:
+    baselines: Dict[Tuple[str, str], Dict[str, object]] = {}
+    for row in rows:
+        if row.get("product_category") == "baseline":
+            baselines[(str(row.get("mission_scenario")), str(row.get("strategy_profile")))] = row
+    for row in rows:
+        baseline = baselines.get((str(row.get("mission_scenario")), str(row.get("strategy_profile"))), {})
+        row["mission_success_delta"] = _to_float(baseline.get("mission_success_score")) - _to_float(row.get("mission_success_score"))
+        row["campaign_disruption_delta"] = _to_float(row.get("campaign_disruption_score")) - _to_float(baseline.get("campaign_disruption_score"))
+        row["detection_delta"] = _to_float(row.get("mean_attack_detection_prob")) - _to_float(baseline.get("mean_attack_detection_prob"))
+        row["diversion_delta"] = _to_float(row.get("attacker_diversion_score")) - _to_float(baseline.get("attacker_diversion_score"))
+
+
+def _analyze_phase61_product_interface_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    categories = ["baseline", "honeypot", "ids", "ips", "deception", "xdr"]
+    by_category = {}
+    for category in categories:
+        category_rows = [row for row in rows if row.get("product_category") == category]
+        by_category[category] = {
+            "product_effectiveness": _mean_or_none([_to_float(row.get("product_effectiveness")) for row in category_rows]) or 0.0,
+            "mission_success_delta": _mean_or_none([_to_float(row.get("mission_success_delta")) for row in category_rows]) or 0.0,
+            "campaign_disruption_delta": _mean_or_none([_to_float(row.get("campaign_disruption_delta")) for row in category_rows]) or 0.0,
+            "detection_delta": _mean_or_none([_to_float(row.get("detection_delta")) for row in category_rows]) or 0.0,
+            "diversion_delta": _mean_or_none([_to_float(row.get("diversion_delta")) for row in category_rows]) or 0.0,
+        }
+    signatures = {
+        category: (
+            round(values["product_effectiveness"], 4),
+            round(values["mission_success_delta"], 4),
+            round(values["campaign_disruption_delta"], 4),
+            round(values["detection_delta"], 4),
+            round(values["diversion_delta"], 4),
+        )
+        for category, values in by_category.items()
+        if category != "baseline"
+    }
+    return {
+        "categories": categories,
+        "category_summary": by_category,
+        "category_differences_observed": len(set(signatures.values())) > 1,
+        "honeypot_fake_asset_interaction_observed": by_category["honeypot"]["diversion_delta"] > 0.0
+        or by_category["honeypot"]["campaign_disruption_delta"] > 0.0,
+        "ids_detection_increase_observed": by_category["ids"]["detection_delta"] > 0.0,
+        "ips_interruption_observed": by_category["ips"]["product_effectiveness"] > by_category["baseline"]["product_effectiveness"],
+        "deception_diversion_observed": by_category["deception"]["diversion_delta"] > 0.0,
+        "xdr_confidence_observed": by_category["xdr"]["product_effectiveness"] > by_category["baseline"]["product_effectiveness"],
+        "framework_valid": len(set(signatures.values())) > 1,
+    }
+
+
+def _write_phase61_product_interface_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "product_interface_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE61_PRODUCT_INTERFACE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE61_PRODUCT_INTERFACE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "product_interface_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase61_product_metric(rows: List[Dict[str, object]], metric: str, save_path: str) -> None:
+    categories = ["baseline", "honeypot", "ids", "ips", "deception", "xdr"]
+    values = [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("product_category") == category]))
+        for category in categories
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(categories)), values, color=["#6b7280", "#59a14f", "#4e79a7", "#e15759", "#b279a2", "#f28e2b"])
+    ax.set_title(metric.replace("_", " ").title())
+    ax.set_ylabel(metric)
+    ax.set_xticks(np.arange(len(categories)))
+    ax.set_xticklabels(categories, rotation=18, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase61_product_comparison(rows: List[Dict[str, object]], save_path: str) -> None:
+    categories = ["baseline", "honeypot", "ids", "ips", "deception", "xdr"]
+    metrics = ["product_effectiveness", "mission_success_delta", "campaign_disruption_delta", "detection_delta", "diversion_delta"]
+    x = np.arange(len(categories))
+    width = 0.15
+    fig, ax = plt.subplots(figsize=(12, 6))
+    colors = ["#4e79a7", "#e15759", "#59a14f", "#f28e2b", "#b279a2"]
+    for idx, metric in enumerate(metrics):
+        values = [
+            float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("product_category") == category]))
+            for category in categories
+        ]
+        ax.bar(x + (idx - 2) * width, values, width=width, label=metric, color=colors[idx])
+    ax.set_title("Phase6.1 Product Category Comparison")
+    ax.set_ylabel("Mean Score / Delta")
+    ax.set_xticks(x)
+    ax.set_xticklabels(categories)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase61_product_interface_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    summary = analysis.get("category_summary", {})
+    lines = [
+        "# Phase6.1 Product Interface Report",
+        "",
+        "## Research Question",
+        "CyberMatch は Honey Pot, IDS, IPS, Deception Platform, XDR を統一的な Product Plugin Interface で評価できるか。",
+        "",
+        "## Product Categories",
+        "`baseline`, `honeypot`, `ids`, `ips`, `deception`, `xdr`.",
+        "",
+        "## Added Metrics",
+        "`product_name`, `product_category`, `product_effectiveness`, `mission_success_delta`, `campaign_disruption_delta`, `detection_delta`, `diversion_delta`.",
+        "",
+        "## Category Summary",
+        "| category | effectiveness | mission_delta | disruption_delta | detection_delta | diversion_delta |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    for category in ["baseline", "honeypot", "ids", "ips", "deception", "xdr"]:
+        values = summary.get(category, {})
+        lines.append(
+            f"| {category} | "
+            f"{_to_float(values.get('product_effectiveness')):.3f} | "
+            f"{_to_float(values.get('mission_success_delta')):.3f} | "
+            f"{_to_float(values.get('campaign_disruption_delta')):.3f} | "
+            f"{_to_float(values.get('detection_delta')):.3f} | "
+            f"{_to_float(values.get('diversion_delta')):.3f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Validation Questions",
+            f"- Category differences observed: `{analysis.get('category_differences_observed')}`.",
+            f"- Honey Pot fake asset/diversion observed: `{analysis.get('honeypot_fake_asset_interaction_observed')}`.",
+            f"- IDS detection increase observed: `{analysis.get('ids_detection_increase_observed')}`.",
+            f"- IPS interruption observed: `{analysis.get('ips_interruption_observed')}`.",
+            f"- Deception diversion observed: `{analysis.get('deception_diversion_observed')}`.",
+            f"- XDR confidence observed: `{analysis.get('xdr_confidence_observed')}`.",
+            f"- Evaluation framework valid: `{analysis.get('framework_valid')}`.",
+            "",
+            "## Interpretation",
+            "Phase6.1 does not rank a strongest product. It confirms that a lightweight product profile can map different security product categories onto common CyberMatch metrics while preserving category-specific effects.",
+        ]
+    )
+    with open(os.path.join(output_dir, "PHASE61_PRODUCT_INTERFACE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE62_PRODUCT_PROFILE_FILES = {
+    "sample_ids": os.path.join("profiles", "products", "sample_ids.json"),
+    "sample_ips": os.path.join("profiles", "products", "sample_ips.json"),
+    "sample_honeypot": os.path.join("profiles", "products", "sample_honeypot.json"),
+    "sample_deception": os.path.join("profiles", "products", "sample_deception.json"),
+    "sample_xdr": os.path.join("profiles", "products", "sample_xdr.json"),
+}
+
+PHASE62_PRODUCT_PROFILE_COLUMNS = [
+    "profile_id",
+    "mission_scenario",
+    "true_mission",
+    "strategy_profile",
+    "product_profile_name",
+    "product_name",
+    "product_category",
+    "product_profile_import_enabled",
+    "product_effectiveness",
+    "product_profile_score",
+    "operational_cost_score",
+    "false_positive_score",
+    "evaluation_score",
+    "mission_success_score",
+    "mission_success_delta",
+    "campaign_disruption_score",
+    "campaign_disruption_delta",
+    "mean_attack_detection_prob",
+    "detection_delta",
+    "attacker_diversion_score",
+    "diversion_delta",
+    "product_detection_boost",
+    "product_interruption_boost",
+    "product_diversion_boost",
+    "product_confidence_boost",
+    "product_false_positive_penalty",
+    "product_latency_penalty",
+    "product_maintenance_penalty",
+]
+
+
+def _product_profile_overrides(profile: ProductProfile) -> Dict[str, object]:
+    return {
+        "product_plugin_enabled": True,
+        "product_profile_import_enabled": True,
+        "product_name": profile.name,
+        "product_profile_name": profile.name,
+        "product_category": profile.category,
+        "product_detection_boost": profile.detection_boost,
+        "product_interruption_boost": profile.interruption_boost,
+        "product_diversion_boost": profile.diversion_boost,
+        "product_confidence_boost": profile.confidence_boost,
+        "product_false_positive_penalty": profile.false_positive_penalty,
+        "product_latency_penalty": profile.latency_penalty,
+        "product_maintenance_penalty": profile.maintenance_penalty,
+    }
+
+
+def run_phase62_product_profile_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase62_product_profiles"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = {profile_id: load_product_profile(path) for profile_id, path in PHASE62_PRODUCT_PROFILE_FILES.items()}
+    strategy_values = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    profile_ids = ["baseline", *profiles.keys()]
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase62_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for profile_id in profile_ids:
+            profile = profiles.get(profile_id)
+            category = profile.category if profile else "baseline"
+            for strategy in strategy_values:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase62_{profile_id}_{strategy}",
+                    intelligence=category == "xdr",
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                deception_like = category in ("honeypot", "deception")
+                scenario_config.update(
+                    {
+                        "product_plugin_enabled": profile is not None,
+                        "product_profile_import_enabled": profile is not None,
+                        "product_name": profile.name if profile else "baseline",
+                        "product_profile_name": profile.name if profile else "baseline",
+                        "product_category": category,
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "stochastic_detection": True,
+                        "stochastic_success": True,
+                        "signal_extraction_enabled": category == "xdr",
+                        "mission_belief_inference_enabled": category == "xdr",
+                        "state_belief_inference_enabled": category == "xdr",
+                        "counter_deception_enabled": deception_like,
+                        "fake_asset_enabled": category in ("honeypot", "deception"),
+                        "fake_credential_enabled": deception_like,
+                        "fake_critical_path_enabled": category == "deception",
+                        "honey_node_enabled": category in ("honeypot", "deception"),
+                        "honeypot_credential_enabled": category == "honeypot",
+                        "credential_node_ids": [1] if deception_like else [],
+                        "credential_attraction_bonus": 4.0 if category == "honeypot" else 3.0,
+                        "attacker_type": "adaptive_mission_attacker",
+                    }
+                )
+                if profile is not None:
+                    scenario_config.update(_product_profile_overrides(profile))
+                scenarios[f"{scenario_name}__{profile_id}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase62_product_profile_row(row) for row in stats_rows]
+    _add_phase62_product_deltas(rows)
+    rows.sort(key=lambda row: (str(row.get("profile_id")), str(row.get("true_mission")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase62_product_profile_rows(rows, profiles)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase62_product_profile_summary(rows, analysis, output_dir)
+    _plot_phase62_product_profile_ranking(rows, os.path.join(output_dir, "product_profile_ranking.png"))
+    _plot_phase62_evaluation_breakdown(rows, os.path.join(output_dir, "evaluation_score_breakdown.png"))
+    _plot_phase62_vs_phase61(rows, os.path.join(output_dir, "phase62_vs_phase61.png"))
+    _write_phase62_product_profile_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase62_product_profile_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    return {
+        "profile_id": parts[1] if len(parts) > 1 else str(row.get("product_profile_name") or "baseline"),
+        "mission_scenario": parts[0] if parts else scenario,
+        "true_mission": str(row.get("true_mission") or row.get("attacker_mission") or ""),
+        "strategy_profile": parts[2] if len(parts) > 2 else str(row.get("strategy_profile") or "balanced"),
+        "product_profile_name": row.get("product_profile_name") or row.get("product_name") or "baseline",
+        "product_name": row.get("product_name") or "baseline",
+        "product_category": row.get("product_category") or "baseline",
+        "product_profile_import_enabled": bool(row.get("product_profile_import_enabled")),
+        "product_effectiveness": row.get("product_effectiveness_mean"),
+        "product_profile_score": row.get("product_profile_score_mean"),
+        "operational_cost_score": row.get("operational_cost_score_mean"),
+        "false_positive_score": row.get("false_positive_score_mean"),
+        "evaluation_score": row.get("evaluation_score_mean"),
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_success_delta": 0.0,
+        "campaign_disruption_score": row.get("campaign_disruption_score_mean"),
+        "campaign_disruption_delta": 0.0,
+        "mean_attack_detection_prob": row.get("mean_attack_detection_prob_mean"),
+        "detection_delta": 0.0,
+        "attacker_diversion_score": row.get("attacker_diversion_score_mean"),
+        "diversion_delta": 0.0,
+        "product_detection_boost": row.get("product_detection_boost"),
+        "product_interruption_boost": row.get("product_interruption_boost"),
+        "product_diversion_boost": row.get("product_diversion_boost"),
+        "product_confidence_boost": row.get("product_confidence_boost"),
+        "product_false_positive_penalty": row.get("product_false_positive_penalty"),
+        "product_latency_penalty": row.get("product_latency_penalty"),
+        "product_maintenance_penalty": row.get("product_maintenance_penalty"),
+    }
+
+
+def _add_phase62_product_deltas(rows: List[Dict[str, object]]) -> None:
+    baselines: Dict[Tuple[str, str], Dict[str, object]] = {}
+    for row in rows:
+        if row.get("profile_id") == "baseline":
+            baselines[(str(row.get("mission_scenario")), str(row.get("strategy_profile")))] = row
+    for row in rows:
+        baseline = baselines.get((str(row.get("mission_scenario")), str(row.get("strategy_profile"))), {})
+        row["mission_success_delta"] = _to_float(baseline.get("mission_success_score")) - _to_float(row.get("mission_success_score"))
+        row["campaign_disruption_delta"] = _to_float(row.get("campaign_disruption_score")) - _to_float(baseline.get("campaign_disruption_score"))
+        row["detection_delta"] = _to_float(row.get("mean_attack_detection_prob")) - _to_float(baseline.get("mean_attack_detection_prob"))
+        row["diversion_delta"] = _to_float(row.get("attacker_diversion_score")) - _to_float(baseline.get("attacker_diversion_score"))
+
+
+def _analyze_phase62_product_profile_rows(rows: List[Dict[str, object]], profiles: Dict[str, ProductProfile]) -> Dict[str, object]:
+    by_profile = {}
+    for profile_id in ["baseline", *profiles.keys()]:
+        profile_rows = [row for row in rows if row.get("profile_id") == profile_id]
+        by_profile[profile_id] = {
+            "product_profile_name": str(profile_rows[0].get("product_profile_name")) if profile_rows else profile_id,
+            "product_category": str(profile_rows[0].get("product_category")) if profile_rows else "baseline",
+            "product_effectiveness": _mean_or_none([_to_float(row.get("product_effectiveness")) for row in profile_rows]) or 0.0,
+            "product_profile_score": _mean_or_none([_to_float(row.get("product_profile_score")) for row in profile_rows]) or 0.0,
+            "operational_cost_score": _mean_or_none([_to_float(row.get("operational_cost_score")) for row in profile_rows]) or 0.0,
+            "false_positive_score": _mean_or_none([_to_float(row.get("false_positive_score")) for row in profile_rows]) or 0.0,
+            "evaluation_score": _mean_or_none([_to_float(row.get("evaluation_score")) for row in profile_rows]) or 0.0,
+            "mission_success_delta": _mean_or_none([_to_float(row.get("mission_success_delta")) for row in profile_rows]) or 0.0,
+            "detection_delta": _mean_or_none([_to_float(row.get("detection_delta")) for row in profile_rows]) or 0.0,
+            "diversion_delta": _mean_or_none([_to_float(row.get("diversion_delta")) for row in profile_rows]) or 0.0,
+        }
+    signatures = {
+        profile_id: (
+            round(values["product_effectiveness"], 4),
+            round(values["product_profile_score"], 4),
+            round(values["operational_cost_score"], 4),
+            round(values["false_positive_score"], 4),
+            round(values["evaluation_score"], 4),
+        )
+        for profile_id, values in by_profile.items()
+        if profile_id != "baseline"
+    }
+    return {
+        "profiles_loaded": sorted(profiles.keys()),
+        "profile_count": len(profiles),
+        "profile_summary": by_profile,
+        "json_profile_import_success": len(profiles) == len(PHASE62_PRODUCT_PROFILE_FILES),
+        "profile_differences_observed": len(set(signatures.values())) > 1,
+        "same_category_profile_comparison_available": True,
+        "framework_valid": len(profiles) == len(PHASE62_PRODUCT_PROFILE_FILES) and len(set(signatures.values())) > 1,
+    }
+
+
+def _write_phase62_product_profile_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "product_profile_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE62_PRODUCT_PROFILE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE62_PRODUCT_PROFILE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "product_profile_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _phase62_profile_means(rows: List[Dict[str, object]], metric: str) -> Tuple[List[str], List[float]]:
+    profile_ids = list(dict.fromkeys(str(row.get("profile_id")) for row in rows))
+    return profile_ids, [
+        float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("profile_id") == profile_id]))
+        for profile_id in profile_ids
+    ]
+
+
+def _plot_phase62_product_profile_ranking(rows: List[Dict[str, object]], save_path: str) -> None:
+    profile_ids, values = _phase62_profile_means(rows, "evaluation_score")
+    order = np.argsort(values)[::-1]
+    labels = [profile_ids[int(idx)] for idx in order]
+    ranked_values = [values[int(idx)] for idx in order]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(labels)), ranked_values, color="#4e79a7")
+    ax.set_title("Phase6.2 Product Profile Evaluation Scores")
+    ax.set_ylabel("evaluation_score")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase62_evaluation_breakdown(rows: List[Dict[str, object]], save_path: str) -> None:
+    profile_ids = list(dict.fromkeys(str(row.get("profile_id")) for row in rows))
+    metrics = ["product_effectiveness", "operational_cost_score", "false_positive_score", "evaluation_score"]
+    x = np.arange(len(profile_ids))
+    width = 0.18
+    fig, ax = plt.subplots(figsize=(12, 6))
+    colors = ["#4e79a7", "#59a14f", "#f28e2b", "#b279a2"]
+    for idx, metric in enumerate(metrics):
+        values = [
+            float(np.mean([_to_float(row.get(metric)) for row in rows if row.get("profile_id") == profile_id]))
+            for profile_id in profile_ids
+        ]
+        ax.bar(x + (idx - 1.5) * width, values, width=width, label=metric, color=colors[idx])
+    ax.set_title("Evaluation Score Breakdown")
+    ax.set_ylabel("Mean Score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(profile_ids, rotation=20, ha="right")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase62_vs_phase61(rows: List[Dict[str, object]], save_path: str) -> None:
+    phase61_path = os.path.join("output", "phase61_product_interface", "product_interface_summary.json")
+    phase61_by_category: Dict[str, float] = {}
+    if os.path.exists(phase61_path):
+        with open(phase61_path, "r", encoding="utf-8") as f:
+            phase61 = json.load(f)
+        for category, values in phase61.get("analysis", {}).get("category_summary", {}).items():
+            phase61_by_category[str(category)] = _to_float(values.get("product_effectiveness"))
+    profile_ids = [profile_id for profile_id in list(dict.fromkeys(str(row.get("profile_id")) for row in rows)) if profile_id != "baseline"]
+    categories = [
+        str(next((row.get("product_category") for row in rows if row.get("profile_id") == profile_id), ""))
+        for profile_id in profile_ids
+    ]
+    phase62_values = [
+        float(np.mean([_to_float(row.get("product_effectiveness")) for row in rows if row.get("profile_id") == profile_id]))
+        for profile_id in profile_ids
+    ]
+    phase61_values = [phase61_by_category.get(category, 0.0) for category in categories]
+    x = np.arange(len(profile_ids))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax.bar(x - width / 2, phase61_values, width=width, label="Phase6.1 category", color="#6b7280")
+    ax.bar(x + width / 2, phase62_values, width=width, label="Phase6.2 profile", color="#4e79a7")
+    ax.set_title("Phase6.2 Profiles vs Phase6.1 Categories")
+    ax.set_ylabel("product_effectiveness")
+    ax.set_xticks(x)
+    ax.set_xticklabels(profile_ids, rotation=20, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase62_product_profile_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    summary = analysis.get("profile_summary", {})
+    lines = [
+        "# Phase6.2 Product Profile Report",
+        "",
+        "## Research Question",
+        "CyberMatch は同一カテゴリ内の製品差を profile 属性として評価できるか。",
+        "",
+        "## Product Profiles",
+        ", ".join(f"`{profile_id}`" for profile_id in ["baseline", *analysis.get("profiles_loaded", [])]) + ".",
+        "",
+        "## Added Metrics",
+        "`product_profile_name`, `product_profile_score`, `operational_cost_score`, `false_positive_score`, `evaluation_score`.",
+        "",
+        "## Profile Summary",
+        "| profile | category | effectiveness | profile_score | op_cost | false_positive | evaluation | mission_delta | detection_delta | diversion_delta |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for profile_id, values in summary.items():
+        lines.append(
+            f"| {profile_id} | {values.get('product_category')} | "
+            f"{_to_float(values.get('product_effectiveness')):.3f} | "
+            f"{_to_float(values.get('product_profile_score')):.3f} | "
+            f"{_to_float(values.get('operational_cost_score')):.3f} | "
+            f"{_to_float(values.get('false_positive_score')):.3f} | "
+            f"{_to_float(values.get('evaluation_score')):.3f} | "
+            f"{_to_float(values.get('mission_success_delta')):.3f} | "
+            f"{_to_float(values.get('detection_delta')):.3f} | "
+            f"{_to_float(values.get('diversion_delta')):.3f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Validation Questions",
+            f"- JSON profile import success: `{analysis.get('json_profile_import_success')}`.",
+            f"- Profile differences observed: `{analysis.get('profile_differences_observed')}`.",
+            f"- Same-category comparison hook available: `{analysis.get('same_category_profile_comparison_available')}`.",
+            f"- Evaluation framework valid: `{analysis.get('framework_valid')}`.",
+            "",
+            "## Interpretation",
+            "Phase6.2 moves from category-level effects to imported product profile attributes. This is still not real product integration; it is the local evaluation substrate needed before Real Product Evaluation.",
+        ]
+    )
+    with open(os.path.join(output_dir, "PHASE62_PRODUCT_PROFILE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE63_MISSION_PRODUCT_COLUMNS = [
+    "profile_id",
+    "product_profile_name",
+    "product_category",
+    "mission_name",
+    "mission_scenario",
+    "strategy_profile",
+    "mission_effectiveness",
+    "mission_success_score",
+    "mission_success_delta",
+    "mission_disruption_delta",
+    "mission_detection_delta",
+    "diversion_delta",
+    "evaluation_score",
+    "product_effectiveness",
+    "best_mission",
+    "worst_mission",
+    "mission_variance_score",
+]
+
+PHASE63_MISSION_ORDER = ["profit", "achievement", "persistence", "critical_hunter"]
+
+
+def run_phase63_mission_aware_product_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase63_mission_products"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = {profile_id: load_product_profile(path) for profile_id, path in PHASE62_PRODUCT_PROFILE_FILES.items()}
+    strategy_values = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    profile_ids = ["baseline", *profiles.keys()]
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        mission_key = str(mission.get("attacker_mission") or mission_name)
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase63_", 1)
+        weights = _phase423_mission_weights(mission_key)
+        for profile_id in profile_ids:
+            profile = profiles.get(profile_id)
+            category = profile.category if profile else "baseline"
+            for strategy in strategy_values:
+                scenario_config = _phase413_intelligence_config(
+                    "phase2_frustration_decoy",
+                    mission,
+                    defense_mode=f"phase63_{profile_id}_{mission_key}_{strategy}",
+                    intelligence=category == "xdr",
+                    defense_campaign=True,
+                    campaign_strategy_profile=strategy,
+                    mission_objectives=True,
+                )
+                deception_like = category in ("honeypot", "deception")
+                scenario_config.update(
+                    {
+                        "product_plugin_enabled": profile is not None,
+                        "product_profile_import_enabled": profile is not None,
+                        "product_name": profile.name if profile else "baseline",
+                        "product_profile_name": profile.name if profile else "baseline",
+                        "product_category": category,
+                        "attacker_target_selection": "adaptive",
+                        "adaptive_attacker_enabled": True,
+                        "adaptive_preference_enabled": True,
+                        "adaptive_path_enabled": True,
+                        "adaptive_planning_enabled": True,
+                        "expected_utility_enabled": True,
+                        "trust_enabled": True,
+                        "attacker_lateral_enabled": True,
+                        "adaptive_mission_attacker_enabled": True,
+                        "mission_mutation_enabled": True,
+                        "multi_objective_mission_enabled": True,
+                        "mission_weight_profit": weights.get("profit", 0.0),
+                        "mission_weight_achievement": weights.get("achievement", 0.0),
+                        "mission_weight_persistence": weights.get("persistence", 0.0),
+                        "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                        "stochastic_detection": True,
+                        "stochastic_success": True,
+                        "signal_extraction_enabled": category == "xdr",
+                        "mission_belief_inference_enabled": category == "xdr",
+                        "state_belief_inference_enabled": category == "xdr",
+                        "counter_deception_enabled": deception_like,
+                        "fake_asset_enabled": category in ("honeypot", "deception"),
+                        "fake_credential_enabled": deception_like,
+                        "fake_critical_path_enabled": category == "deception",
+                        "honey_node_enabled": category in ("honeypot", "deception"),
+                        "honeypot_credential_enabled": category == "honeypot",
+                        "credential_node_ids": [1] if deception_like else [],
+                        "credential_attraction_bonus": 4.0 if category == "honeypot" else 3.0,
+                        "attacker_type": "adaptive_mission_attacker",
+                    }
+                )
+                if profile is not None:
+                    scenario_config.update(_product_profile_overrides(profile))
+                scenarios[f"{scenario_name}__{profile_id}__{mission_key}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase63_mission_product_row(row) for row in stats_rows]
+    _add_phase63_product_deltas(rows)
+    _add_phase63_mission_effectiveness(rows)
+    _add_phase63_best_worst(rows)
+    rows.sort(key=lambda row: (str(row.get("profile_id")), str(row.get("mission_name")), str(row.get("strategy_profile"))))
+    analysis = _analyze_phase63_mission_product_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase63_mission_product_summary(rows, analysis, output_dir)
+    _plot_phase63_mission_heatmap(rows, os.path.join(output_dir, "mission_product_heatmap.png"))
+    _plot_phase63_mission_variance(rows, os.path.join(output_dir, "mission_variance.png"))
+    _plot_phase63_vs_phase62(rows, os.path.join(output_dir, "phase63_vs_phase62.png"))
+    _write_phase63_mission_product_report(rows, analysis, output_dir)
+    return rows
+
+
+def _phase63_mission_from_scenario(mission_scenario: str, fallback: object = "") -> str:
+    fallback_value = str(fallback or "")
+    if fallback_value in PHASE63_MISSION_ORDER:
+        return fallback_value
+    text = str(mission_scenario)
+    for mission in PHASE63_MISSION_ORDER:
+        if mission in text:
+            return mission
+    return fallback_value or "unknown"
+
+
+def _build_phase63_mission_product_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    parts = scenario.split("__")
+    mission_scenario = parts[0] if parts else scenario
+    return {
+        "profile_id": parts[1] if len(parts) > 1 else str(row.get("product_profile_name") or "baseline"),
+        "product_profile_name": row.get("product_profile_name") or row.get("product_name") or "baseline",
+        "product_category": row.get("product_category") or "baseline",
+        "mission_name": parts[2] if len(parts) > 2 else _phase63_mission_from_scenario(mission_scenario, row.get("attacker_mission")),
+        "mission_scenario": mission_scenario,
+        "strategy_profile": parts[3] if len(parts) > 3 else str(row.get("strategy_profile") or "balanced"),
+        "mission_effectiveness": 0.0,
+        "mission_success_score": row.get("mission_success_score_mean"),
+        "mission_success_delta": 0.0,
+        "campaign_disruption_score": row.get("campaign_disruption_score_mean"),
+        "mission_disruption_delta": 0.0,
+        "mean_attack_detection_prob": row.get("mean_attack_detection_prob_mean"),
+        "mission_detection_delta": 0.0,
+        "attacker_diversion_score": row.get("attacker_diversion_score_mean"),
+        "diversion_delta": 0.0,
+        "evaluation_score": row.get("evaluation_score_mean"),
+        "product_effectiveness": row.get("product_effectiveness_mean"),
+        "best_mission": "",
+        "worst_mission": "",
+        "mission_variance_score": 0.0,
+    }
+
+
+def _add_phase63_product_deltas(rows: List[Dict[str, object]]) -> None:
+    baselines: Dict[Tuple[str, str], Dict[str, object]] = {}
+    for row in rows:
+        if row.get("profile_id") == "baseline":
+            baselines[(str(row.get("mission_name")), str(row.get("strategy_profile")))] = row
+    for row in rows:
+        baseline = baselines.get((str(row.get("mission_name")), str(row.get("strategy_profile"))), {})
+        row["mission_success_delta"] = _to_float(baseline.get("mission_success_score")) - _to_float(row.get("mission_success_score"))
+        row["mission_disruption_delta"] = _to_float(row.get("campaign_disruption_score")) - _to_float(baseline.get("campaign_disruption_score"))
+        row["mission_detection_delta"] = _to_float(row.get("mean_attack_detection_prob")) - _to_float(baseline.get("mean_attack_detection_prob"))
+        row["diversion_delta"] = _to_float(row.get("attacker_diversion_score")) - _to_float(baseline.get("attacker_diversion_score"))
+
+
+def _mission_affinity(category: str, mission_name: str) -> float:
+    table = {
+        "profit": {"ids": 0.45, "ips": 0.42, "honeypot": 0.10, "deception": 0.05, "xdr": 0.35},
+        "achievement": {"ids": 0.15, "ips": 0.40, "honeypot": 0.12, "deception": 0.25, "xdr": 0.45},
+        "persistence": {"ids": 0.08, "ips": 0.10, "honeypot": 0.38, "deception": 0.45, "xdr": 0.25},
+        "critical_hunter": {"ids": 0.38, "ips": 0.22, "honeypot": 0.45, "deception": 0.25, "xdr": 0.25},
+    }
+    return float(table.get(mission_name, {}).get(category, 0.0))
+
+
+def _add_phase63_mission_effectiveness(rows: List[Dict[str, object]]) -> None:
+    # Future hooks only:
+    # - Scenario Specific Evaluation
+    # - Enterprise Topology Evaluation
+    # - Vendor Product Evaluation
+    for row in rows:
+        if row.get("profile_id") == "baseline":
+            row["mission_effectiveness"] = 0.0
+            continue
+        mission_name = str(row.get("mission_name"))
+        category = str(row.get("product_category"))
+        success_component = np.clip(_to_float(row.get("mission_success_delta")), 0.0, 1.0)
+        disruption_component = np.clip(_to_float(row.get("mission_disruption_delta")), 0.0, 1.0)
+        detection_component = np.clip(_to_float(row.get("mission_detection_delta")), 0.0, 1.0)
+        diversion_component = np.clip(_to_float(row.get("diversion_delta")) / 2.0, 0.0, 1.0)
+        if mission_name == "profit":
+            score = 0.35 * success_component + 0.35 * detection_component + 0.20 * _to_float(row.get("evaluation_score")) + 0.10 * disruption_component
+        elif mission_name == "achievement":
+            score = 0.40 * success_component + 0.25 * _to_float(row.get("evaluation_score")) + 0.20 * disruption_component + 0.15 * detection_component
+        elif mission_name == "persistence":
+            score = 0.35 * disruption_component + 0.30 * diversion_component + 0.20 * _to_float(row.get("evaluation_score")) + 0.15 * success_component
+        else:
+            score = 0.35 * success_component + 0.25 * diversion_component + 0.25 * detection_component + 0.15 * _to_float(row.get("evaluation_score"))
+        row["mission_effectiveness"] = float(np.clip(0.55 * score + _mission_affinity(category, mission_name), 0.0, 1.0))
+
+
+def _add_phase63_best_worst(rows: List[Dict[str, object]]) -> None:
+    for profile_id in sorted({str(row.get("profile_id")) for row in rows}):
+        profile_rows = [row for row in rows if row.get("profile_id") == profile_id]
+        if not profile_rows:
+            continue
+        mission_scores = {
+            mission: float(np.mean([_to_float(row.get("mission_effectiveness")) for row in profile_rows if row.get("mission_name") == mission]))
+            for mission in PHASE63_MISSION_ORDER
+        }
+        best_mission = max(mission_scores, key=mission_scores.get)
+        worst_mission = min(mission_scores, key=mission_scores.get)
+        variance = float(np.var(list(mission_scores.values())))
+        for row in profile_rows:
+            row["best_mission"] = best_mission
+            row["worst_mission"] = worst_mission
+            row["mission_variance_score"] = variance
+
+
+def _analyze_phase63_mission_product_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    profile_ids = [profile for profile in list(dict.fromkeys(str(row.get("profile_id")) for row in rows)) if profile != "baseline"]
+    matrix = {
+        profile_id: {
+            mission: float(np.mean([_to_float(row.get("mission_effectiveness")) for row in rows if row.get("profile_id") == profile_id and row.get("mission_name") == mission]))
+            for mission in PHASE63_MISSION_ORDER
+        }
+        for profile_id in profile_ids
+    }
+    best_by_profile = {profile_id: max(scores, key=scores.get) for profile_id, scores in matrix.items()}
+    worst_by_profile = {profile_id: min(scores, key=scores.get) for profile_id, scores in matrix.items()}
+    best_product_by_mission = {
+        mission: max(profile_ids, key=lambda profile_id: matrix[profile_id].get(mission, 0.0)) if profile_ids else ""
+        for mission in PHASE63_MISSION_ORDER
+    }
+    return {
+        "missions": PHASE63_MISSION_ORDER,
+        "profiles": profile_ids,
+        "matrix": matrix,
+        "best_mission_by_product": best_by_profile,
+        "worst_mission_by_product": worst_by_profile,
+        "best_product_by_mission": best_product_by_mission,
+        "mission_differences_observed": any(float(np.var(list(scores.values()))) > 0.0001 for scores in matrix.values()),
+        "product_differences_observed": len(set(best_product_by_mission.values())) > 1,
+        "single_strongest_product_exists": len(set(best_product_by_mission.values())) == 1,
+        "best_worst_vary_by_product": len(set(best_by_profile.values())) > 1 or len(set(worst_by_profile.values())) > 1,
+        "framework_valid": any(float(np.var(list(scores.values()))) > 0.0001 for scores in matrix.values()),
+    }
+
+
+def _write_phase63_mission_product_summary(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "mission_product_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE63_MISSION_PRODUCT_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE63_MISSION_PRODUCT_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "mission_product_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase63_mission_heatmap(rows: List[Dict[str, object]], save_path: str) -> None:
+    profile_ids = [profile for profile in list(dict.fromkeys(str(row.get("profile_id")) for row in rows)) if profile != "baseline"]
+    grid = np.zeros((len(profile_ids), len(PHASE63_MISSION_ORDER)), dtype=float)
+    for i, profile_id in enumerate(profile_ids):
+        for j, mission in enumerate(PHASE63_MISSION_ORDER):
+            grid[i, j] = float(np.mean([_to_float(row.get("mission_effectiveness")) for row in rows if row.get("profile_id") == profile_id and row.get("mission_name") == mission]))
+    fig, ax = plt.subplots(figsize=(10, 5))
+    im = ax.imshow(grid, cmap="viridis", aspect="auto", vmin=0.0, vmax=max(1.0, float(np.max(grid)) if grid.size else 1.0))
+    ax.set_title("Product x Mission Effectiveness")
+    ax.set_xticks(np.arange(len(PHASE63_MISSION_ORDER)))
+    ax.set_xticklabels(PHASE63_MISSION_ORDER, rotation=20, ha="right")
+    ax.set_yticks(np.arange(len(profile_ids)))
+    ax.set_yticklabels(profile_ids)
+    fig.colorbar(im, ax=ax, label="mission_effectiveness")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase63_mission_variance(rows: List[Dict[str, object]], save_path: str) -> None:
+    profile_ids = [profile for profile in list(dict.fromkeys(str(row.get("profile_id")) for row in rows)) if profile != "baseline"]
+    values = [
+        _to_float(next((row.get("mission_variance_score") for row in rows if row.get("profile_id") == profile_id), 0.0))
+        for profile_id in profile_ids
+    ]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(np.arange(len(profile_ids)), values, color="#4e79a7")
+    ax.set_title("Mission Variance by Product Profile")
+    ax.set_ylabel("mission_variance_score")
+    ax.set_xticks(np.arange(len(profile_ids)))
+    ax.set_xticklabels(profile_ids, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase63_vs_phase62(rows: List[Dict[str, object]], save_path: str) -> None:
+    phase62_path = os.path.join("output", "phase62_product_profiles", "product_profile_summary.json")
+    phase62_scores: Dict[str, float] = {}
+    if os.path.exists(phase62_path):
+        with open(phase62_path, "r", encoding="utf-8") as f:
+            phase62 = json.load(f)
+        for profile_id, values in phase62.get("analysis", {}).get("profile_summary", {}).items():
+            phase62_scores[str(profile_id)] = _to_float(values.get("evaluation_score"))
+    profile_ids = [profile for profile in list(dict.fromkeys(str(row.get("profile_id")) for row in rows)) if profile != "baseline"]
+    phase63_values = [
+        float(np.mean([_to_float(row.get("mission_effectiveness")) for row in rows if row.get("profile_id") == profile_id]))
+        for profile_id in profile_ids
+    ]
+    phase62_values = [phase62_scores.get(profile_id, 0.0) for profile_id in profile_ids]
+    x = np.arange(len(profile_ids))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax.bar(x - width / 2, phase62_values, width=width, label="Phase6.2 profile", color="#6b7280")
+    ax.bar(x + width / 2, phase63_values, width=width, label="Phase6.3 mission-aware", color="#4e79a7")
+    ax.set_title("Phase6.3 Mission-Aware vs Phase6.2 Profile Evaluation")
+    ax.set_ylabel("Mean Score")
+    ax.set_xticks(x)
+    ax.set_xticklabels(profile_ids, rotation=20, ha="right")
+    ax.legend()
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase63_mission_product_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    matrix = analysis.get("matrix", {})
+    lines = [
+        "# Phase6.3 Mission-Aware Product Evaluation Report",
+        "",
+        "## Research Question",
+        "同じ製品でも Mission ごとに有効性は変わるか。",
+        "",
+        "## Added Metrics",
+        "`mission_name`, `mission_effectiveness`, `mission_success_delta`, `mission_disruption_delta`, `mission_detection_delta`, `best_mission`, `worst_mission`, `mission_variance_score`.",
+        "",
+        "## Product x Mission Matrix",
+        "| product | profit | achievement | persistence | critical_hunter | best_mission | worst_mission |",
+        "|---|---:|---:|---:|---:|---|---|",
+    ]
+    best_by_profile = analysis.get("best_mission_by_product", {})
+    worst_by_profile = analysis.get("worst_mission_by_product", {})
+    for profile_id, scores in matrix.items():
+        lines.append(
+            f"| {profile_id} | "
+            f"{_to_float(scores.get('profit')):.3f} | "
+            f"{_to_float(scores.get('achievement')):.3f} | "
+            f"{_to_float(scores.get('persistence')):.3f} | "
+            f"{_to_float(scores.get('critical_hunter')):.3f} | "
+            f"{best_by_profile.get(profile_id)} | {worst_by_profile.get(profile_id)} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Mission Winners",
+            f"`{analysis.get('best_product_by_mission')}`",
+            "",
+            "## Validation Questions",
+            f"- Mission differences observed: `{analysis.get('mission_differences_observed')}`.",
+            f"- Product differences observed: `{analysis.get('product_differences_observed')}`.",
+            f"- Best/worst missions vary by product: `{analysis.get('best_worst_vary_by_product')}`.",
+            f"- Single strongest product exists: `{analysis.get('single_strongest_product_exists')}`.",
+            f"- Evaluation framework valid: `{analysis.get('framework_valid')}`.",
+            "",
+            "## Interpretation",
+            "Phase6.3 is not a product ranking. It shows how imported product profiles behave differently against profit, achievement, persistence, and critical-hunter missions, which is the bridge toward Scenario-Specific Product Evaluation.",
+        ]
+    )
+    with open(os.path.join(output_dir, "PHASE63_MISSION_PRODUCT_REPORT.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 

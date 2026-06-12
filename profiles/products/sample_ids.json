@@ -1,0 +1,11 @@
+{
+  "name": "Sample IDS A",
+  "category": "ids",
+  "detection_boost": 0.3,
+  "interruption_boost": 0.0,
+  "diversion_boost": 0.0,
+  "confidence_boost": 0.05,
+  "false_positive_penalty": 0.12,
+  "latency_penalty": 0.02,
+  "maintenance_penalty": 0.08
+}

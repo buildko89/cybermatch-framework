@@ -1,0 +1,11 @@
+{
+  "name": "Sample IPS A",
+  "category": "ips",
+  "detection_boost": 0.08,
+  "interruption_boost": 0.38,
+  "diversion_boost": 0.0,
+  "confidence_boost": 0.02,
+  "false_positive_penalty": 0.08,
+  "latency_penalty": 0.16,
+  "maintenance_penalty": 0.12
+}

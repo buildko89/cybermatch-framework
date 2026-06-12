@@ -1,23 +1,87 @@
 # CyberMatch Framework
 
-CyberMatch is a cyber-defense evaluation framework for both:
+CyberMatch is a cyber decision-making simulator that reproduces attacker decision processes and enables comparative evaluation of defense strategies and security products.
 
-- Defense Neutralization
-- Decision Neutralization
+It is designed for research and evaluation questions that are difficult to answer with technique replay alone:
 
-It evaluates whether a defense protects critical assets, reduces attacker progress, and neutralizes attacker decision-making. Phase1 focuses on defense effectiveness. Phase2 focuses on attacker cognition and decision cost. Phase3 validates Decision Neutralization against adaptive and rational attackers.
-Phase4 extends CyberMatch from adaptive defense to intelligence-driven active defense.
+- Did the defense change attacker mission success?
+- Did deception alter attacker belief, confidence, trust, or path choice?
+- Did coalition coordination cost reduce attacker effectiveness?
+- Which product profile is effective against which attacker mission?
 
-## Vision Documents
+[日本語README](README_JP.md)
 
-CyberMatch's end-state, product direction, and evaluation scope are summarized in:
+## What is CyberMatch?
 
+CyberMatch evaluates attacker-defender interaction as a repeatable campaign. It does not only measure whether a detection fired or whether a known technique was replayed. It measures whether the defender changed what the attacker believed, chose, trusted, avoided, or abandoned.
+
+Current scope reaches Phase6.3:
+
+- Phase1: Defense Neutralization
+- Phase2: Decision Neutralization
+- Phase3: Adaptive and rational attacker validation
+- Phase4: Intelligence-driven active defense
+- Phase5: Coalition, counter-deception, awareness, and hunting
+- Phase6: Product interface, product profiles, and mission-aware product evaluation
+
+## Core Concepts
+
+- **Mission**: attacker objective such as profit, achievement, persistence, or critical asset hunting.
+- **Belief**: what the attacker or defender thinks is true about assets, paths, state, or mission.
+- **State**: inferred campaign context used for policy selection and outcome analysis.
+- **Trust**: whether attackers continue to rely on nodes, credentials, paths, or partners.
+- **Deception**: decoys, fake assets, fake paths, intent masking, and misleading signals.
+- **Coalition**: multiple attackers with handoff, coordination cost, information loss, and trust degradation.
+- **Counter-Deception**: defender manipulation of attacker perception rather than passive filtering.
+- **Awareness and Hunting**: attackers that recognize and actively search for deception.
+
+## Product Evaluation
+
+Phase6 turns CyberMatch toward a security product evaluation framework without connecting to real products, external APIs, RL, or LLMs.
+
+Implemented product evaluation layers:
+
+- **Phase6.1 Product Plugin Interface**: compares product categories such as IDS, IPS, honeypot, deception, and XDR.
+- **Phase6.2 Product Profile Import**: loads lightweight JSON product profiles from `profiles/products/`.
+- **Phase6.3 Mission-Aware Product Evaluation**: evaluates product profile effectiveness by attacker mission.
+
+The goal is not to declare a single strongest product. The goal is to understand which defensive capability changes which attacker decision outcome under which mission.
+
+Sample product profiles:
+
+- `profiles/products/sample_ids.json`
+- `profiles/products/sample_ips.json`
+- `profiles/products/sample_honeypot.json`
+- `profiles/products/sample_deception.json`
+- `profiles/products/sample_xdr.json`
+
+Representative Phase6 output directories:
+
+- `output/phase61_product_interface/`
+- `output/phase62_product_profiles/`
+- `output/phase63_mission_products/`
+
+`output/` is intentionally ignored by git; regenerate artifacts from the evaluation runners when needed.
+
+## Documentation
+
+Start here:
+
+- [Documentation Index](docs/INDEX.md)
 - [CyberMatch Vision](docs/CYBERMATCH_VISION.md)
+- [CyberMatch Architecture](docs/CYBERMATCH_ARCHITECTURE.md)
+- [CyberMatch Status](docs/CYBERMATCH_STATUS.md)
 - [CyberMatch End-State Definition](docs/CYBERMATCH_END_STATE.md)
 - [CyberMatch Use Cases](docs/CYBERMATCH_USE_CASES.md)
+- [CyberMatch Roadmap](docs/CYBERMATCH_ROADMAP.md)
+- [Reproducibility](docs/REPRODUCIBILITY.md)
+
+Additional planning and release notes:
+
 - [CyberMatch Evaluation Matrix](docs/CYBERMATCH_EVALUATION_MATRIX.md)
 - [CyberMatch Gap Analysis](docs/CYBERMATCH_GAP_ANALYSIS.md)
-- [CyberMatch Roadmap](docs/CYBERMATCH_ROADMAP.md)
+- [GitHub Release Plan](docs/GITHUB_RELEASE_PLAN.md)
+- [GitHub Release Notes](docs/GITHUB_RELEASE_NOTES.md)
 
 ## Quick Start
 
@@ -27,256 +91,75 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Run tests:
-
-```bash
-python -m pytest
-```
-
-For normal development, prefer the shorter test profiles:
+Run the smoke test profile:
 
 ```bash
 python scripts/run_tests.py --smoke
+```
+
+Run the Phase5 regression profile used by the recent Phase6 work:
+
+```bash
 python scripts/run_tests.py --phase phase5
-python scripts/run_tests.py --full
 ```
 
-The full regression suite includes slow evaluation artifact tests. Use smoke or phase-specific tests for routine iteration.
-
-### Phase1
-
-Goal:
-Evaluate defense effectiveness.
-
-Metrics:
-
-- critical compromise
-- neutralization score
-- post-decoy compromise
-- defense objective score
-- MTD cost and actions
-
-Run:
+Compile-check the main simulation modules:
 
 ```bash
-python scripts/run_phase1.py
+python -m compileall cybermatch.py run_scenarios.py
 ```
 
-### Phase2
-
-Goal:
-Evaluate attacker decision neutralization.
-
-Metrics:
-
-- perceived utility
-- confidence
-- frustration
-- AI decision cost
-- Cognitive Neutralization Score
-- CNS objective score
-
-Run:
-
-```bash
-python scripts/run_phase2.py
-```
-
-### Phase3-A - Adaptive Attacker Validation
-
-Goal:
-Evaluate whether Decision Neutralization remains effective against adaptive attackers.
-
-Implemented attacker models:
-
-- Memory attacker
-- Node preference attacker
-- Path preference attacker
-- Path planning attacker
-- Trust-aware planning attacker
-
-Current finding:
-
-- Decision Neutralization remains effective under all evaluated adaptive attacker models.
-
-Run:
-
-```bash
-python scripts/run_phase3a.py
-```
-
-### Phase3-B - Rational Attacker Validation
-
-Goal:
-Evaluate whether Decision Neutralization remains effective against a rational attacker.
-
-Implemented attacker model:
-
-- Expected Utility attacker
-
-Current finding:
-
-- Expected Utility attacker is the strongest attacker model evaluated so far.
-- Decision Neutralization still remains effective.
-
-Run:
-
-```bash
-python scripts/run_phase3b.py
-```
-
-### Phase4 - Intelligence-Driven Active Defense
-
-Goal:
-Extend CyberMatch from adaptive defense to intelligence-driven active defense.
-
-Major components:
-
-- Adaptive Defender
-- Mission Belief
-- State Belief
-- Virtual Enterprise Topology
-- Critical Path Intelligence
-- Intelligence Decision Matrix
-- Defense Campaign
-- Mission Mutation
-- Intent Deception
-- Noise Injection
-- Adversarial Signal Robustness
-
-Final interpretation:
-
-CyberMatch now evaluates attacker-defender co-evolution under mission mutation, deception, noise, and adversarial signal conditions.
-
-Run representative Phase4 publication milestones:
-
-```bash
-python scripts/run_phase4.py --quick
-```
-
-Run the full Phase4.1-Phase4.25 publication workflow:
-
-```bash
-python scripts/run_phase4.py --publication
-```
-
-### All Evaluations
-
-Run:
+Run all publication evaluations:
 
 ```bash
 python scripts/run_all.py
 ```
 
-## Results
+## Representative Experiments
 
-### Phase1 Summary
+Phase4 publication milestones:
 
-Phase1 introduces Defense Neutralization, using a composite Neutralization Score and related compromise, delay, deception, and retreat metrics.
+```bash
+python scripts/run_phase4.py --quick
+```
 
-Main Phase1 policy finding:
+Phase4 full publication workflow:
 
-- `gated_edge_pressure_count_2`
+```bash
+python scripts/run_phase4.py --publication
+```
 
-Phase1 comparison best used in Phase2 ranking:
+Legacy full scenario workflow:
 
-- `phase2_ai_balanced`
+```bash
+python run_scenarios.py
+```
 
-### Phase2 Summary
+Phase6 evaluation runners are exposed from the simulation framework:
 
-Phase2 introduces Decision Neutralization. It adds perceived utility, confidence, Human Frustration, AI Decision Cost, Cognitive Neutralization Score, and CNS Objective ranking.
-
-Main Phase2 policy finding:
-
-- `phase2_frustration_decoy`
-
-### Phase3-A Summary
-
-Phase3-A introduces Adaptive Attacker Validation. It evaluates memory, node preference, path preference, path planning, and trust-aware planning attackers without introducing RL/DQN/PPO.
-
-Main Phase3-A finding:
-
-- Decision Neutralization remains stable through Memory -> Preference -> Path Preference -> Planning -> Trust-Aware Planning.
-
-### Phase3-B Summary
-
-Phase3-B introduces Rational Attacker Validation. It evaluates the Expected Utility attacker without introducing RL/DQN/PPO.
-
-Main Phase3-B finding:
-
-- Expected Utility is the strongest attacker model evaluated so far, and Decision Neutralization still remains effective.
-
-### Phase4 Summary
-
-Phase4 introduces Intelligence-Driven Active Defense. It adds mission belief, state belief, virtual topology, observable critical-path events, intelligence decision matrices, defense campaigns, mission mutation, intent deception, noise injection, adversarial signal evaluation, and consistency-check robustness.
-
-Main Phase4 finding:
-
-- CyberMatch evolved from an adaptive defense simulator into an intelligence-driven active defense co-evolution simulator.
-
-### Recommended Policies
-
-- Defense Neutralization: `gated_edge_pressure_count_2`
-- Decision Neutralization: `phase2_frustration_decoy`
-
-## Publications / Reports
-
-Phase1:
-
-- [Phase1 index](docs/phase1/README.md)
-- [Phase1 final report](docs/CYBERMATCH_PHASE1_FINAL_REPORT.md)
-- [Phase1 artifacts](docs/PHASE1_ARTIFACTS.md)
-
-Phase2:
-
-- [Phase2 index](docs/phase2/README.md)
-- [Phase2 final report](docs/CYBERMATCH_PHASE2_FINAL_REPORT.md)
-- [Phase2 artifacts](docs/PHASE2_ARTIFACTS.md)
-
-Phase3-A:
-
-- [Phase3-A final report](docs/CYBERMATCH_PHASE3A_FINAL_REPORT.md)
-- [Phase3-A artifacts](docs/PHASE3A_ARTIFACTS.md)
-
-Phase3-B:
-
-- [Phase3-B final report](docs/CYBERMATCH_PHASE3B_FINAL_REPORT.md)
-- [Phase3-B artifacts](docs/PHASE3B_ARTIFACTS.md)
-
-Phase4:
-
-- [Phase4 final report](docs/CYBERMATCH_PHASE4_FINAL_REPORT.md)
-- [Phase4 artifacts](docs/PHASE4_ARTIFACTS.md)
-
-Release and reproducibility:
-
-- [GitHub release notes](docs/GITHUB_RELEASE_NOTES.md)
-- [GitHub release plan](docs/GITHUB_RELEASE_PLAN.md)
-- [Reproducibility](docs/REPRODUCIBILITY.md)
+- `run_phase61_product_interface_evaluation()`
+- `run_phase62_product_profile_evaluation()`
+- `run_phase63_mission_aware_product_evaluation()`
 
 ## Repository Structure
 
 ```text
 cybermatch-framework/
   README.md
-  LICENSE
-  requirements.txt
+  README_JP.md
   cybermatch.py
   run_scenarios.py
+  profiles/
+    products/
   scripts/
-    run_phase1.py
-    run_phase2.py
-    run_phase3.py
-    run_phase3a.py
-    run_phase3b.py
-    run_phase4.py
-    run_all.py
   tests/
   docs/
+    INDEX.md
+    CYBERMATCH_ARCHITECTURE.md
+    CYBERMATCH_STATUS.md
     phase1/
     phase2/
-    images/
-    data/
+  output/              # generated locally, gitignored
 ```
 
 ## License

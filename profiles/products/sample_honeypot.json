@@ -1,0 +1,11 @@
+{
+  "name": "Sample Honeypot A",
+  "category": "honeypot",
+  "detection_boost": 0.12,
+  "interruption_boost": 0.0,
+  "diversion_boost": 0.22,
+  "confidence_boost": 0.0,
+  "false_positive_penalty": 0.03,
+  "latency_penalty": 0.04,
+  "maintenance_penalty": 0.18
+}

@@ -12,6 +12,51 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 @dataclass
+class ProductProfile:
+    name: str
+    category: str
+    detection_boost: float = 0.0
+    interruption_boost: float = 0.0
+    diversion_boost: float = 0.0
+    confidence_boost: float = 0.0
+    false_positive_penalty: float = 0.0
+    latency_penalty: float = 0.0
+    maintenance_penalty: float = 0.0
+
+
+def load_product_profile(path: str) -> ProductProfile:
+    with open(path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    if not isinstance(payload, dict):
+        raise ValueError("product profile must be a JSON object")
+    missing = [field_name for field_name in ("name", "category") if field_name not in payload]
+    if missing:
+        raise ValueError(f"product profile missing required fields: {', '.join(missing)}")
+    category = str(payload["category"]).lower()
+    if category not in ("ids", "ips", "honeypot", "deception", "xdr"):
+        raise ValueError("product profile category must be one of: ids, ips, honeypot, deception, xdr")
+
+    def _score(name: str) -> float:
+        return float(np.clip(float(payload.get(name, 0.0) or 0.0), 0.0, 1.0))
+
+    # Future hooks only:
+    # - Enterprise Product Profile
+    # - Vendor Product Profile
+    # - Scenario Specific Product Profile
+    return ProductProfile(
+        name=str(payload["name"]),
+        category=category,
+        detection_boost=_score("detection_boost"),
+        interruption_boost=_score("interruption_boost"),
+        diversion_boost=_score("diversion_boost"),
+        confidence_boost=_score("confidence_boost"),
+        false_positive_penalty=_score("false_positive_penalty"),
+        latency_penalty=_score("latency_penalty"),
+        maintenance_penalty=_score("maintenance_penalty"),
+    )
+
+
+@dataclass
 class SimulationConfig:
     """シミュレーションのパラメータを管理するデータクラス"""
     # システム規模
@@ -432,6 +477,18 @@ class SimulationConfig:
     credential_stage2_window: int = 5
     credential_stage2_block_count: int = 1
     credential_stage2_block_duration: int = 2
+    product_plugin_enabled: bool = False
+    product_profile_import_enabled: bool = False
+    product_name: str = "baseline"
+    product_category: str = "baseline"
+    product_profile_name: str = "baseline"
+    product_detection_boost: float = 0.0
+    product_interruption_boost: float = 0.0
+    product_diversion_boost: float = 0.0
+    product_confidence_boost: float = 0.0
+    product_false_positive_penalty: float = 0.0
+    product_latency_penalty: float = 0.0
+    product_maintenance_penalty: float = 0.0
 
     def __post_init__(self):
         self.d_base = np.asarray(self.d_base, dtype=float)
@@ -899,6 +956,21 @@ class SimulationConfig:
             errors.append("credential_trigger_block_duration must be > 0")
         if self.credential_trigger_risk_bonus < 0:
             errors.append("credential_trigger_risk_bonus must be >= 0")
+        if self.product_category not in ("baseline", "ids", "ips", "honeypot", "deception", "xdr"):
+            errors.append("product_category must be one of: baseline, ids, ips, honeypot, deception, xdr")
+        if self.product_plugin_enabled and not str(self.product_name).strip():
+            errors.append("product_name must be set when product_plugin_enabled is true")
+        for field_name, value in [
+            ("product_detection_boost", self.product_detection_boost),
+            ("product_interruption_boost", self.product_interruption_boost),
+            ("product_diversion_boost", self.product_diversion_boost),
+            ("product_confidence_boost", self.product_confidence_boost),
+            ("product_false_positive_penalty", self.product_false_positive_penalty),
+            ("product_latency_penalty", self.product_latency_penalty),
+            ("product_maintenance_penalty", self.product_maintenance_penalty),
+        ]:
+            if not 0 <= float(value) <= 1:
+                errors.append(f"{field_name} must be between 0 and 1")
         if self.credential_stage1_window < 0:
             errors.append("credential_stage1_window must be >= 0")
         if self.credential_stage2_window < self.credential_stage1_window:
@@ -2473,11 +2545,11 @@ class CyberDefenseSimulator:
             resistance = float(np.clip(0.65 * self.deception_suspicion_score + hunting_bonus, 0.0, 0.90))
         if self.config.fake_critical_path_enabled and self.fake_path_nodes:
             path_candidates = list(self.fake_path_nodes - self.suspicious_fake_path_nodes - self.verified_fake_path_nodes) or list(self.fake_path_nodes)
-            if self.rng.random() < max(0.10, 0.55 * (1.0 - resistance)):
+            if self.rng.random() < max(0.10, (0.55 + self._product_diversion_boost()) * (1.0 - resistance)):
                 return int(max(path_candidates, key=lambda node: float(self.config.attacker_belief[int(node)])))
         if self.config.fake_asset_enabled and self.fake_asset_nodes:
             asset_candidates = list(self.fake_asset_nodes - self.suspicious_fake_asset_nodes - self.verified_fake_asset_nodes) or list(self.fake_asset_nodes)
-            if self.rng.random() < max(0.10, 0.45 * (1.0 - resistance)):
+            if self.rng.random() < max(0.10, (0.45 + self._product_diversion_boost()) * (1.0 - resistance)):
                 return int(max(asset_candidates, key=lambda node: float(self.config.attacker_belief[int(node)])))
         return selected_target
 
@@ -3728,6 +3800,9 @@ class CyberDefenseSimulator:
                 1.0,
             )
         )
+        confidence_boost = self._product_confidence_boost()
+        if confidence_boost > 0.0:
+            self.config.decision_confidence = float(np.clip(self.config.decision_confidence + confidence_boost, 0.0, 1.0))
         return raw_events, signal_events, noise_events, fake_signal_events, consistency_score, extracted
 
     def _state_belief_update(
@@ -4939,6 +5014,9 @@ class CyberDefenseSimulator:
             probability *= self.config.decoy_lateral_decay
         if self._mtd_recently_active():
             probability *= np.exp(-self.config.mtd_success_decay_bonus)
+        interruption_boost = self._product_interruption_boost()
+        if interruption_boost > 0.0:
+            probability *= max(0.0, 1.0 - interruption_boost)
         return float(np.clip(probability, 0.0, 1.0))
 
     def _lateral_detection_probability(self, credential_decoy_trigger: bool = False) -> float:
@@ -4947,6 +5025,9 @@ class CyberDefenseSimulator:
             probability += self.config.mtd_detection_bonus
         if credential_decoy_trigger:
             probability += self.config.credential_detection_bonus
+        probability += self._product_detection_boost()
+        if self._product_category() == "honeypot" and credential_decoy_trigger:
+            probability += 0.10
         return float(np.clip(probability, 0.0, 1.0))
 
     def _set_to_indicator(self, values: set) -> np.ndarray:
@@ -5201,7 +5282,11 @@ class CyberDefenseSimulator:
         target_defense_strength: float,
     ) -> float:
         if not self.config.stochastic_success:
-            return 1.0 if gained > 0.01 else 0.0
+            probability = 1.0 if gained > 0.01 else 0.0
+            interruption_boost = self._product_interruption_boost()
+            if interruption_boost > 0.0 and probability > 0.0:
+                probability = max(0.0, probability - interruption_boost)
+            return probability
         if attacked_decoy:
             probability = self.config.decoy_success_prob
         else:
@@ -5210,7 +5295,36 @@ class CyberDefenseSimulator:
             )
         if self._mtd_recently_active():
             probability *= np.exp(-self.config.mtd_success_decay_bonus)
+        interruption_boost = self._product_interruption_boost()
+        if interruption_boost > 0.0:
+            probability *= max(0.0, 1.0 - interruption_boost)
         return float(np.clip(probability, 0.0, 1.0))
+
+    def _product_category(self) -> str:
+        if not self.config.product_plugin_enabled:
+            return "baseline"
+        category = str(self.config.product_category or "").lower()
+        return category if category in ("ids", "ips", "honeypot", "deception", "xdr") else "baseline"
+
+    def _product_detection_boost(self) -> float:
+        if self.config.product_profile_import_enabled:
+            return float(np.clip(self.config.product_detection_boost, 0.0, 1.0))
+        return {"ids": 0.20, "xdr": 0.08}.get(self._product_category(), 0.0)
+
+    def _product_interruption_boost(self) -> float:
+        if self.config.product_profile_import_enabled:
+            return float(np.clip(self.config.product_interruption_boost, 0.0, 1.0))
+        return 0.30 if self._product_category() == "ips" else 0.0
+
+    def _product_diversion_boost(self) -> float:
+        if self.config.product_profile_import_enabled:
+            return float(np.clip(self.config.product_diversion_boost, 0.0, 1.0))
+        return {"honeypot": 0.10, "deception": 0.20}.get(self._product_category(), 0.0)
+
+    def _product_confidence_boost(self) -> float:
+        if self.config.product_profile_import_enabled:
+            return float(np.clip(self.config.product_confidence_boost, 0.0, 1.0))
+        return 0.15 if self._product_category() == "xdr" else 0.0
 
     def _detect_attacker(
         self,
@@ -5257,6 +5371,10 @@ class CyberDefenseSimulator:
             probability += self.config.mtd_detection_bonus
         if credential_decoy_trigger:
             probability += self.config.credential_detection_bonus
+        category = self._product_category()
+        probability += self._product_detection_boost()
+        if category == "honeypot" and (attacked_decoy or credential_decoy_trigger):
+            probability += 0.10
         return float(np.clip(probability, 0.0, 1.0))
 
     def _check_and_update_matching(self, t: int, x_previous: np.ndarray) -> str:
@@ -5661,6 +5779,8 @@ class CyberDefenseSimulator:
                 1.0,
             )
         )
+        if self._product_category() == "xdr":
+            decision_confidence = float(np.clip(decision_confidence + 0.15, 0.0, 1.0))
         self.config.noise_event_count = noise_event_count
         self.config.signal_event_count = signal_event_count
         self.config.signal_to_noise_ratio = signal_to_noise_ratio
@@ -5914,6 +6034,40 @@ class CyberDefenseSimulator:
             mean_attack_success_prob = 0.0
             mean_attack_detection_prob = 0.0
             mean_target_defense_strength = 0.0
+        product_category = self._product_category()
+        product_effectiveness_map = {
+            "baseline": 0.0,
+            "honeypot": fake_asset_success_rate,
+            "ids": mean_attack_detection_prob,
+            "ips": 1.0 - mean_attack_success_prob,
+            "deception": attacker_diversion_score,
+            "xdr": decision_confidence,
+        }
+        product_effectiveness = float(np.clip(product_effectiveness_map.get(product_category, 0.0), 0.0, 1.0))
+        operational_cost_score = float(np.clip(
+            1.0 - 0.5 * self.config.product_latency_penalty - 0.5 * self.config.product_maintenance_penalty,
+            0.0,
+            1.0,
+        ))
+        false_positive_score = float(np.clip(1.0 - self.config.product_false_positive_penalty, 0.0, 1.0))
+        product_profile_score = float(np.clip(
+            0.70 * product_effectiveness
+            + 0.15 * operational_cost_score
+            + 0.15 * false_positive_score,
+            0.0,
+            1.0,
+        ))
+        evaluation_score = float(np.clip(
+            0.55 * product_effectiveness
+            + 0.20 * campaign_disruption_score
+            + 0.15 * operational_cost_score
+            + 0.10 * false_positive_score,
+            0.0,
+            1.0,
+        ))
+        if product_category == "baseline":
+            product_profile_score = 0.0
+            evaluation_score = 0.0
         post_decoy_metrics = self._calculate_post_decoy_metrics(
             selected_targets=selected_targets,
             attacker_attacked_decoy=attacker_attacked_decoy,
@@ -6096,6 +6250,23 @@ class CyberDefenseSimulator:
             'attacker_enabled': bool(self.attacker.enabled),
             'attacker_retreated': bool(self.attacker.retreated),
             'attacker_retreat_step': self.attacker_retreat_step,
+            'product_plugin_enabled': bool(self.config.product_plugin_enabled),
+            'product_profile_import_enabled': bool(self.config.product_profile_import_enabled),
+            'product_name': str(self.config.product_name),
+            'product_category': str(product_category),
+            'product_profile_name': str(self.config.product_profile_name or self.config.product_name),
+            'product_detection_boost': float(self.config.product_detection_boost),
+            'product_interruption_boost': float(self.config.product_interruption_boost),
+            'product_diversion_boost': float(self.config.product_diversion_boost),
+            'product_confidence_boost': float(self.config.product_confidence_boost),
+            'product_false_positive_penalty': float(self.config.product_false_positive_penalty),
+            'product_latency_penalty': float(self.config.product_latency_penalty),
+            'product_maintenance_penalty': float(self.config.product_maintenance_penalty),
+            'product_effectiveness': product_effectiveness,
+            'product_profile_score': product_profile_score,
+            'operational_cost_score': operational_cost_score,
+            'false_positive_score': false_positive_score,
+            'evaluation_score': evaluation_score,
             'coalition_enabled': bool(self.config.coalition_enabled),
             'coalition_size': int(self.config.coalition_size),
             'coalition_id': self.config.coalition_id,

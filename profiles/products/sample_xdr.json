@@ -1,0 +1,11 @@
+{
+  "name": "Sample XDR A",
+  "category": "xdr",
+  "detection_boost": 0.18,
+  "interruption_boost": 0.04,
+  "diversion_boost": 0.0,
+  "confidence_boost": 0.24,
+  "false_positive_penalty": 0.05,
+  "latency_penalty": 0.10,
+  "maintenance_penalty": 0.14
+}
