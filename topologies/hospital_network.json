@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "hospital_network",
+    "description": "Hospital network topology with sensitive operations, centralized identity, and moderate deception surface"
+  },
+  "characteristics": {
+    "critical_assets": 6,
+    "identity_centralization": "high",
+    "lateral_movement_complexity": "medium",
+    "deception_surface": "medium",
+    "operational_sensitivity": "high"
+  }
+}

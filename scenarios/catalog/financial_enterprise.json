@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "name": "financial_enterprise",
+    "description": "Finance-oriented enterprise scenario with high identity dependency and high operational sensitivity",
+    "version": "0.1",
+    "industry": "finance"
+  },
+  "evaluation": {
+    "runner": "phase63_mission_aware_product",
+    "output_dir": "output/phase63_mission_products",
+    "seeds": [0]
+  },
+  "missions": ["profit", "achievement", "persistence", "critical_hunter"],
+  "products": [
+    "profiles/products/sample_ids.json",
+    "profiles/products/sample_ips.json",
+    "profiles/products/sample_honeypot.json",
+    "profiles/products/sample_deception.json",
+    "profiles/products/sample_xdr.json"
+  ],
+  "topology": {
+    "preset": "enterprise"
+  },
+  "characteristics": {
+    "critical_asset_count": 5,
+    "identity_dependency": "high",
+    "operational_sensitivity": "high",
+    "deception_effectiveness": "medium"
+  }
+}

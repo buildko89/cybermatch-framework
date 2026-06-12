@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "ot_environment",
+    "description": "Operational technology topology with high critical asset concentration and high operational sensitivity"
+  },
+  "characteristics": {
+    "critical_assets": 8,
+    "identity_centralization": "medium",
+    "lateral_movement_complexity": "high",
+    "deception_surface": "low",
+    "operational_sensitivity": "high"
+  }
+}

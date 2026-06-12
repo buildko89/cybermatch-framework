@@ -11,6 +11,12 @@ This index is the primary entry point for CyberMatch documentation.
 ## Architecture
 
 - [CyberMatch Architecture](CYBERMATCH_ARCHITECTURE.md)
+- [CyberMatch Refactoring Report](CYBERMATCH_REFACTORING_REPORT.md)
+- [CyberMatch Scenario Import](CYBERMATCH_SCENARIO_IMPORT.md)
+- [CyberMatch Scenario Catalog](CYBERMATCH_SCENARIO_CATALOG.md)
+- [CyberMatch Benchmarks](CYBERMATCH_BENCHMARKS.md)
+- [CyberMatch Standard Benchmark](CYBERMATCH_STANDARD_BENCHMARK.md)
+- [CyberMatch Topologies](CYBERMATCH_TOPOLOGIES.md)
 - [CyberMatch Evaluation Matrix](CYBERMATCH_EVALUATION_MATRIX.md)
 - [CyberMatch Gap Analysis](CYBERMATCH_GAP_ANALYSIS.md)
 
@@ -59,5 +65,6 @@ Generated artifacts are written to `output/` and are intentionally excluded from
 
 ## Publication
 
+- [CyberMatch v1.0.0-rc1 Release Notes](RELEASE_NOTES_v1.0.0_RC1.md)
 - [GitHub Release Plan](GITHUB_RELEASE_PLAN.md)
 - [GitHub Release Notes](GITHUB_RELEASE_NOTES.md)

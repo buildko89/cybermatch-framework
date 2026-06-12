@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "name": "small_business",
+    "description": "Small business scenario with fewer critical assets and lower operational complexity",
+    "version": "0.1",
+    "industry": "small_business"
+  },
+  "evaluation": {
+    "runner": "phase63_mission_aware_product",
+    "output_dir": "output/phase63_mission_products",
+    "seeds": [0]
+  },
+  "missions": ["profit", "achievement", "persistence", "critical_hunter"],
+  "products": [
+    "profiles/products/sample_ids.json",
+    "profiles/products/sample_ips.json",
+    "profiles/products/sample_honeypot.json",
+    "profiles/products/sample_deception.json",
+    "profiles/products/sample_xdr.json"
+  ],
+  "topology": {
+    "preset": "small_business"
+  },
+  "characteristics": {
+    "critical_asset_count": 1,
+    "identity_dependency": "low",
+    "operational_sensitivity": "medium",
+    "deception_effectiveness": "medium"
+  }
+}

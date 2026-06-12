@@ -1,5 +1,7 @@
 # CyberMatch Framework
 
+**CyberMatch v1.0.0-rc1**
+
 CyberMatch is a cyber decision-making simulator that reproduces attacker decision processes and enables comparative evaluation of defense strategies and security products.
 
 It is designed for research and evaluation questions that are difficult to answer with technique replay alone:
@@ -77,6 +79,12 @@ Start here:
 - [CyberMatch GUI Vision](docs/CYBERMATCH_GUI_VISION.md)
 - [CyberMatch GUI UX](docs/CYBERMATCH_GUI_UX.md)
 - [CyberMatch GUI MVP](docs/CYBERMATCH_GUI_MVP.md)
+- [CyberMatch Scenario Import](docs/CYBERMATCH_SCENARIO_IMPORT.md)
+- [CyberMatch Scenario Catalog](docs/CYBERMATCH_SCENARIO_CATALOG.md)
+- [CyberMatch Benchmarks](docs/CYBERMATCH_BENCHMARKS.md)
+- [CyberMatch Standard Benchmark](docs/CYBERMATCH_STANDARD_BENCHMARK.md)
+- [CyberMatch Topologies](docs/CYBERMATCH_TOPOLOGIES.md)
+- [CyberMatch v1.0.0-rc1 Release Notes](docs/RELEASE_NOTES_v1.0.0_RC1.md)
 - [Reproducibility](docs/REPRODUCIBILITY.md)
 
 Additional planning and release notes:
@@ -160,6 +168,38 @@ streamlit run apps/streamlit_app.py
 
 The dashboard UI can be switched between Japanese and English.
 
+Phase7.3 adds an interpretation-focused dashboard for mission-aware product evaluation. The Results page now summarizes best products by mission, mission coverage gaps, mission variance, product detail metrics, existing heatmap artifacts, and CSV/JSON/Markdown downloads without changing simulation logic.
+
+Phase8.1 adds the Scenario Import foundation for JSON-defined product evaluation scenarios:
+
+```bash
+python scripts/run_scenario.py scenarios/mission_product_eval_basic.json
+```
+
+Phase8.2 adds a reusable Scenario Catalog for finance, healthcare, cloud-native startup, factory, and small business presets:
+
+```bash
+python scripts/run_scenario.py --list
+```
+
+Phase8.3 adds a reproducible Benchmark Suite across Scenario x Mission x Product:
+
+```bash
+python scripts/run_scenario.py benchmarks/product_evaluation_benchmark.json
+```
+
+Phase8.4 adds a lightweight Enterprise Topology Library for evaluating topology preset differences:
+
+```bash
+python -c "from run_scenarios import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"
+```
+
+Phase8.5 defines the CyberMatch Standard Benchmark Suite for reproducible v1.0 comparison:
+
+```bash
+python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
+```
+
 ## Repository Structure
 
 ```text
@@ -168,6 +208,12 @@ cybermatch-framework/
   README_JP.md
   cybermatch.py
   run_scenarios.py
+  scenario_loader.py
+  benchmark_loader.py
+  benchmarks/
+  topology_loader.py
+  topologies/
+  scenarios/
   profiles/
     products/
   scripts/

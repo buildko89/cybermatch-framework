@@ -1,113 +1,96 @@
 # CyberMatch Architecture
 
-CyberMatch is organized as a layered decision-evaluation framework. The layers are intentionally lightweight and deterministic so that experiments remain reproducible and suitable for publication.
+CyberMatch is a layered decision-evaluation framework. Phase8.6 adds a small module facade so v1.0 work can grow without forcing all callers to import directly from the historical monolithic files.
+
+Phase8.6 does not change simulation logic, runner behavior, artifacts, benchmark scoring, attackers, defenders, RL, LLMs, or external API usage.
+
+## Module Structure
 
 ```text
-Scenario / Configuration / Product Profiles
-                |
-                v
-Layer 1 -> Layer 2 -> Layer 3 -> Layer 4 -> Layer 5 -> Artifacts
-                |
-                v
-       Future AI Integration Hooks
+cybermatch-framework/
+  cybermatch.py                 # simulation models and simulator implementation
+  run_scenarios.py              # evaluation runners and artifact writers
+  scenario_loader.py            # JSON scenario import
+  topology_loader.py            # topology preset validation
+  benchmark_loader.py           # benchmark validation
+  cybermatch_core/
+    products.py                 # ProductProfile and product loader facade
+    scenarios.py                # scenario loader facade
+    topologies.py               # topology loader facade
+    benchmarks.py               # benchmark loader facade
+    metrics.py                  # small shared metric helpers
+    utils.py                    # repository path helpers
 ```
 
-## Layer 1: Attacker Modeling
+The top-level modules remain authoritative for backward compatibility. New code can prefer `cybermatch_core.*` imports where that improves readability.
 
-This layer models attacker behavior without RL or LLM decision loops.
+## Dependency Overview
 
-Current capabilities include:
+```text
+profiles/products/*.json
+        |
+        v
+cybermatch.py  <---- run_scenarios.py
+        ^              |
+        |              v
+cybermatch_core.products
 
-- Baseline attacker progression
-- Adaptive attacker behavior
-- Preference and path-aware attackers
-- Planning and expected-utility attackers
-- Trust-aware attackers
-- Coalition attackers with handoff and coordination cost
-- Counter-deception aware and hunting attackers
+scenarios/*.json ---> scenario_loader.py ---> cybermatch_core.scenarios
+topologies/*.json -> topology_loader.py ---> cybermatch_core.topologies
+benchmarks/*.json -> benchmark_loader.py --> cybermatch_core.benchmarks
+```
 
-The purpose is not to create an unconstrained autonomous agent. The purpose is to create controlled attacker models that can be compared across defense conditions.
+The facade modules import from existing implementation modules. Existing imports such as `from cybermatch import ProductProfile` remain valid.
 
-## Layer 2: Mission / Belief / State
+## Runner Flow
 
-This layer captures the decision context that drives attacker and defender behavior.
+```text
+run_scenarios.py
+  -> existing Phase runners
+  -> CyberDefenseSimulator / ProductProfile
+  -> CSV / JSON / PNG / Markdown artifacts under output/
+```
 
-Core elements:
+Phase8.6 does not alter runner inputs, seeds, scoring, output paths, or artifact schemas.
 
-- Mission objective: profit, achievement, persistence, critical asset hunting, or mixed goals
-- Mission belief: defender inference about attacker intent
-- State belief: inferred campaign state and risk context
-- Attacker confidence and perceived utility
-- Trust in assets, paths, credentials, and coalition partners
+## Scenario Flow
 
-This layer makes CyberMatch decision-centric rather than event-centric.
+```text
+scenario JSON
+  -> load_scenario()
+  -> validate_scenario()
+  -> topology preset resolution
+  -> existing Phase6.2 or Phase6.3 runner dispatch
+```
 
-## Layer 3: Defense Campaign
+Scenario import validates metadata, runner, missions, products, and topology presets. Products and topology presets are still controlled local JSON files.
 
-This layer evaluates defense policies over repeated campaign steps.
+## Benchmark Flow
 
-Current capabilities include:
+```text
+benchmark JSON
+  -> load_benchmark()
+  -> validate_benchmark()
+  -> scenario / topology / mission / product matrix
+  -> Phase8 benchmark summary artifacts
+```
 
-- Moving target defense
-- Decoys and fake assets
-- Adaptive defender policies
-- CNS-guided defense selection
-- Mission-aware defense
-- Critical path intelligence
-- Virtual enterprise topology
-- Intelligence decision matrix
-- Defense campaign profiles
-- Mission mutation and adaptive intelligence
+The standard benchmark uses:
 
-The layer measures whether the defender changed attacker outcomes, not only whether it executed an action.
+```text
+5 scenarios x 5 topologies x 4 missions x 5 products = 500 matrix cells
+```
 
-## Layer 4: Counter-Deception
+Benchmark interpretation remains benchmark-condition reporting, not product certification.
 
-This layer models active defender manipulation of attacker perception.
+## Refactoring Boundary
 
-Current capabilities include:
+Phase8.6 intentionally avoids large file moves. The immediate goal is a stable module boundary for future extraction:
 
-- Intent deception
-- Noise injection
-- Adversarial signal robustness
-- Counter-deception defender behavior
-- Counter-deception aware attacker behavior
-- Counter-deception hunting
+- Product profile types and helpers can move behind `cybermatch_core.products`.
+- Scenario import can move behind `cybermatch_core.scenarios`.
+- Topology import can move behind `cybermatch_core.topologies`.
+- Benchmark import can move behind `cybermatch_core.benchmarks`.
+- Shared numeric/reporting helpers can move behind `cybermatch_core.metrics`.
 
-The key question is whether deception remains effective after attacker awareness and validation behavior emerge.
-
-## Layer 5: Product Evaluation
-
-This layer turns CyberMatch toward defense strategy and security product evaluation.
-
-Current Phase6 capabilities include:
-
-- Product Plugin Interface
-- Product categories: IDS, IPS, honeypot, deception, XDR
-- Product profile import from JSON
-- Lightweight product attribute model
-- Product effectiveness metrics
-- Operational cost and false-positive scoring
-- Mission-aware product evaluation matrix
-
-CyberMatch does not connect to real products in the current implementation. Product profiles are controlled evaluation inputs used to test whether the framework can distinguish product behavior across missions.
-
-Future hooks:
-
-- Enterprise Product Profile
-- Vendor Product Profile
-- Scenario Specific Product Profile
-
-## Layer 6: Future AI Integration
-
-This layer is intentionally a future hook.
-
-Possible future integrations:
-
-- Scenario generation support
-- Analyst behavior modeling
-- Explanation and reporting assistance
-- External telemetry interpretation
-- Product adapter reasoning
-
-Any future AI integration should preserve the current evaluation principle: attacker and defender outcomes must remain measurable, reproducible, and comparable without depending on opaque runtime decisions.
+This keeps v1.0 maintainability work incremental and testable.

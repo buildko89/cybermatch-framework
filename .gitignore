@@ -13,3 +13,4 @@ output/
 Thumbs.db
 .claude/
 smoke_fix*.py
+review/

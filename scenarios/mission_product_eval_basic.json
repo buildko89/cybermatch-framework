@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "name": "mission_product_eval_basic",
+    "description": "Mission-aware product evaluation using sample product profiles",
+    "version": "0.1"
+  },
+  "evaluation": {
+    "runner": "phase63_mission_aware_product",
+    "output_dir": "output/phase63_mission_products",
+    "seeds": [0]
+  },
+  "missions": [
+    "profit",
+    "achievement",
+    "persistence",
+    "critical_hunter"
+  ],
+  "products": [
+    "profiles/products/sample_ids.json",
+    "profiles/products/sample_ips.json",
+    "profiles/products/sample_honeypot.json",
+    "profiles/products/sample_deception.json",
+    "profiles/products/sample_xdr.json"
+  ],
+  "topology": {
+    "preset": "default_enterprise"
+  }
+}

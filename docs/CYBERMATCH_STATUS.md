@@ -1,70 +1,59 @@
 # CyberMatch Status
 
-Current status: **Phase6.3 Mission-Aware Product Evaluation**.
+Status snapshot for **CyberMatch v1.0.0-rc1**.
 
-CyberMatch has evolved from an attacker decision simulator into a lightweight evaluation framework for defense strategies and security product profiles.
+## Completed
 
-## Current Achievements
+- Mission-Aware Attacker
+- Adaptive Defender
+- Counter-Deception
+- Coalition
+- Product Profiles
+- Product Evaluation
+- Scenario Import
+- Scenario Catalog
+- Topology Library
+- Benchmark Suite
+- Standard Benchmark
+- GUI MVP
+- Refactoring Foundation
 
-### Mission-Aware Defense
+## Release Candidate Scope
 
-CyberMatch can evaluate defenses against different attacker missions such as profit, achievement, persistence, and critical asset hunting.
+CyberMatch v1.0.0-rc1 is a reproducible research and evaluation framework. It supports controlled scenario, topology, mission, product profile, and benchmark evaluation without live product integrations or external runtime services.
 
-### Counter-Deception
+## Reproducibility Baseline
 
-CyberMatch includes defender-side counter-deception behavior that manipulates attacker perception rather than only reacting to attacker deception.
+The standard benchmark is:
 
-### Awareness
+```text
+benchmarks/cybermatch_standard_v1.json
+```
 
-CyberMatch includes attacker awareness of deception, allowing experiments where deception effectiveness is reduced or changed by attacker recognition.
+Matrix size:
 
-### Hunting
+```text
+5 scenarios x 5 topologies x 4 missions x 5 products = 500
+```
 
-CyberMatch includes attacker hunting behavior that actively searches for deception and validates suspicious paths or assets.
+Expected benchmark completeness:
 
-### Coalition
+```text
+1.0
+```
 
-CyberMatch includes multi-attacker coalition behavior with coordination cost, information loss, handoff effects, and trust degradation.
+## Future
 
-### Product Profiles
+- Human Layer
+- Trust Layer
+- AI Agent Evaluation
+- Enterprise Topology Expansion
 
-CyberMatch can load lightweight JSON product profiles from `profiles/products/` and evaluate product attributes such as detection boost, interruption boost, diversion boost, confidence boost, false-positive penalty, latency penalty, and maintenance penalty.
+## Non-Goals for v1.0.0-rc1
 
-### Mission-Aware Product Evaluation
-
-CyberMatch can build a Product x Mission evaluation matrix. Phase6.3 results showed that product effectiveness changes by attacker mission and that the framework does not collapse into a single universal product winner.
-
-## Current Constraints
-
-### Scenario Import
-
-CyberMatch does not yet provide a full scenario import pipeline or reusable scenario catalog.
-
-### Trust Network
-
-CyberMatch includes trust effects, but it does not yet implement a full attacker trust network layer.
-
-### Human Behavior
-
-CyberMatch does not yet model SOC analyst behavior, operator fatigue, escalation paths, or human-in-the-loop response decisions.
-
-## Publication Position
-
-CyberMatch is currently suitable as a research and evaluation framework for:
-
-- Attacker decision modeling
-- Defense strategy comparison
-- Deception and counter-deception evaluation
-- Coalition attacker analysis
-- Lightweight product category and profile evaluation
-
-It should not yet be presented as:
-
-- A production cyber range
-- A real product certification system
-- A live SOC integration platform
-- A replacement for ATT&CK replay or telemetry validation
-
-## Next Direction
-
-The next major step toward v1.0 is to add scenario-specific evaluation and reusable scenario import while preserving the deterministic, reproducible evaluation model.
+- Real product integration
+- Vendor certification
+- External API dependency
+- RL runtime
+- LLM runtime
+- Network simulation engine

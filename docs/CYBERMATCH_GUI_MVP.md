@@ -126,6 +126,22 @@ Current limitation:
 
 - Mission and product selections are visible in the MVP UI, but the existing runners still execute their built-in evaluation sets.
 
+## Phase7.3 Results Interpretation Dashboard
+
+Phase7.3 adds an interpretation-focused dashboard for mission-aware product evaluation.
+
+The Results page now emphasizes interpretation of existing Phase6.3 artifacts rather than only displaying files. It does not add simulation logic, attackers, defenders, RL, LLMs, external APIs, or real product integration.
+
+Added Results page elements:
+
+- Summary cards for best overall product, best product per mission, worst mission coverage, highest mission variance, and whether a single winner exists.
+- Product x Mission pivot table loaded from `mission_product_summary.csv`.
+- Product x Mission heatmap display using the existing PNG artifact, with a table view for direct inspection.
+- Mission winner explanation for profit, achievement, persistence, and critical-hunter missions.
+- Product detail view for category, evaluation score, best mission, worst mission, mission variance, and mission deltas.
+- Download buttons for CSV, JSON, and Markdown report artifacts.
+- Missing-artifact guidance that shows the expected output path and missing file list.
+
 ## Non-Goals
 
 - Build a complete cyber range.

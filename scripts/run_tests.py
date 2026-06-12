@@ -15,11 +15,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run CyberMatch test profiles.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--smoke", action="store_true", help="Run compile checks and smoke/Phase5 tests.")
-    group.add_argument("--phase", choices=["phase1", "phase2", "phase3", "phase4", "phase5"], help="Run one phase marker.")
+    group.add_argument("--phase", choices=["phase1", "phase2", "phase3", "phase4", "phase5", "phase8", "phase83", "phase84", "phase85"], help="Run one phase marker.")
     group.add_argument("--full", action="store_true", help="Run compile checks and the full pytest suite.")
     args = parser.parse_args()
 
-    compile_targets = ["cybermatch.py", "run_scenarios.py", "scripts/run_tests.py"]
+    compile_targets = ["cybermatch.py", "run_scenarios.py", "scenario_loader.py", "benchmark_loader.py", "topology_loader.py", "scripts/run_tests.py", "scripts/run_scenario.py"]
     compile_rc = _run([sys.executable, "-m", "compileall", *compile_targets])
     if compile_rc != 0:
         return compile_rc

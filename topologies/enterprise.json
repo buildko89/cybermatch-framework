@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "enterprise",
+    "description": "Generic enterprise network with centralized identity and mixed lateral movement paths"
+  },
+  "characteristics": {
+    "critical_assets": 5,
+    "identity_centralization": "high",
+    "lateral_movement_complexity": "medium",
+    "deception_surface": "medium",
+    "operational_sensitivity": "medium"
+  }
+}

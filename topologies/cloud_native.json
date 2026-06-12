@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "cloud_native",
+    "description": "Cloud-native topology with centralized identity, elastic assets, and broad deception surface"
+  },
+  "characteristics": {
+    "critical_assets": 4,
+    "identity_centralization": "high",
+    "lateral_movement_complexity": "medium",
+    "deception_surface": "high",
+    "operational_sensitivity": "medium"
+  }
+}

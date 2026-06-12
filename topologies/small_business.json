@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "small_business",
+    "description": "Small business topology with limited critical assets and low identity centralization"
+  },
+  "characteristics": {
+    "critical_assets": 2,
+    "identity_centralization": "low",
+    "lateral_movement_complexity": "low",
+    "deception_surface": "low",
+    "operational_sensitivity": "medium"
+  }
+}
