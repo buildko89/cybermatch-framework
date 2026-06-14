@@ -1,6 +1,6 @@
 # CyberMatchとは
 
-**CyberMatch v1.0.0-rc1**
+**CyberMatch v1.0.1**
 
 CyberMatch は、「攻撃者の意思決定を再現し、防御戦略やセキュリティ製品を比較評価できるサイバー意思決定シミュレータ」です。
 
