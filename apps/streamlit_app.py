@@ -29,6 +29,16 @@ PHASE63_OUTPUT_DIR = ROOT / "output" / "phase63_mission_products"
 PHASE62_OUTPUT_DIR = ROOT / "output" / "phase62_product_profiles"
 PHASE83_OUTPUT_DIR = ROOT / "output" / "phase83_benchmark_suite"
 PHASE85_OUTPUT_DIR = ROOT / "output" / "phase85_standard_benchmark"
+PHASE90_OUTPUT_DIR = ROOT / "output" / "phase90_intent_inference"
+PHASE91_OUTPUT_DIR = ROOT / "output" / "phase91_behavior_profiles"
+PHASE92_OUTPUT_DIR = ROOT / "output" / "phase92_feature_space"
+PHASE93_OUTPUT_DIR = ROOT / "output" / "phase93_profilecore"
+PHASE94_OUTPUT_DIR = ROOT / "output" / "phase94_archetype_interpretation"
+PHASE95_OUTPUT_DIR = ROOT / "output" / "phase95_strategy_layer"
+PHASE96_OUTPUT_DIR = ROOT / "output" / "phase96_taxonomy"
+PHASE97_OUTPUT_DIR = ROOT / "output" / "phase97_target_strategy"
+PHASE98_OUTPUT_DIR = ROOT / "output" / "phase98_strategy_validation"
+PHASE99_OUTPUT_DIR = ROOT / "output" / "phase99_decision_graph"
 PHASE63_LOG_PATH = PHASE63_OUTPUT_DIR / "streamlit_phase63_run.log"
 PHASE62_LOG_PATH = PHASE62_OUTPUT_DIR / "streamlit_phase62_run.log"
 PHASE83_LOG_PATH = PHASE83_OUTPUT_DIR / "streamlit_phase83_run.log"
@@ -61,6 +71,99 @@ PHASE85_ARTIFACTS = {
     "topology_heatmap": PHASE85_OUTPUT_DIR / "standard_topology_heatmap.png",
     "mission_heatmap": PHASE85_OUTPUT_DIR / "standard_mission_heatmap.png",
     "report": PHASE85_OUTPUT_DIR / "PHASE85_STANDARD_BENCHMARK_REPORT.md",
+}
+
+PHASE90_ARTIFACTS = {
+    "summary_csv": PHASE90_OUTPUT_DIR / "intent_inference_summary.csv",
+    "summary_json": PHASE90_OUTPUT_DIR / "intent_inference_summary.json",
+    "confusion_matrix": PHASE90_OUTPUT_DIR / "mission_confusion_matrix.png",
+    "accuracy": PHASE90_OUTPUT_DIR / "mission_accuracy.png",
+    "confidence": PHASE90_OUTPUT_DIR / "mission_confidence_distribution.png",
+    "report": PHASE90_OUTPUT_DIR / "PHASE90_INTENT_INFERENCE_REPORT.md",
+}
+
+PHASE91_ARTIFACTS = {
+    "summary_csv": PHASE91_OUTPUT_DIR / "behavior_profile_summary.csv",
+    "summary_json": PHASE91_OUTPUT_DIR / "behavior_profile_summary.json",
+    "distribution": PHASE91_OUTPUT_DIR / "profile_distribution.png",
+    "confidence": PHASE91_OUTPUT_DIR / "profile_confidence_distribution.png",
+    "relationship": PHASE91_OUTPUT_DIR / "profile_mission_relationship.png",
+    "report": PHASE91_OUTPUT_DIR / "PHASE91_BEHAVIOR_PROFILE_REPORT.md",
+}
+
+PHASE92_ARTIFACTS = {
+    "summary_csv": PHASE92_OUTPUT_DIR / "feature_space_summary.csv",
+    "summary_json": PHASE92_OUTPUT_DIR / "feature_space_summary.json",
+    "dominance": PHASE92_OUTPUT_DIR / "feature_dominance.png",
+    "mission_heatmap": PHASE92_OUTPUT_DIR / "mission_feature_heatmap.png",
+    "profile_heatmap": PHASE92_OUTPUT_DIR / "profile_feature_heatmap.png",
+    "critical_path_bias": PHASE92_OUTPUT_DIR / "critical_path_bias.png",
+    "report": PHASE92_OUTPUT_DIR / "PHASE92_FEATURE_SPACE_REPORT.md",
+}
+
+PHASE93_ARTIFACTS = {
+    "summary_csv": PHASE93_OUTPUT_DIR / "profilecore_feature_projection.csv",
+    "summary_json": PHASE93_OUTPUT_DIR / "profilecore_analysis.json",
+    "pca_variance": PHASE93_OUTPUT_DIR / "pca_variance.png",
+    "component_loadings": PHASE93_OUTPUT_DIR / "component_loadings.png",
+    "feature_projection": PHASE93_OUTPUT_DIR / "feature_projection.png",
+    "archetype_distribution": PHASE93_OUTPUT_DIR / "archetype_distribution.png",
+    "report": PHASE93_OUTPUT_DIR / "PHASE93_PROFILECORE_REPORT.md",
+}
+PHASE94_ARTIFACTS = {
+    "summary_csv": PHASE94_OUTPUT_DIR / "archetype_summary.csv",
+    "summary_json": PHASE94_OUTPUT_DIR / "archetype_summary.json",
+    "feature_comparison": PHASE94_OUTPUT_DIR / "archetype_feature_comparison.png",
+    "mission_distribution": PHASE94_OUTPUT_DIR / "archetype_mission_distribution.png",
+    "profile_distribution": PHASE94_OUTPUT_DIR / "archetype_profile_distribution.png",
+    "distance_matrix": PHASE94_OUTPUT_DIR / "archetype_distance_matrix.png",
+    "report": PHASE94_OUTPUT_DIR / "PHASE94_ARCHETYPE_INTERPRETATION_REPORT.md",
+}
+PHASE95_ARTIFACTS = {
+    "summary_csv": PHASE95_OUTPUT_DIR / "strategy_summary.csv",
+    "summary_json": PHASE95_OUTPUT_DIR / "strategy_summary.json",
+    "strategy_distribution": PHASE95_OUTPUT_DIR / "strategy_distribution.png",
+    "mission_strategy_matrix": PHASE95_OUTPUT_DIR / "mission_strategy_matrix.png",
+    "strategy_archetype_matrix": PHASE95_OUTPUT_DIR / "strategy_archetype_matrix.png",
+    "strategy_profile_matrix": PHASE95_OUTPUT_DIR / "strategy_profile_matrix.png",
+    "report": PHASE95_OUTPUT_DIR / "PHASE95_STRATEGY_LAYER_REPORT.md",
+}
+PHASE96_ARTIFACTS = {
+    "summary_csv": PHASE96_OUTPUT_DIR / "taxonomy_summary.csv",
+    "summary_json": PHASE96_OUTPUT_DIR / "taxonomy_summary.json",
+    "intent_mission_matrix": PHASE96_OUTPUT_DIR / "intent_mission_matrix.png",
+    "mission_target_matrix": PHASE96_OUTPUT_DIR / "mission_target_matrix.png",
+    "target_strategy_matrix": PHASE96_OUTPUT_DIR / "target_strategy_matrix.png",
+    "report": PHASE96_OUTPUT_DIR / "PHASE96_TAXONOMY_REPORT.md",
+}
+PHASE97_ARTIFACTS = {
+    "summary_json": PHASE97_OUTPUT_DIR / "target_strategy_summary.json",
+    "target_strategy_matrix": PHASE97_OUTPUT_DIR / "target_strategy_matrix.png",
+    "strategy_distribution": PHASE97_OUTPUT_DIR / "strategy_distribution.png",
+    "strategy_diversity": PHASE97_OUTPUT_DIR / "strategy_diversity.png",
+    "target_specificity": PHASE97_OUTPUT_DIR / "target_specificity.png",
+    "strategy_alignment": PHASE97_OUTPUT_DIR / "strategy_alignment.png",
+    "report": PHASE97_OUTPUT_DIR / "PHASE97_TARGET_STRATEGY_REPORT.md",
+}
+PHASE98_ARTIFACTS = {
+    "summary_csv": PHASE98_OUTPUT_DIR / "strategy_validation_summary.csv",
+    "summary_json": PHASE98_OUTPUT_DIR / "strategy_validation_summary.json",
+    "distance_matrix": PHASE98_OUTPUT_DIR / "strategy_distance_matrix.png",
+    "distinctiveness": PHASE98_OUTPUT_DIR / "strategy_distinctiveness.png",
+    "redundancy": PHASE98_OUTPUT_DIR / "strategy_redundancy.png",
+    "target_validation": PHASE98_OUTPUT_DIR / "target_strategy_validation.png",
+    "mission_explainability": PHASE98_OUTPUT_DIR / "mission_strategy_explainability.png",
+    "report": PHASE98_OUTPUT_DIR / "PHASE98_STRATEGY_VALIDATION_REPORT.md",
+}
+PHASE99_ARTIFACTS = {
+    "summary_csv": PHASE99_OUTPUT_DIR / "decision_graph_summary.csv",
+    "summary_json": PHASE99_OUTPUT_DIR / "decision_graph_summary.json",
+    "decision_graph": PHASE99_OUTPUT_DIR / "decision_graph.png",
+    "intent_mission": PHASE99_OUTPUT_DIR / "intent_mission_graph.png",
+    "mission_target": PHASE99_OUTPUT_DIR / "mission_target_graph.png",
+    "target_strategy": PHASE99_OUTPUT_DIR / "target_strategy_graph.png",
+    "strategy_behavior": PHASE99_OUTPUT_DIR / "strategy_behavior_graph.png",
+    "report": PHASE99_OUTPUT_DIR / "PHASE99_DECISION_GRAPH_REPORT.md",
 }
 
 PROFILE_COLUMNS = [
@@ -217,6 +320,59 @@ TEXT = {
         "json_summary": "JSON summary",
         "downloads": "Downloads",
         "benchmark_artifacts": "Benchmark artifacts",
+        "phase90_intent_inference": "Phase9.0 Intent Inference",
+        "phase90_missing": "Phase9.0 intent inference artifacts not found.",
+        "phase90_help": "True Mission と推定Mission、Confidence、Accuracy、Confusion Matrixを表示します。",
+        "phase91_behavior_profiles": "Phase9.1 Behavior Profiles",
+        "phase91_missing": "Phase9.1 behavior profile artifacts not found.",
+        "phase91_help": "Behavior Profile、Profile Confidence、Profile Distribution、Mission Relationshipを表示します。",
+        "phase92_feature_space": "Phase9.2 Feature Space",
+        "phase92_missing": "Phase9.2 feature space artifacts not found.",
+        "phase92_help": "Dominant Feature、Critical Path Bias、Feature Dominance、Mission Feature Heatmapを表示します。",
+        "phase93_profilecore": "Phase9.3 ProfileCore",
+        "phase93_missing": "Phase9.3 ProfileCore artifacts not found.",
+        "phase93_help": "PCA variance、Dominant Component、Archetype Distributionを表示します。",
+        "phase94_archetype": "Phase9.4 Archetype Interpretation",
+        "phase94_missing": "Phase9.4 archetype interpretation artifacts not found.",
+        "phase94_help": "Archetype Summary、Signature、Feature Comparison、Mission/Profileとの関係を表示します。",
+        "archetype_summary": "Archetype Summary",
+        "archetype_signature": "Archetype Signature",
+        "feature_comparison": "Feature Comparison",
+        "mission_relationship": "Mission Relationship",
+        "phase95_strategy": "Phase9.5 Strategy Layer",
+        "phase95_missing": "Phase9.5 strategy layer artifacts not found.",
+        "phase95_help": "Strategy、Strategy Confidence、Mission/Archetype/Profileとの関係を表示します。",
+        "strategy": "Strategy",
+        "strategy_confidence": "Strategy Confidence",
+        "archetype_relationship": "Archetype Relationship",
+        "phase96_taxonomy": "Phase9.6 Taxonomy Explorer",
+        "phase96_missing": "Phase9.6 taxonomy artifacts not found.",
+        "phase96_help": "Intent → Mission → Target と Target → Strategy の関係を表示します。",
+        "taxonomy_explorer": "Taxonomy Explorer",
+        "target_relationship": "Target Relationship",
+        "phase97_target_strategy": "Phase9.7 Target-Specific Strategy",
+        "phase97_missing": "Phase9.7 target strategy artifacts not found.",
+        "phase97_help": "Target、Strategy、Target-Strategy Mapping、Alignment Scoreを表示します。",
+        "target_strategy_mapping": "Target-Strategy Mapping",
+        "alignment_score": "Alignment Score",
+        "phase98_strategy_validation": "Phase9.8 Strategy Validation",
+        "phase98_missing": "Phase9.8 strategy validation artifacts not found.",
+        "phase98_help": "Strategy Validation、Distinctiveness、Redundancy、Explainabilityを表示します。",
+        "distinctiveness": "Distinctiveness",
+        "redundancy": "Redundancy",
+        "explainability": "Explainability",
+        "phase99_decision_graph": "Phase9.9 Decision Graph",
+        "phase99_missing": "Phase9.9 decision graph artifacts not found.",
+        "phase99_help": "Decision Graph、Decision Path Explorer、Node Explorerを表示します。",
+        "decision_path_explorer": "Decision Path Explorer",
+        "node_explorer": "Node Explorer",
+        "true_mission": "True Mission",
+        "inferred_mission": "Inferred Mission",
+        "behavior_profile": "Behavior Profile",
+        "profile_confidence": "Profile Confidence",
+        "dominant_feature": "Dominant Feature",
+        "critical_path_bias": "Critical Path Bias",
+        "accuracy": "Accuracy",
         "benchmark_results_missing": "Benchmark results not found. Run the benchmark suite first.",
         "metric_guide": "Metric guide",
         "metric_guide_text": """
@@ -379,6 +535,59 @@ TEXT = {
         "json_summary": "JSON summary",
         "downloads": "Downloads",
         "benchmark_artifacts": "Benchmark artifacts",
+        "phase90_intent_inference": "Phase9.0 Intent Inference",
+        "phase90_missing": "Phase9.0 intent inference artifacts not found.",
+        "phase90_help": "Displays True Mission, Inferred Mission, Confidence, Accuracy, and Confusion Matrix.",
+        "phase91_behavior_profiles": "Phase9.1 Behavior Profiles",
+        "phase91_missing": "Phase9.1 behavior profile artifacts not found.",
+        "phase91_help": "Displays Behavior Profile, Profile Confidence, Profile Distribution, and Mission Relationship.",
+        "phase92_feature_space": "Phase9.2 Feature Space",
+        "phase92_missing": "Phase9.2 feature space artifacts not found.",
+        "phase92_help": "Displays Dominant Feature, Critical Path Bias, Feature Dominance, and Mission Feature Heatmap.",
+        "phase93_profilecore": "Phase9.3 ProfileCore",
+        "phase93_missing": "Phase9.3 ProfileCore artifacts not found.",
+        "phase93_help": "Displays PCA variance, Dominant Component, and Archetype Distribution.",
+        "phase94_archetype": "Phase9.4 Archetype Interpretation",
+        "phase94_missing": "Phase9.4 archetype interpretation artifacts not found.",
+        "phase94_help": "Displays Archetype Summary, Signature, Feature Comparison, and Mission/Profile relationships.",
+        "archetype_summary": "Archetype Summary",
+        "archetype_signature": "Archetype Signature",
+        "feature_comparison": "Feature Comparison",
+        "mission_relationship": "Mission Relationship",
+        "phase95_strategy": "Phase9.5 Strategy Layer",
+        "phase95_missing": "Phase9.5 strategy layer artifacts not found.",
+        "phase95_help": "Displays Strategy, Strategy Confidence, and Mission/Archetype/Profile relationships.",
+        "strategy": "Strategy",
+        "strategy_confidence": "Strategy Confidence",
+        "archetype_relationship": "Archetype Relationship",
+        "phase96_taxonomy": "Phase9.6 Taxonomy Explorer",
+        "phase96_missing": "Phase9.6 taxonomy artifacts not found.",
+        "phase96_help": "Displays Intent -> Mission -> Target and Target -> Strategy relationships.",
+        "taxonomy_explorer": "Taxonomy Explorer",
+        "target_relationship": "Target Relationship",
+        "phase97_target_strategy": "Phase9.7 Target-Specific Strategy",
+        "phase97_missing": "Phase9.7 target strategy artifacts not found.",
+        "phase97_help": "Displays Target, Strategy, Target-Strategy Mapping, and Alignment Score.",
+        "target_strategy_mapping": "Target-Strategy Mapping",
+        "alignment_score": "Alignment Score",
+        "phase98_strategy_validation": "Phase9.8 Strategy Validation",
+        "phase98_missing": "Phase9.8 strategy validation artifacts not found.",
+        "phase98_help": "Displays Strategy Validation, Distinctiveness, Redundancy, and Explainability.",
+        "distinctiveness": "Distinctiveness",
+        "redundancy": "Redundancy",
+        "explainability": "Explainability",
+        "phase99_decision_graph": "Phase9.9 Decision Graph",
+        "phase99_missing": "Phase9.9 decision graph artifacts not found.",
+        "phase99_help": "Displays the Decision Graph, Decision Path Explorer, and Node Explorer.",
+        "decision_path_explorer": "Decision Path Explorer",
+        "node_explorer": "Node Explorer",
+        "true_mission": "True Mission",
+        "inferred_mission": "Inferred Mission",
+        "behavior_profile": "Behavior Profile",
+        "profile_confidence": "Profile Confidence",
+        "dominant_feature": "Dominant Feature",
+        "critical_path_bias": "Critical Path Bias",
+        "accuracy": "Accuracy",
         "benchmark_results_missing": "Benchmark results not found. Run the benchmark suite first.",
         "metric_guide": "Metric guide",
         "metric_guide_text": """
@@ -1159,6 +1368,397 @@ def render_results(text: Dict[str, Any]) -> None:
         render_download(PHASE63_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
     with col3:
         render_download(PHASE63_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase90_intent_inference"])
+    st.caption(text["phase90_help"])
+    if not PHASE90_ARTIFACTS["summary_csv"].exists():
+        st.warning(text["phase90_missing"])
+        st.code(str(PHASE90_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase90_rows = read_csv_rows(PHASE90_ARTIFACTS["summary_csv"])
+        phase90_json = read_json(PHASE90_ARTIFACTS["summary_json"])
+        phase90_analysis = phase90_json.get("analysis", {}) if isinstance(phase90_json, dict) else {}
+        first_row = phase90_rows[0] if phase90_rows else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric(text["true_mission"], str(first_row.get("true_mission", "")))
+        with col2:
+            st.metric(text["inferred_mission"], str(first_row.get("inferred_mission", "")))
+        with col3:
+            st.metric("Confidence", str(first_row.get("mission_confidence", "")))
+        with col4:
+            st.metric(text["accuracy"], str(phase90_analysis.get("mission_inference_accuracy", "")))
+        st.dataframe(phase90_rows, use_container_width=True, hide_index=True)
+        for key in ("confusion_matrix", "accuracy", "confidence"):
+            if PHASE90_ARTIFACTS[key].exists():
+                st.image(str(PHASE90_ARTIFACTS[key]))
+        phase90_report = read_text(PHASE90_ARTIFACTS["report"])
+        if phase90_report:
+            st.markdown(phase90_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE90_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE90_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE90_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase91_behavior_profiles"])
+    st.caption(text["phase91_help"])
+    if not PHASE91_ARTIFACTS["summary_csv"].exists():
+        st.warning(text["phase91_missing"])
+        st.code(str(PHASE91_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase91_rows = read_csv_rows(PHASE91_ARTIFACTS["summary_csv"])
+        phase91_json = read_json(PHASE91_ARTIFACTS["summary_json"])
+        phase91_analysis = phase91_json.get("analysis", {}) if isinstance(phase91_json, dict) else {}
+        first_row = phase91_rows[0] if phase91_rows else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric(text["true_mission"], str(first_row.get("true_mission", "")))
+        with col2:
+            st.metric(text["behavior_profile"], str(first_row.get("behavior_profile", "")))
+        with col3:
+            st.metric(text["profile_confidence"], str(first_row.get("profile_confidence", "")))
+        with col4:
+            st.metric("Profile entropy", str(phase91_analysis.get("mean_profile_entropy", "")))
+        st.dataframe(phase91_rows, use_container_width=True, hide_index=True)
+        for key in ("distribution", "confidence", "relationship"):
+            if PHASE91_ARTIFACTS[key].exists():
+                st.image(str(PHASE91_ARTIFACTS[key]))
+        phase91_report = read_text(PHASE91_ARTIFACTS["report"])
+        if phase91_report:
+            st.markdown(phase91_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE91_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE91_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE91_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase92_feature_space"])
+    st.caption(text["phase92_help"])
+    if not PHASE92_ARTIFACTS["summary_csv"].exists():
+        st.warning(text["phase92_missing"])
+        st.code(str(PHASE92_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase92_rows = read_csv_rows(PHASE92_ARTIFACTS["summary_csv"])
+        phase92_json = read_json(PHASE92_ARTIFACTS["summary_json"])
+        phase92_analysis = phase92_json.get("analysis", {}) if isinstance(phase92_json, dict) else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric(text["dominant_feature"], str(phase92_analysis.get("dominant_feature", "")))
+        with col2:
+            st.metric(text["critical_path_bias"], str(phase92_analysis.get("critical_path_bias_score", "")))
+        with col3:
+            st.metric("Mission separability", str(phase92_analysis.get("mission_feature_separability", "")))
+        with col4:
+            st.metric("Profile separability", str(phase92_analysis.get("profile_feature_separability", "")))
+        st.dataframe(phase92_rows, use_container_width=True, hide_index=True)
+        for key in ("dominance", "mission_heatmap", "critical_path_bias"):
+            if PHASE92_ARTIFACTS[key].exists():
+                st.image(str(PHASE92_ARTIFACTS[key]))
+        phase92_report = read_text(PHASE92_ARTIFACTS["report"])
+        if phase92_report:
+            st.markdown(phase92_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE92_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE92_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE92_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase93_profilecore"])
+    st.caption(text["phase93_help"])
+    if not PHASE93_ARTIFACTS["summary_json"].exists():
+        st.warning(text["phase93_missing"])
+        st.code(str(PHASE93_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase93_rows = read_csv_rows(PHASE93_ARTIFACTS["summary_csv"])
+        phase93_json = read_json(PHASE93_ARTIFACTS["summary_json"])
+        phase93_analysis = phase93_json.get("analysis", {}) if isinstance(phase93_json, dict) else {}
+        distribution = phase93_analysis.get("archetype_distribution", {})
+        variance = phase93_analysis.get("pca_explained_variance", [])
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Dominant Component", str(phase93_analysis.get("dominant_component", "")))
+        with col2:
+            st.metric("Archetype Count", str(phase93_analysis.get("archetype_count", "")))
+        with col3:
+            st.metric("Archetype Entropy", str(phase93_analysis.get("archetype_entropy", "")))
+        with col4:
+            first_variance = variance[0] if isinstance(variance, list) and variance else ""
+            st.metric("PC1 Variance", str(first_variance))
+        if isinstance(distribution, dict):
+            st.dataframe(
+                [{"archetype": key, "rows": value} for key, value in sorted(distribution.items())],
+                use_container_width=True,
+                hide_index=True,
+            )
+        st.dataframe(phase93_rows, use_container_width=True, hide_index=True)
+        for key in ("pca_variance", "component_loadings", "feature_projection", "archetype_distribution"):
+            if PHASE93_ARTIFACTS[key].exists():
+                st.image(str(PHASE93_ARTIFACTS[key]))
+        phase93_report = read_text(PHASE93_ARTIFACTS["report"])
+        if phase93_report:
+            st.markdown(phase93_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE93_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE93_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE93_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase94_archetype"])
+    st.caption(text["phase94_help"])
+    if not PHASE94_ARTIFACTS["summary_json"].exists():
+        st.warning(text["phase94_missing"])
+        st.code(str(PHASE94_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase94_rows = read_csv_rows(PHASE94_ARTIFACTS["summary_csv"])
+        phase94_json = read_json(PHASE94_ARTIFACTS["summary_json"])
+        phase94_analysis = phase94_json.get("analysis", {}) if isinstance(phase94_json, dict) else {}
+        col1, col2, col3, col4 = st.columns(4)
+        distance = phase94_analysis.get("archetype_feature_distance", {})
+        distance_values = []
+        if isinstance(distance, dict):
+            for left, row in distance.items():
+                if isinstance(row, dict):
+                    for right, value in row.items():
+                        if str(left) < str(right):
+                            try:
+                                distance_values.append(float(value))
+                            except (TypeError, ValueError):
+                                pass
+        mean_distance = sum(distance_values) / len(distance_values) if distance_values else 0.0
+        with col1:
+            st.metric("Archetype Count", str(phase94_analysis.get("archetype_count", "")))
+        with col2:
+            st.metric("Feature Distance", f"{mean_distance:.3f}")
+        with col3:
+            st.metric("Mission Overlap", str(phase94_analysis.get("archetype_mission_overlap", "")))
+        with col4:
+            st.metric("Interpretability", str(phase94_analysis.get("archetype_interpretability_score", "")))
+        st.markdown(f"**{text['archetype_summary']}**" if "archetype_summary" in text else "**Archetype Summary**")
+        st.dataframe(phase94_rows, use_container_width=True, hide_index=True)
+        signature = phase94_analysis.get("archetype_signature", {})
+        if isinstance(signature, dict):
+            st.markdown(f"**{text['archetype_signature']}**")
+            st.dataframe(
+                [{"archetype": key, "signature": "; ".join(value) if isinstance(value, list) else str(value)} for key, value in sorted(signature.items())],
+                use_container_width=True,
+                hide_index=True,
+            )
+        st.markdown(f"**{text['feature_comparison']}**")
+        for key in ("feature_comparison", "distance_matrix"):
+            if PHASE94_ARTIFACTS[key].exists():
+                st.image(str(PHASE94_ARTIFACTS[key]))
+        st.markdown(f"**{text['mission_relationship']}**")
+        for key in ("mission_distribution", "profile_distribution"):
+            if PHASE94_ARTIFACTS[key].exists():
+                st.image(str(PHASE94_ARTIFACTS[key]))
+        phase94_report = read_text(PHASE94_ARTIFACTS["report"])
+        if phase94_report:
+            st.markdown(phase94_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE94_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE94_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE94_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase95_strategy"])
+    st.caption(text["phase95_help"])
+    if not PHASE95_ARTIFACTS["summary_json"].exists():
+        st.warning(text["phase95_missing"])
+        st.code(str(PHASE95_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase95_rows = read_csv_rows(PHASE95_ARTIFACTS["summary_csv"])
+        phase95_json = read_json(PHASE95_ARTIFACTS["summary_json"])
+        phase95_analysis = phase95_json.get("analysis", {}) if isinstance(phase95_json, dict) else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric(text["strategy"], str(phase95_analysis.get("strategy_distribution", ""))[:80])
+        with col2:
+            confidence_values = []
+            for row in phase95_rows:
+                try:
+                    confidence_values.append(float(row.get("strategy_confidence", 0.0)))
+                except (TypeError, ValueError):
+                    pass
+            mean_confidence = sum(confidence_values) / len(confidence_values) if confidence_values else 0.0
+            st.metric(text["strategy_confidence"], f"{mean_confidence:.3f}")
+        with col3:
+            st.metric("Strategy Entropy", str(phase95_analysis.get("strategy_entropy", "")))
+        with col4:
+            st.metric("Match Rate", str(phase95_analysis.get("strategy_match_rate", "")))
+        st.dataframe(phase95_rows, use_container_width=True, hide_index=True)
+        if PHASE95_ARTIFACTS["strategy_distribution"].exists():
+            st.image(str(PHASE95_ARTIFACTS["strategy_distribution"]))
+        st.markdown(f"**{text['mission_relationship']}**")
+        if PHASE95_ARTIFACTS["mission_strategy_matrix"].exists():
+            st.image(str(PHASE95_ARTIFACTS["mission_strategy_matrix"]))
+        st.markdown(f"**{text['archetype_relationship']}**")
+        for key in ("strategy_archetype_matrix", "strategy_profile_matrix"):
+            if PHASE95_ARTIFACTS[key].exists():
+                st.image(str(PHASE95_ARTIFACTS[key]))
+        phase95_report = read_text(PHASE95_ARTIFACTS["report"])
+        if phase95_report:
+            st.markdown(phase95_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE95_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE95_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE95_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase96_taxonomy"])
+    st.caption(text["phase96_help"])
+    if not PHASE96_ARTIFACTS["summary_json"].exists():
+        st.warning(text["phase96_missing"])
+        st.code(str(PHASE96_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase96_rows = read_csv_rows(PHASE96_ARTIFACTS["summary_csv"])
+        phase96_json = read_json(PHASE96_ARTIFACTS["summary_json"])
+        phase96_analysis = phase96_json.get("analysis", {}) if isinstance(phase96_json, dict) else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Intent Count", str(phase96_analysis.get("intent_count", "")))
+        with col2:
+            st.metric("Mission Count", str(phase96_analysis.get("mission_count", "")))
+        with col3:
+            st.metric("Target Count", str(phase96_analysis.get("target_count", "")))
+        with col4:
+            st.metric("Completeness", str(phase96_analysis.get("taxonomy_completeness", "")))
+        st.markdown(f"**{text['taxonomy_explorer']}**")
+        st.dataframe(phase96_rows, use_container_width=True, hide_index=True)
+        st.markdown(f"**{text['mission_relationship']}**")
+        for key in ("intent_mission_matrix", "mission_target_matrix"):
+            if PHASE96_ARTIFACTS[key].exists():
+                st.image(str(PHASE96_ARTIFACTS[key]))
+        st.markdown(f"**{text['target_relationship']}**")
+        if PHASE96_ARTIFACTS["target_strategy_matrix"].exists():
+            st.image(str(PHASE96_ARTIFACTS["target_strategy_matrix"]))
+        phase96_report = read_text(PHASE96_ARTIFACTS["report"])
+        if phase96_report:
+            st.markdown(phase96_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE96_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE96_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE96_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase97_target_strategy"])
+    st.caption(text["phase97_help"])
+    if not PHASE97_ARTIFACTS["summary_json"].exists():
+        st.warning(text["phase97_missing"])
+        st.code(str(PHASE97_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase97_json = read_json(PHASE97_ARTIFACTS["summary_json"])
+        phase97_rows = phase97_json.get("rows", []) if isinstance(phase97_json, dict) else []
+        phase97_analysis = phase97_json.get("analysis", {}) if isinstance(phase97_json, dict) else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric(text["strategy"], str(phase97_analysis.get("strategy_distribution", ""))[:80])
+        with col2:
+            st.metric("Strategy Diversity", str(phase97_analysis.get("strategy_diversity", "")))
+        with col3:
+            st.metric("Target Specificity", str(phase97_analysis.get("target_specificity_score", "")))
+        with col4:
+            st.metric(text["alignment_score"], str(phase97_analysis.get("strategy_target_alignment", "")))
+        st.dataframe(phase97_rows, use_container_width=True, hide_index=True)
+        st.markdown(f"**{text['target_strategy_mapping']}**")
+        for key in ("target_strategy_matrix", "strategy_distribution", "strategy_diversity", "target_specificity", "strategy_alignment"):
+            if PHASE97_ARTIFACTS[key].exists():
+                st.image(str(PHASE97_ARTIFACTS[key]))
+        phase97_report = read_text(PHASE97_ARTIFACTS["report"])
+        if phase97_report:
+            st.markdown(phase97_report)
+        col1, col2 = st.columns(2)
+        with col1:
+            render_download(PHASE97_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col2:
+            render_download(PHASE97_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase98_strategy_validation"])
+    st.caption(text["phase98_help"])
+    if not PHASE98_ARTIFACTS["summary_json"].exists():
+        st.warning(text["phase98_missing"])
+        st.code(str(PHASE98_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase98_json = read_json(PHASE98_ARTIFACTS["summary_json"])
+        phase98_summary = phase98_json.get("strategy_summary", []) if isinstance(phase98_json, dict) else []
+        phase98_analysis = phase98_json.get("analysis", {}) if isinstance(phase98_json, dict) else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Validation", str(phase98_analysis.get("strategy_validation_pass", "")))
+        with col2:
+            st.metric(text["distinctiveness"], str(phase98_analysis.get("strategy_distinctiveness", "")))
+        with col3:
+            st.metric(text["redundancy"], str(phase98_analysis.get("strategy_redundancy", "")))
+        with col4:
+            st.metric(text["explainability"], str(phase98_analysis.get("strategy_explainability", "")))
+        st.dataframe(phase98_summary, use_container_width=True, hide_index=True)
+        for key in ("distance_matrix", "distinctiveness", "redundancy", "target_validation", "mission_explainability"):
+            if PHASE98_ARTIFACTS[key].exists():
+                st.image(str(PHASE98_ARTIFACTS[key]))
+        phase98_report = read_text(PHASE98_ARTIFACTS["report"])
+        if phase98_report:
+            st.markdown(phase98_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE98_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE98_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE98_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
+
+    st.subheader(text["phase99_decision_graph"])
+    st.caption(text["phase99_help"])
+    if not PHASE99_ARTIFACTS["summary_json"].exists():
+        st.warning(text["phase99_missing"])
+        st.code(str(PHASE99_OUTPUT_DIR.relative_to(ROOT)), language="text")
+    else:
+        phase99_json = read_json(PHASE99_ARTIFACTS["summary_json"])
+        phase99_rows = phase99_json.get("rows", []) if isinstance(phase99_json, dict) else []
+        phase99_analysis = phase99_json.get("analysis", {}) if isinstance(phase99_json, dict) else {}
+        phase99_nodes = phase99_json.get("nodes", {}) if isinstance(phase99_json, dict) else {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Graph Valid", str(phase99_analysis.get("graph_valid", "")))
+        with col2:
+            st.metric("Nodes", str(phase99_analysis.get("decision_graph_nodes", "")))
+        with col3:
+            st.metric("Edges", str(phase99_analysis.get("decision_graph_edges", "")))
+        with col4:
+            st.metric("Paths", str(phase99_analysis.get("decision_path_count", "")))
+        if PHASE99_ARTIFACTS["decision_graph"].exists():
+            st.image(str(PHASE99_ARTIFACTS["decision_graph"]))
+        st.markdown(f"**{text['decision_path_explorer']}**")
+        st.dataframe(phase99_rows, use_container_width=True, hide_index=True)
+        st.markdown(f"**{text['node_explorer']}**")
+        node_rows = [{"layer": layer, "nodes": ", ".join(nodes) if isinstance(nodes, list) else str(nodes)} for layer, nodes in phase99_nodes.items()]
+        st.dataframe(node_rows, use_container_width=True, hide_index=True)
+        for key in ("intent_mission", "mission_target", "target_strategy", "strategy_behavior"):
+            if PHASE99_ARTIFACTS[key].exists():
+                st.image(str(PHASE99_ARTIFACTS[key]))
+        phase99_report = read_text(PHASE99_ARTIFACTS["report"])
+        if phase99_report:
+            st.markdown(phase99_report)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            render_download(PHASE99_ARTIFACTS["summary_csv"], text["download_csv"], "text/csv", text)
+        with col2:
+            render_download(PHASE99_ARTIFACTS["summary_json"], text["download_json"], "application/json", text)
+        with col3:
+            render_download(PHASE99_ARTIFACTS["report"], text["download_md"], "text/markdown", text)
 
     st.subheader(text["benchmark_artifacts"])
     if not PHASE83_ARTIFACTS["summary_csv"].exists():

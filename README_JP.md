@@ -17,7 +17,10 @@ CyberMatch は、単に ATT&CK technique を再生したり、検知が発火し
 
 ## 主な特徴
 
+- **Intent**: financial gain、espionage、disruption、long-term presence などの高位目的を扱う。
 - **Mission**: profit、achievement、persistence、critical hunter などの攻撃目的を扱う。
+- **Target**: identity infrastructure、cloud control plane、backup system、trust relationship などの攻撃対象を扱う。
+- **Strategy**: target-specific な攻撃アプローチを扱う。
 - **Belief**: 攻撃者や防御側が何を真だと考えているかを扱う。
 - **State**: campaign phase や defender policy selection に使う状態を扱う。
 - **Trust**: node、credential、path、coalition partner への信頼を評価する。
@@ -27,6 +30,27 @@ CyberMatch は、単に ATT&CK technique を再生したり、検知が発火し
 - **Awareness**: 攻撃者が deception に気づく条件を扱う。
 - **Hunting**: 攻撃者が deception を探索・検証する行動を扱う。
 - **Product Evaluation**: 製品カテゴリ、製品プロファイル、mission-aware evaluation を扱う。
+
+## CyberMatch Decision Model
+
+Phase9では、攻撃者意思決定モデルを次の階層として整理しました。
+
+```text
+Intent
+  -> Mission
+  -> Target
+  -> Strategy
+  -> Behavior
+  -> Archetype
+```
+
+このモデルは分析層です。Runtime Delegation、Defense Concept実行、RL、LLM、外部API、新しい攻撃者・防御者ロジックは追加していません。
+
+## Current Status
+
+- Phase9 Complete
+- Decision Graph Available
+- Defense Concept Evaluation (Phase10) Planned
 
 ## ユースケース
 
@@ -220,6 +244,17 @@ python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
 - [Benchmarks](docs/CYBERMATCH_BENCHMARKS.md)
 - [Standard Benchmark](docs/CYBERMATCH_STANDARD_BENCHMARK.md)
 - [Topologies](docs/CYBERMATCH_TOPOLOGIES.md)
+- [Intent Inference](docs/CYBERMATCH_INTENT_INFERENCE.md)
+- [Behavior Profiles](docs/CYBERMATCH_BEHAVIOR_PROFILES.md)
+- [ProfileCore Integration Design](docs/CYBERMATCH_PROFILECORE_INTEGRATION.md)
+- [ProfileCore Analysis](docs/CYBERMATCH_PROFILECORE_ANALYSIS.md)
+- [Archetypes](docs/CYBERMATCH_ARCHETYPES.md)
+- [Strategy Layer](docs/CYBERMATCH_STRATEGY_LAYER.md)
+- [Attacker Taxonomy](docs/CYBERMATCH_ATTACKER_TAXONOMY.md)
+- [Target-Specific Strategies](docs/CYBERMATCH_TARGET_STRATEGIES.md)
+- [Strategy Validation](docs/CYBERMATCH_STRATEGY_VALIDATION.md)
+- [Decision Graph](docs/CYBERMATCH_DECISION_GRAPH.md)
+- [Phase9 Summary](docs/PHASE9_SUMMARY.md)
 - [v1.0.0-rc1 Release Notes](docs/RELEASE_NOTES_v1.0.0_RC1.md)
 - [Reproducibility](docs/REPRODUCIBILITY.md)
 

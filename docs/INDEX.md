@@ -20,6 +20,20 @@ This index is the primary entry point for CyberMatch documentation.
 - [CyberMatch Evaluation Matrix](CYBERMATCH_EVALUATION_MATRIX.md)
 - [CyberMatch Gap Analysis](CYBERMATCH_GAP_ANALYSIS.md)
 
+## Phase9 Attacker Decision Model
+
+- [Phase9 Summary](PHASE9_SUMMARY.md)
+- [CyberMatch Intent Inference](CYBERMATCH_INTENT_INFERENCE.md)
+- [CyberMatch Behavior Profiles](CYBERMATCH_BEHAVIOR_PROFILES.md)
+- [CyberMatch ProfileCore Integration Design](CYBERMATCH_PROFILECORE_INTEGRATION.md)
+- [CyberMatch ProfileCore Analysis](CYBERMATCH_PROFILECORE_ANALYSIS.md)
+- [CyberMatch Archetypes](CYBERMATCH_ARCHETYPES.md)
+- [CyberMatch Strategy Layer](CYBERMATCH_STRATEGY_LAYER.md)
+- [CyberMatch Attacker Taxonomy](CYBERMATCH_ATTACKER_TAXONOMY.md)
+- [CyberMatch Target-Specific Strategies](CYBERMATCH_TARGET_STRATEGIES.md)
+- [CyberMatch Strategy Validation](CYBERMATCH_STRATEGY_VALIDATION.md)
+- [CyberMatch Decision Graph](CYBERMATCH_DECISION_GRAPH.md)
+
 ## GUI and UX
 
 - [CyberMatch GUI Vision](CYBERMATCH_GUI_VISION.md)
@@ -45,6 +59,7 @@ This index is the primary entry point for CyberMatch documentation.
 - [Phase3-B Final Report](CYBERMATCH_PHASE3B_FINAL_REPORT.md)
 - [Phase4 Final Report](CYBERMATCH_PHASE4_FINAL_REPORT.md)
 - [Phase5-A Coalition Foundation](PHASE5A_COALITION_FOUNDATION.md)
+- [Phase9 Summary](PHASE9_SUMMARY.md)
 
 Phase6 reports are generated under `output/phase61_product_interface/`, `output/phase62_product_profiles/`, and `output/phase63_mission_products/`.
 

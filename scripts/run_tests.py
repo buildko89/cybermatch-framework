@@ -15,11 +15,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run CyberMatch test profiles.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--smoke", action="store_true", help="Run compile checks and smoke/Phase5 tests.")
-    group.add_argument("--phase", choices=["phase1", "phase2", "phase3", "phase4", "phase5", "phase8", "phase83", "phase84", "phase85"], help="Run one phase marker.")
+    group.add_argument("--phase", choices=["phase1", "phase2", "phase3", "phase4", "phase5", "phase8", "phase83", "phase84", "phase85", "phase90", "phase91", "phase92", "phase93", "phase94", "phase95", "phase96", "phase97", "phase98", "phase99"], help="Run one phase marker.")
     group.add_argument("--full", action="store_true", help="Run compile checks and the full pytest suite.")
     args = parser.parse_args()
 
-    compile_targets = ["cybermatch.py", "run_scenarios.py", "scenario_loader.py", "benchmark_loader.py", "topology_loader.py", "scripts/run_tests.py", "scripts/run_scenario.py"]
+    compile_targets = ["cybermatch.py", "run_scenarios.py", "intent_inference.py", "behavior_profile.py", "feature_space.py", "feature_export.py", "archetype_analysis.py", "strategy_layer.py", "mission_taxonomy.py", "strategy_validation.py", "decision_graph.py", "scenario_loader.py", "benchmark_loader.py", "topology_loader.py", "scripts/run_tests.py", "scripts/run_scenario.py"]
     compile_rc = _run([sys.executable, "-m", "compileall", *compile_targets])
     if compile_rc != 0:
         return compile_rc

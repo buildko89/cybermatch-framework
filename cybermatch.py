@@ -7,6 +7,11 @@ import os
 from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional, Tuple
 
+from behavior_profile import BehaviorProfileEngine
+from intent_inference import MissionInferenceEngine
+from mission_taxonomy import MissionTaxonomyAnalyzer
+from strategy_layer import StrategyInferenceEngine
+
 # ロギング設定
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -2293,6 +2298,12 @@ class CyberDefenseSimulator:
             'observed_defense_history': [],
             'adaptation_history': [],
             'mission_history': [],
+            'inferred_mission_history': [],
+            'mission_confidence_history': [],
+            'behavior_profile_history': [],
+            'profile_confidence_history': [],
+            'strategy_history': [],
+            'strategy_confidence_history': [],
             'reclassified_mission_history': [],
             'selected_strategy_history': [],
             'true_mission_history': [],
@@ -5706,6 +5717,11 @@ class CyberDefenseSimulator:
         suspicion_history = np.asarray(self.history.get('suspicion_history', []), dtype=float)
         deception_knowledge_history = np.asarray(self.history.get('deception_knowledge_history', []), dtype=float)
         mission_change_count = int(self.config.mission_change_count)
+        mission_truth = str(true_mission_history[-1]) if len(true_mission_history) > 0 else str(self.config.attacker_mission)
+        mission_inference = MissionInferenceEngine().evaluate(self.history, true_mission=mission_truth)
+        behavior_engine = BehaviorProfileEngine()
+        expected_profile = behavior_engine.expected_profile_for_mission(mission_truth)
+        behavior_profile = behavior_engine.evaluate(self.history, expected_profile=expected_profile)
         mission_stability_score = float(
             np.clip(1.0 - mission_change_count / max(float(len(mission_history)), 1.0), 0.0, 1.0)
         )
@@ -6654,6 +6670,20 @@ class CyberDefenseSimulator:
             'mission_mutation_reason': self.config.mission_mutation_reason,
             'mission_mutation_success': mission_mutation_success,
             'mission_history': mission_history.astype(str).tolist(),
+            'inferred_mission': str(mission_inference.get('inferred_mission')),
+            'mission_confidence': float(mission_inference.get('mission_confidence', 0.0)),
+            'mission_entropy': float(mission_inference.get('mission_entropy', 0.0)),
+            'mission_match': bool(mission_inference.get('mission_match', False)),
+            'mission_confusion_score': float(mission_inference.get('mission_confusion_score', 0.0)),
+            'mission_inference_scores': mission_inference.get('mission_scores', {}),
+            'mission_inference_features': mission_inference.get('intent_features', {}),
+            'behavior_profile': str(behavior_profile.get('behavior_profile')),
+            'profile_confidence': float(behavior_profile.get('profile_confidence', 0.0)),
+            'profile_entropy': float(behavior_profile.get('profile_entropy', 0.0)),
+            'profile_score': float(behavior_profile.get('profile_score', 0.0)),
+            'profile_match': bool(behavior_profile.get('profile_match', False)),
+            'profile_distribution': behavior_profile.get('profile_distribution', {}),
+            'behavior_profile_features': behavior_profile.get('behavior_features', {}),
             'attacker_type': self.config.attacker_type,
             'mission_reclassification_enabled': bool(self.config.mission_reclassification_enabled),
             'mission_reclassification_count': int(self.config.mission_reclassification_count),
@@ -6907,6 +6937,25 @@ class CyberDefenseSimulator:
             logger.info(f"Metrics saved to {metrics_path}")
         if self.config.save_history:
             history_path = os.path.join(output_dir, "history.npz")
+            mission_inference_history = MissionInferenceEngine().infer_history(self.history)
+            behavior_profile_history = BehaviorProfileEngine().infer_history(self.history)
+            strategy_inference_history = StrategyInferenceEngine().infer_history(self.history)
+            target_inference_history = MissionTaxonomyAnalyzer().infer_target_history(self.history)
+            target_strategy_history = []
+            strategy_alignment_history = []
+            strategy_engine = StrategyInferenceEngine()
+            history_length = len(target_inference_history['target_history'])
+            for end in range(1, history_length + 1):
+                prefix = {
+                    key: value[:end] if hasattr(value, "__getitem__") else value
+                    for key, value in self.history.items()
+                }
+                target_name = target_inference_history['target_history'][end - 1]
+                target_result = strategy_engine.infer(prefix, target=target_name)
+                target_strategy_history.append(target_result.strategy_type)
+                strategy_alignment_history.append(
+                    1.0 if target_result.strategy_type in strategy_engine.strategy_candidates_for_target(target_name) else 0.0
+                )
             np.savez(
                 history_path,
                 x=np.asarray(self.history['x'], dtype=float),
@@ -7012,6 +7061,18 @@ class CyberDefenseSimulator:
                 observed_defense_history=np.asarray(self.history['observed_defense_history'], dtype='<U64'),
                 adaptation_history=np.asarray(self.history['adaptation_history'], dtype='<U64'),
                 mission_history=np.asarray(self.history['mission_history'], dtype='<U64'),
+                inferred_mission_history=np.asarray(mission_inference_history['inferred_mission_history'], dtype='<U64'),
+                mission_confidence_history=np.asarray(mission_inference_history['mission_confidence_history'], dtype=float),
+                mission_entropy_history=np.asarray(mission_inference_history['mission_entropy_history'], dtype=float),
+                behavior_profile_history=np.asarray(behavior_profile_history['behavior_profile_history'], dtype='<U64'),
+                profile_confidence_history=np.asarray(behavior_profile_history['profile_confidence_history'], dtype=float),
+                profile_entropy_history=np.asarray(behavior_profile_history['profile_entropy_history'], dtype=float),
+                strategy_history=np.asarray(strategy_inference_history['strategy_history'], dtype='<U64'),
+                strategy_confidence_history=np.asarray(strategy_inference_history['strategy_confidence_history'], dtype=float),
+                strategy_entropy_history=np.asarray(strategy_inference_history['strategy_entropy_history'], dtype=float),
+                target_history=np.asarray(target_inference_history['target_history'], dtype='<U64'),
+                target_strategy_history=np.asarray(target_strategy_history, dtype='<U64'),
+                strategy_alignment_history=np.asarray(strategy_alignment_history, dtype=float),
                 reclassified_mission_history=np.asarray(self.history['reclassified_mission_history'], dtype='<U64'),
                 selected_strategy_history=np.asarray(self.history['selected_strategy_history'], dtype='<U64'),
                 true_mission_history=np.asarray(self.history['true_mission_history'], dtype='<U64'),

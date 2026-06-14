@@ -17,7 +17,7 @@ It is designed for research and evaluation questions that are difficult to answe
 
 CyberMatch evaluates attacker-defender interaction as a repeatable campaign. It does not only measure whether a detection fired or whether a known technique was replayed. It measures whether the defender changed what the attacker believed, chose, trusted, avoided, or abandoned.
 
-Current scope reaches Phase6.3:
+Current scope reaches Phase9:
 
 - Phase1: Defense Neutralization
 - Phase2: Decision Neutralization
@@ -25,10 +25,15 @@ Current scope reaches Phase6.3:
 - Phase4: Intelligence-driven active defense
 - Phase5: Coalition, counter-deception, awareness, and hunting
 - Phase6: Product interface, product profiles, and mission-aware product evaluation
+- Phase8: Scenario import, catalog, topology, and standard benchmark foundations
+- Phase9: Attacker decision model foundation from intent through decision graph
 
 ## Core Concepts
 
+- **Intent**: high-level attacker purpose such as financial gain, espionage, disruption, or long-term presence.
 - **Mission**: attacker objective such as profit, achievement, persistence, or critical asset hunting.
+- **Target**: asset or relationship class the attacker focuses on, such as identity infrastructure, cloud control plane, backup system, or trust relationship.
+- **Strategy**: target-specific operational approach used to pursue the mission.
 - **Belief**: what the attacker or defender thinks is true about assets, paths, state, or mission.
 - **State**: inferred campaign context used for policy selection and outcome analysis.
 - **Trust**: whether attackers continue to rely on nodes, credentials, paths, or partners.
@@ -36,6 +41,27 @@ Current scope reaches Phase6.3:
 - **Coalition**: multiple attackers with handoff, coordination cost, information loss, and trust degradation.
 - **Counter-Deception**: defender manipulation of attacker perception rather than passive filtering.
 - **Awareness and Hunting**: attackers that recognize and actively search for deception.
+
+## CyberMatch Decision Model
+
+CyberMatch Phase9 organizes the attacker decision model as:
+
+```text
+Intent
+  -> Mission
+  -> Target
+  -> Strategy
+  -> Behavior
+  -> Archetype
+```
+
+This model is analysis-only. It does not add runtime delegation, defense concept execution, RL, LLMs, external APIs, or new attacker/defender logic.
+
+## Current Status
+
+- Phase9 Complete
+- Decision Graph Available
+- Defense Concept Evaluation (Phase10) Planned
 
 ## Product Evaluation
 
@@ -84,6 +110,17 @@ Start here:
 - [CyberMatch Benchmarks](docs/CYBERMATCH_BENCHMARKS.md)
 - [CyberMatch Standard Benchmark](docs/CYBERMATCH_STANDARD_BENCHMARK.md)
 - [CyberMatch Topologies](docs/CYBERMATCH_TOPOLOGIES.md)
+- [CyberMatch Intent Inference](docs/CYBERMATCH_INTENT_INFERENCE.md)
+- [CyberMatch Behavior Profiles](docs/CYBERMATCH_BEHAVIOR_PROFILES.md)
+- [CyberMatch ProfileCore Integration Design](docs/CYBERMATCH_PROFILECORE_INTEGRATION.md)
+- [CyberMatch ProfileCore Analysis](docs/CYBERMATCH_PROFILECORE_ANALYSIS.md)
+- [CyberMatch Archetypes](docs/CYBERMATCH_ARCHETYPES.md)
+- [CyberMatch Strategy Layer](docs/CYBERMATCH_STRATEGY_LAYER.md)
+- [CyberMatch Attacker Taxonomy](docs/CYBERMATCH_ATTACKER_TAXONOMY.md)
+- [CyberMatch Target-Specific Strategies](docs/CYBERMATCH_TARGET_STRATEGIES.md)
+- [CyberMatch Strategy Validation](docs/CYBERMATCH_STRATEGY_VALIDATION.md)
+- [CyberMatch Decision Graph](docs/CYBERMATCH_DECISION_GRAPH.md)
+- [Phase9 Summary](docs/PHASE9_SUMMARY.md)
 - [CyberMatch v1.0.0-rc1 Release Notes](docs/RELEASE_NOTES_v1.0.0_RC1.md)
 - [Reproducibility](docs/REPRODUCIBILITY.md)
 

@@ -8,6 +8,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cybermatch import CyberDefenseSimulator, ProductProfile, SimulationConfig, Visualizer, load_product_profile
+from archetype_analysis import ArchetypeInterpretationResult, ArchetypeInterpreter
+from behavior_profile import PROFILE_CLASSES, BehaviorProfileEngine
+from decision_graph import GRAPH_EDGE_LAYERS, GRAPH_LAYERS, DecisionGraph, DecisionGraphBuilder
+from feature_export import ProfileCorePCAAnalyzer
+from feature_space import CRITICAL_PATH_FEATURES, FEATURE_NAMES, FeatureSpaceAnalyzer
+from intent_inference import MISSION_CLASSES, MissionInferenceEngine
+from mission_taxonomy import INTENT_CLASSES, MISSION_LAYER_CLASSES, TARGET_CLASSES, TARGET_STRATEGY_MAP, MissionTaxonomyAnalyzer, TaxonomyResult
+from strategy_layer import STRATEGY_CLASSES, STRATEGY_FEATURES, StrategyInferenceEngine
+from strategy_validation import StrategyValidationEngine, StrategyValidationResult
 
 
 RUN_MULTI_SEED = True
@@ -2277,6 +2286,12 @@ MULTI_SEED_RUN_COLUMNS = [
     "mission_mutation_reason",
     "mission_mutation_success",
     "mission_history",
+    "behavior_profile",
+    "profile_confidence",
+    "profile_entropy",
+    "profile_score",
+    "profile_match",
+    "profile_distribution",
     "attacker_type",
     "coalition_enabled",
     "coalition_size",
@@ -2821,6 +2836,16 @@ MULTI_SEED_STATS_COLUMNS = [
     "mission_mutation_reason",
     "mission_mutation_success_rate",
     "mission_history",
+    "behavior_profile",
+    "profile_confidence_mean",
+    "profile_confidence_std",
+    "profile_entropy_mean",
+    "profile_entropy_std",
+    "profile_score_mean",
+    "profile_score_std",
+    "profile_match_mean",
+    "profile_match_std",
+    "profile_distribution",
     "attacker_type",
     "coalition_enabled",
     "coalition_size",
@@ -4009,6 +4034,8 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "mission_mutation_enabled": rows[0].get("mission_mutation_enabled") if rows else None,
         "mission_mutation_reason": rows[0].get("mission_mutation_reason") if rows else None,
         "mission_history": rows[0].get("mission_history") if rows else None,
+        "behavior_profile": rows[0].get("behavior_profile") if rows else None,
+        "profile_distribution": rows[0].get("profile_distribution") if rows else None,
         "attacker_type": rows[0].get("attacker_type") if rows else None,
         "coalition_enabled": rows[0].get("coalition_enabled") if rows else None,
         "coalition_size": rows[0].get("coalition_size") if rows else None,
@@ -4153,6 +4180,10 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
         "mission_change_count",
         "mission_stability_score",
         "mission_mutation_success",
+        "profile_confidence",
+        "profile_entropy",
+        "profile_score",
+        "profile_match",
         "coalition_handover_count",
         "coalition_coordination_score",
         "coalition_success_rate",
@@ -15569,6 +15600,2005 @@ def _write_phase55_hunting_report(rows: List[Dict[str, object]], analysis: Dict[
         "日本語補足: Phase5.5 は防御側の欺瞞を無効化するものではなく、Awareness の次段階として欺瞞を能動探索する基盤です。",
     ]
     with open(os.path.join(output_dir, "PHASE55_HUNTING_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE90_INTENT_INFERENCE_COLUMNS = [
+    "mission_scenario",
+    "true_mission",
+    "inferred_mission",
+    "mission_confidence",
+    "mission_entropy",
+    "mission_match",
+    "mission_confusion_score",
+    "mission_inference_accuracy",
+    "attack_success_rate",
+    "utility_activity",
+    "expected_utility_activity",
+    "critical_progress",
+    "critical_focus",
+    "critical_probe_activity",
+    "trust_collapse_activity",
+    "stealth_activity",
+    "survival_activity",
+    "deception_activity",
+    "lateral_movement_activity",
+    "objective_activity",
+    "planned_critical_activity",
+    "mission_signal_profit",
+    "mission_signal_achievement",
+    "mission_signal_persistence",
+    "mission_signal_critical_hunter",
+    "num_runs",
+]
+
+
+def run_phase90_intent_inference_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase90_intent_inference"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    seed_values = seeds if seeds is not None else [0, 1, 2]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase90_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for strategy in profiles:
+            scenario_config = _phase413_intelligence_config(
+                "phase2_frustration_decoy",
+                mission,
+                defense_mode=f"intent_inference_{strategy}",
+                intelligence=True,
+                defense_campaign=True,
+                campaign_strategy_profile=strategy,
+                mission_objectives=True,
+            )
+            scenario_config.update(
+                {
+                    "attacker_target_selection": "adaptive",
+                    "adaptive_attacker_enabled": True,
+                    "adaptive_preference_enabled": True,
+                    "adaptive_path_enabled": True,
+                    "adaptive_planning_enabled": True,
+                    "expected_utility_enabled": True,
+                    "trust_enabled": True,
+                    "attacker_lateral_enabled": True,
+                    "adaptive_mission_attacker_enabled": True,
+                    "multi_objective_mission_enabled": True,
+                    "mission_weight_profit": weights.get("profit", 0.0),
+                    "mission_weight_achievement": weights.get("achievement", 0.0),
+                    "mission_weight_persistence": weights.get("persistence", 0.0),
+                    "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                    "attacker_type": "adaptive_mission_attacker",
+                }
+            )
+            scenarios[f"{scenario_name}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seed_values,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase90_intent_inference_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("mission_scenario"))))
+    analysis = _analyze_phase90_intent_inference_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase90_intent_inference_outputs(rows, analysis, output_dir)
+    _plot_phase90_confusion_matrix(analysis, os.path.join(output_dir, "mission_confusion_matrix.png"))
+    _plot_phase90_accuracy(rows, os.path.join(output_dir, "mission_accuracy.png"))
+    _plot_phase90_confidence_distribution(rows, os.path.join(output_dir, "mission_confidence_distribution.png"))
+    _write_phase90_intent_inference_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase90_intent_inference_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    mission_scenario = scenario.split("__")[0]
+    true_history = _phase416_list_value(row.get("true_mission_history"))
+    true_mission = str(row.get("attacker_mission") or "")
+    if true_mission not in MISSION_CLASSES:
+        true_mission = true_history[-1] if true_history else str(row.get("true_mission") or "")
+    engine = MissionInferenceEngine()
+    evaluated = engine.evaluate(row, true_mission=true_mission)
+    features = evaluated.get("intent_features", {})
+    mission_match = bool(evaluated.get("mission_match", False))
+    return {
+        "mission_scenario": mission_scenario,
+        "true_mission": true_mission,
+        "inferred_mission": evaluated.get("inferred_mission"),
+        "mission_confidence": evaluated.get("mission_confidence"),
+        "mission_entropy": evaluated.get("mission_entropy"),
+        "mission_match": mission_match,
+        "mission_confusion_score": evaluated.get("mission_confusion_score"),
+        "mission_inference_accuracy": 1.0 if mission_match else 0.0,
+        "num_runs": row.get("num_runs"),
+        **{key: features.get(key, 0.0) for key in PHASE90_INTENT_INFERENCE_COLUMNS if key in features},
+    }
+
+
+def _analyze_phase90_intent_inference_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    accuracy = _mean_or_none([_to_float(row.get("mission_inference_accuracy")) for row in rows]) or 0.0
+    by_mission: Dict[str, float] = {}
+    for mission in MISSION_CLASSES:
+        mission_rows = [row for row in rows if row.get("true_mission") == mission]
+        by_mission[mission] = _mean_or_none([_to_float(row.get("mission_inference_accuracy")) for row in mission_rows]) or 0.0
+    confidence = _mean_or_none([_to_float(row.get("mission_confidence")) for row in rows]) or 0.0
+    entropy = _mean_or_none([_to_float(row.get("mission_entropy")) for row in rows]) or 0.0
+    return {
+        "mission_inference_accuracy": accuracy,
+        "accuracy_by_mission": by_mission,
+        "mean_mission_confidence": confidence,
+        "mean_mission_entropy": entropy,
+        "confusion_matrix": _phase90_confusion_matrix(rows),
+    }
+
+
+def _phase90_confusion_matrix(rows: List[Dict[str, object]]) -> Dict[str, Dict[str, int]]:
+    matrix = {source: {target: 0 for target in MISSION_CLASSES} for source in MISSION_CLASSES}
+    for row in rows:
+        source = str(row.get("true_mission"))
+        target = str(row.get("inferred_mission"))
+        if source in matrix and target in matrix[source]:
+            matrix[source][target] += 1
+    return matrix
+
+
+def _write_phase90_intent_inference_outputs(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "intent_inference_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE90_INTENT_INFERENCE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE90_INTENT_INFERENCE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "intent_inference_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase90_confusion_matrix(analysis: Dict[str, object], save_path: str) -> None:
+    matrix = analysis.get("confusion_matrix", {})
+    values = np.asarray([[int(matrix.get(source, {}).get(target, 0)) for target in MISSION_CLASSES] for source in MISSION_CLASSES], dtype=float)
+    fig, ax = plt.subplots(figsize=(7, 6))
+    image = ax.imshow(values, cmap="viridis")
+    ax.set_title("Phase9.0 Mission Confusion Matrix")
+    ax.set_xticks(np.arange(len(MISSION_CLASSES)))
+    ax.set_xticklabels(MISSION_CLASSES, rotation=30, ha="right")
+    ax.set_yticks(np.arange(len(MISSION_CLASSES)))
+    ax.set_yticklabels(MISSION_CLASSES)
+    ax.set_xlabel("inferred mission")
+    ax.set_ylabel("true mission")
+    for i in range(len(MISSION_CLASSES)):
+        for j in range(len(MISSION_CLASSES)):
+            ax.text(j, i, f"{int(values[i, j])}", ha="center", va="center", color="white" if values[i, j] > 0 else "black")
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase90_accuracy(rows: List[Dict[str, object]], save_path: str) -> None:
+    values = [
+        _mean_or_none([_to_float(row.get("mission_inference_accuracy")) for row in rows if row.get("true_mission") == mission]) or 0.0
+        for mission in MISSION_CLASSES
+    ]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(np.arange(len(MISSION_CLASSES)), values, color=["#4e79a7", "#59a14f", "#f28e2b", "#e15759"])
+    ax.set_title("Phase9.0 Mission Inference Accuracy")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel("accuracy")
+    ax.set_xticks(np.arange(len(MISSION_CLASSES)))
+    ax.set_xticklabels(MISSION_CLASSES, rotation=20, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase90_confidence_distribution(rows: List[Dict[str, object]], save_path: str) -> None:
+    values = [_to_float(row.get("mission_confidence")) for row in rows]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.hist(values, bins=np.linspace(0.0, 1.0, 11), color="#4e79a7", edgecolor="white")
+    ax.set_title("Phase9.0 Mission Confidence Distribution")
+    ax.set_xlabel("mission confidence")
+    ax.set_ylabel("count")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase90_intent_inference_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    matrix = analysis.get("confusion_matrix", {})
+    lines = [
+        "# Phase9.0 Intent Inference Report",
+        "",
+        "## Summary",
+        f"- Mission inference accuracy: `{_to_float(analysis.get('mission_inference_accuracy')):.3f}`.",
+        f"- Mean mission confidence: `{_to_float(analysis.get('mean_mission_confidence')):.3f}`.",
+        f"- Mean mission entropy: `{_to_float(analysis.get('mean_mission_entropy')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.0 estimates mission from observed behavior only. It does not add attackers, defenders, RL, LLMs, external APIs, or new simulation logic.",
+        "",
+        "Used feature groups: attack success, actual/expected utility, critical-path progress, critical focus, trust collapse, stealth/adaptation, deception interaction, lateral movement, and objective activity.",
+        "",
+        "## Confusion Matrix",
+        "| true \\ inferred | profit | achievement | persistence | critical_hunter |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for source in MISSION_CLASSES:
+        lines.append(
+            f"| {source} | "
+            + " | ".join(str(int(matrix.get(source, {}).get(target, 0))) for target in MISSION_CLASSES)
+            + " |"
+        )
+    lines.extend([
+        "",
+        "## Rows",
+        "| true | inferred | confidence | entropy | match | utility | critical | trust | lateral |",
+        "|---|---|---:|---:|---|---:|---:|---:|---:|",
+    ])
+    for row in rows:
+        lines.append(
+            f"| {row.get('true_mission')} | {row.get('inferred_mission')} | "
+            f"{_to_float(row.get('mission_confidence')):.3f} | {_to_float(row.get('mission_entropy')):.3f} | "
+            f"{row.get('mission_match')} | {_to_float(row.get('utility_activity')):.3f} | "
+            f"{_to_float(row.get('critical_progress')):.3f} | {_to_float(row.get('trust_collapse_activity')):.3f} | "
+            f"{_to_float(row.get('lateral_movement_activity')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE90_INTENT_INFERENCE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE91_BEHAVIOR_PROFILE_COLUMNS = [
+    "mission_scenario",
+    "true_mission",
+    "behavior_profile",
+    "profile_confidence",
+    "profile_entropy",
+    "profile_score",
+    "profile_match",
+    "expected_profile",
+    "attack_success_rate",
+    "utility_activity",
+    "expected_utility_activity",
+    "deception_activity",
+    "adaptation_activity",
+    "ttp_change_activity",
+    "coalition_activity",
+    "critical_progress",
+    "critical_focus",
+    "critical_probe_activity",
+    "stealth_activity",
+    "trust_collapse_activity",
+    "lateral_movement_activity",
+    "mission_mutation_activity",
+    "campaign_disruption_activity",
+    "survival_activity",
+    "utility_seeking_score",
+    "stealth_seeking_score",
+    "disruption_seeking_score",
+    "critical_path_seeking_score",
+    "adaptive_score",
+    "opportunistic_score",
+    "num_runs",
+]
+
+
+def run_phase91_behavior_profile_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase91_behavior_profiles"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    seed_values = seeds if seeds is not None else [0, 1, 2]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase91_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for strategy in profiles:
+            scenario_config = _phase413_intelligence_config(
+                "phase2_frustration_decoy",
+                mission,
+                defense_mode=f"behavior_profile_{strategy}",
+                intelligence=True,
+                defense_campaign=True,
+                campaign_strategy_profile=strategy,
+                mission_objectives=True,
+            )
+            scenario_config.update(
+                {
+                    "attacker_target_selection": "adaptive",
+                    "adaptive_attacker_enabled": True,
+                    "adaptive_preference_enabled": True,
+                    "adaptive_path_enabled": True,
+                    "adaptive_planning_enabled": True,
+                    "expected_utility_enabled": True,
+                    "trust_enabled": True,
+                    "attacker_lateral_enabled": True,
+                    "adaptive_mission_attacker_enabled": True,
+                    "multi_objective_mission_enabled": True,
+                    "mission_weight_profit": weights.get("profit", 0.0),
+                    "mission_weight_achievement": weights.get("achievement", 0.0),
+                    "mission_weight_persistence": weights.get("persistence", 0.0),
+                    "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                    "attacker_type": "adaptive_mission_attacker",
+                }
+            )
+            scenarios[f"{scenario_name}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seed_values,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    rows = [_build_phase91_behavior_profile_row(row) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("behavior_profile")), str(row.get("mission_scenario"))))
+    analysis = _analyze_phase91_behavior_profile_rows(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase91_behavior_profile_outputs(rows, analysis, output_dir)
+    _plot_phase91_profile_distribution(analysis, os.path.join(output_dir, "profile_distribution.png"))
+    _plot_phase91_confidence_distribution(rows, os.path.join(output_dir, "profile_confidence_distribution.png"))
+    _plot_phase91_mission_relationship(analysis, os.path.join(output_dir, "profile_mission_relationship.png"))
+    _write_phase91_behavior_profile_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase91_behavior_profile_row(row: Dict[str, object]) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    mission_scenario = scenario.split("__")[0]
+    true_mission = str(row.get("attacker_mission") or "")
+    if true_mission not in MISSION_CLASSES:
+        true_history = _phase416_list_value(row.get("true_mission_history"))
+        true_mission = true_history[-1] if true_history else str(row.get("true_mission") or "")
+    engine = BehaviorProfileEngine()
+    expected_profile = engine.expected_profile_for_mission(true_mission)
+    evaluated = engine.evaluate(row, expected_profile=expected_profile)
+    features = evaluated.get("behavior_features", {})
+    distribution = evaluated.get("profile_distribution", {})
+    return {
+        "mission_scenario": mission_scenario,
+        "true_mission": true_mission,
+        "behavior_profile": evaluated.get("behavior_profile"),
+        "profile_confidence": evaluated.get("profile_confidence"),
+        "profile_entropy": evaluated.get("profile_entropy"),
+        "profile_score": evaluated.get("profile_score"),
+        "profile_match": bool(evaluated.get("profile_match", False)),
+        "expected_profile": expected_profile,
+        "num_runs": row.get("num_runs"),
+        **{key: features.get(key, 0.0) for key in PHASE91_BEHAVIOR_PROFILE_COLUMNS if key in features},
+        **{f"{profile}_score": distribution.get(profile, 0.0) for profile in PROFILE_CLASSES},
+    }
+
+
+def _analyze_phase91_behavior_profile_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    distribution = {profile: 0 for profile in PROFILE_CLASSES}
+    relationship = {mission: {profile: 0 for profile in PROFILE_CLASSES} for mission in MISSION_CLASSES}
+    for row in rows:
+        profile = str(row.get("behavior_profile"))
+        mission = str(row.get("true_mission"))
+        if profile in distribution:
+            distribution[profile] += 1
+        if mission in relationship and profile in relationship[mission]:
+            relationship[mission][profile] += 1
+    total = max(len(rows), 1)
+    profile_concentration = max(distribution.values()) / total if distribution else 0.0
+    profiles_observed = sum(1 for value in distribution.values() if value > 0)
+    return {
+        "profile_distribution": distribution,
+        "mission_profile_relationship": relationship,
+        "profile_differences_observed": profiles_observed > 1,
+        "profiles_observed": profiles_observed,
+        "profile_concentration": float(profile_concentration),
+        "mean_profile_confidence": _mean_or_none([_to_float(row.get("profile_confidence")) for row in rows]) or 0.0,
+        "mean_profile_entropy": _mean_or_none([_to_float(row.get("profile_entropy")) for row in rows]) or 0.0,
+        "profile_match_rate": _mean_or_none([1.0 if row.get("profile_match") else 0.0 for row in rows]) or 0.0,
+    }
+
+
+def _write_phase91_behavior_profile_outputs(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "behavior_profile_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE91_BEHAVIOR_PROFILE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE91_BEHAVIOR_PROFILE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "behavior_profile_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase91_profile_distribution(analysis: Dict[str, object], save_path: str) -> None:
+    distribution = analysis.get("profile_distribution", {})
+    values = [int(distribution.get(profile, 0)) for profile in PROFILE_CLASSES]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.bar(np.arange(len(PROFILE_CLASSES)), values, color=["#4e79a7", "#59a14f", "#f28e2b", "#e15759", "#b07aa1", "#76b7b2"])
+    ax.set_title("Phase9.1 Behavior Profile Distribution")
+    ax.set_ylabel("count")
+    ax.set_xticks(np.arange(len(PROFILE_CLASSES)))
+    ax.set_xticklabels(PROFILE_CLASSES, rotation=25, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase91_confidence_distribution(rows: List[Dict[str, object]], save_path: str) -> None:
+    values = [_to_float(row.get("profile_confidence")) for row in rows]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.hist(values, bins=np.linspace(0.0, 1.0, 11), color="#59a14f", edgecolor="white")
+    ax.set_title("Phase9.1 Profile Confidence Distribution")
+    ax.set_xlabel("profile confidence")
+    ax.set_ylabel("count")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase91_mission_relationship(analysis: Dict[str, object], save_path: str) -> None:
+    relationship = analysis.get("mission_profile_relationship", {})
+    values = np.asarray([[int(relationship.get(mission, {}).get(profile, 0)) for profile in PROFILE_CLASSES] for mission in MISSION_CLASSES], dtype=float)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    image = ax.imshow(values, cmap="cividis")
+    ax.set_title("Mission vs Behavior Profile")
+    ax.set_xticks(np.arange(len(PROFILE_CLASSES)))
+    ax.set_xticklabels(PROFILE_CLASSES, rotation=30, ha="right")
+    ax.set_yticks(np.arange(len(MISSION_CLASSES)))
+    ax.set_yticklabels(MISSION_CLASSES)
+    ax.set_xlabel("behavior profile")
+    ax.set_ylabel("mission")
+    for i in range(len(MISSION_CLASSES)):
+        for j in range(len(PROFILE_CLASSES)):
+            ax.text(j, i, f"{int(values[i, j])}", ha="center", va="center", color="white" if values[i, j] > 0 else "black")
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase91_behavior_profile_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    distribution = analysis.get("profile_distribution", {})
+    relationship = analysis.get("mission_profile_relationship", {})
+    lines = [
+        "# Phase9.1 Behavior Profile Report",
+        "",
+        "## Summary",
+        f"- Profile differences observed: `{analysis.get('profile_differences_observed')}`.",
+        f"- Profiles observed: `{analysis.get('profiles_observed')}`.",
+        f"- Profile concentration: `{_to_float(analysis.get('profile_concentration')):.3f}`.",
+        f"- Mean profile confidence: `{_to_float(analysis.get('mean_profile_confidence')):.3f}`.",
+        f"- Mean profile entropy: `{_to_float(analysis.get('mean_profile_entropy')):.3f}`.",
+        f"- Mission-to-representative-profile match rate: `{_to_float(analysis.get('profile_match_rate')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.1 extracts Behavior Profiles from observed behavior before Mission Inference. It does not add attackers, defenders, RL, LLMs, external APIs, PCA, or ProfileCore execution.",
+        "",
+        "Profiles are behavior abstractions, not missions: utility_seeking, stealth_seeking, disruption_seeking, critical_path_seeking, adaptive, and opportunistic.",
+        "",
+        "## Profile Distribution",
+        "| profile | count |",
+        "|---|---:|",
+    ]
+    for profile in PROFILE_CLASSES:
+        lines.append(f"| {profile} | {int(distribution.get(profile, 0))} |")
+    lines.extend([
+        "",
+        "## Mission Relationship",
+        "| mission \\ profile | utility | stealth | disruption | critical_path | adaptive | opportunistic |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ])
+    for mission in MISSION_CLASSES:
+        lines.append(
+            f"| {mission} | "
+            + " | ".join(str(int(relationship.get(mission, {}).get(profile, 0))) for profile in PROFILE_CLASSES)
+            + " |"
+        )
+    lines.extend([
+        "",
+        "## Rows",
+        "| mission | behavior profile | confidence | entropy | expected profile | match |",
+        "|---|---|---:|---:|---|---|",
+    ])
+    for row in rows:
+        lines.append(
+            f"| {row.get('true_mission')} | {row.get('behavior_profile')} | "
+            f"{_to_float(row.get('profile_confidence')):.3f} | {_to_float(row.get('profile_entropy')):.3f} | "
+            f"{row.get('expected_profile')} | {row.get('profile_match')} |"
+        )
+    with open(os.path.join(output_dir, "PHASE91_BEHAVIOR_PROFILE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE92_FEATURE_SPACE_COLUMNS = [
+    "mission_scenario",
+    "true_mission",
+    "behavior_profile",
+    "dominant_feature",
+    "dominant_feature_weight",
+    "feature_entropy",
+    "feature_concentration",
+    "critical_path_bias_score",
+    "mission_feature_separability",
+    "profile_feature_separability",
+    *FEATURE_NAMES,
+]
+
+
+def run_phase92_feature_space_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase92_feature_space"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> List[Dict[str, object]]:
+    profiles = strategy_profiles if strategy_profiles is not None else ["balanced"]
+    seed_values = seeds if seeds is not None else [0, 1, 2]
+    scenarios: Dict[str, Dict[str, object]] = {}
+    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+        scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase92_", 1)
+        weights = _phase423_mission_weights(str(mission.get("attacker_mission") or mission_name))
+        for strategy in profiles:
+            scenario_config = _phase413_intelligence_config(
+                "phase2_frustration_decoy",
+                mission,
+                defense_mode=f"feature_space_{strategy}",
+                intelligence=True,
+                defense_campaign=True,
+                campaign_strategy_profile=strategy,
+                mission_objectives=True,
+            )
+            scenario_config.update(
+                {
+                    "attacker_target_selection": "adaptive",
+                    "adaptive_attacker_enabled": True,
+                    "adaptive_preference_enabled": True,
+                    "adaptive_path_enabled": True,
+                    "adaptive_planning_enabled": True,
+                    "expected_utility_enabled": True,
+                    "trust_enabled": True,
+                    "attacker_lateral_enabled": True,
+                    "adaptive_mission_attacker_enabled": True,
+                    "multi_objective_mission_enabled": True,
+                    "mission_weight_profit": weights.get("profit", 0.0),
+                    "mission_weight_achievement": weights.get("achievement", 0.0),
+                    "mission_weight_persistence": weights.get("persistence", 0.0),
+                    "mission_weight_critical_hunter": weights.get("critical_hunter", 0.0),
+                    "attacker_type": "adaptive_mission_attacker",
+                }
+            )
+            scenarios[f"{scenario_name}__{strategy}"] = scenario_config
+
+    stats_rows = run_scenarios_multi_seed(
+        scenarios=scenarios,
+        seeds=seed_values,
+        output_dir=os.path.join(output_dir, "runs"),
+        config_path=config_path,
+    )
+    analyzer = FeatureSpaceAnalyzer()
+    rows = [_build_phase92_feature_space_row(row, analyzer) for row in stats_rows]
+    rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("mission_scenario"))))
+    analysis = analyzer.analyze_rows(rows)
+    for row in rows:
+        row["mission_feature_separability"] = analysis.get("mission_feature_separability", 0.0)
+        row["profile_feature_separability"] = analysis.get("profile_feature_separability", 0.0)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase92_feature_space_outputs(rows, analysis, output_dir)
+    _plot_phase92_feature_dominance(analysis, os.path.join(output_dir, "feature_dominance.png"))
+    _plot_phase92_feature_heatmap(analysis.get("mission_feature_means", {}), "Mission Feature Means", os.path.join(output_dir, "mission_feature_heatmap.png"))
+    _plot_phase92_feature_heatmap(analysis.get("profile_feature_means", {}), "Profile Feature Means", os.path.join(output_dir, "profile_feature_heatmap.png"))
+    _plot_phase92_critical_path_bias(rows, os.path.join(output_dir, "critical_path_bias.png"))
+    _write_phase92_feature_space_report(rows, analysis, output_dir)
+    return rows
+
+
+def _build_phase92_feature_space_row(row: Dict[str, object], analyzer: FeatureSpaceAnalyzer) -> Dict[str, object]:
+    scenario = str(row.get("scenario") or "")
+    mission_scenario = scenario.split("__")[0]
+    true_mission = str(row.get("attacker_mission") or "")
+    if true_mission not in MISSION_CLASSES:
+        true_history = _phase416_list_value(row.get("true_mission_history"))
+        true_mission = true_history[-1] if true_history else str(row.get("true_mission") or "")
+    behavior = BehaviorProfileEngine().evaluate(row)
+    feature_result = analyzer.analyze_one(row)
+    return {
+        "mission_scenario": mission_scenario,
+        "true_mission": true_mission,
+        "behavior_profile": behavior.get("behavior_profile"),
+        "dominant_feature": feature_result.dominant_feature,
+        "dominant_feature_weight": feature_result.dominant_feature_weight,
+        "feature_entropy": feature_result.feature_entropy,
+        "feature_concentration": feature_result.feature_concentration,
+        "critical_path_bias_score": feature_result.critical_path_bias_score,
+        "mission_feature_separability": 0.0,
+        "profile_feature_separability": 0.0,
+        **feature_result.feature_vector,
+    }
+
+
+def _write_phase92_feature_space_outputs(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "feature_space_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE92_FEATURE_SPACE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column) for column in PHASE92_FEATURE_SPACE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "feature_space_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase92_feature_dominance(analysis: Dict[str, object], save_path: str) -> None:
+    dominance = analysis.get("feature_dominance", {})
+    values = [float(dominance.get(feature, 0.0)) for feature in FEATURE_NAMES]
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax.bar(np.arange(len(FEATURE_NAMES)), values, color="#4e79a7")
+    ax.set_title("Phase9.2 Feature Dominance")
+    ax.set_ylabel("normalized weight")
+    ax.set_xticks(np.arange(len(FEATURE_NAMES)))
+    ax.set_xticklabels(FEATURE_NAMES, rotation=35, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase92_feature_heatmap(group_means: Dict[str, Dict[str, float]], title: str, save_path: str) -> None:
+    groups = sorted(group_means)
+    values = np.asarray([[float(group_means[group].get(feature, 0.0)) for feature in FEATURE_NAMES] for group in groups], dtype=float)
+    fig, ax = plt.subplots(figsize=(12, max(4, len(groups) * 0.7 + 2)))
+    if len(groups) == 0:
+        values = np.zeros((1, len(FEATURE_NAMES)), dtype=float)
+        groups = ["none"]
+    image = ax.imshow(values, cmap="viridis", aspect="auto", vmin=0.0, vmax=1.0)
+    ax.set_title(title)
+    ax.set_xticks(np.arange(len(FEATURE_NAMES)))
+    ax.set_xticklabels(FEATURE_NAMES, rotation=35, ha="right")
+    ax.set_yticks(np.arange(len(groups)))
+    ax.set_yticklabels(groups)
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase92_critical_path_bias(rows: List[Dict[str, object]], save_path: str) -> None:
+    labels = [str(row.get("true_mission")) for row in rows]
+    values = [_to_float(row.get("critical_path_bias_score")) for row in rows]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(np.arange(len(rows)), values, color="#e15759")
+    ax.set_title("Phase9.2 Critical Path Bias")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel("critical path bias score")
+    ax.set_xticks(np.arange(len(rows)))
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase92_feature_space_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    dominance = analysis.get("feature_dominance", {})
+    ranked = sorted(FEATURE_NAMES, key=lambda feature: float(dominance.get(feature, 0.0)), reverse=True)
+    lines = [
+        "# Phase9.2 Feature Space Analysis Report",
+        "",
+        "## Summary",
+        f"- Dominant feature: `{analysis.get('dominant_feature')}`.",
+        f"- Dominant feature weight: `{_to_float(analysis.get('dominant_feature_weight')):.3f}`.",
+        f"- Feature entropy: `{_to_float(analysis.get('feature_entropy')):.3f}`.",
+        f"- Feature concentration: `{_to_float(analysis.get('feature_concentration')):.3f}`.",
+        f"- Critical path bias score: `{_to_float(analysis.get('critical_path_bias_score')):.3f}`.",
+        f"- Mission feature separability: `{_to_float(analysis.get('mission_feature_separability')):.3f}`.",
+        f"- Profile feature separability: `{_to_float(analysis.get('profile_feature_separability')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.2 analyzes the CyberMatch feature space before PCA or ProfileCore integration. It does not add simulation logic, attackers, defenders, RL, LLMs, external APIs, PCA, or profilecore submodules.",
+        "",
+        "Critical path bias is the combined normalized weight of critical_progress, critical_focus, critical_probe_activity, and planned_critical_activity.",
+        "",
+        "## Dominant Feature Ranking",
+        "| rank | feature | normalized weight |",
+        "|---:|---|---:|",
+    ]
+    for idx, feature in enumerate(ranked, start=1):
+        lines.append(f"| {idx} | {feature} | {_to_float(dominance.get(feature)):.3f} |")
+    lines.extend([
+        "",
+        "## Rows",
+        "| mission | profile | dominant feature | weight | critical path bias | entropy |",
+        "|---|---|---|---:|---:|---:|",
+    ])
+    for row in rows:
+        lines.append(
+            f"| {row.get('true_mission')} | {row.get('behavior_profile')} | {row.get('dominant_feature')} | "
+            f"{_to_float(row.get('dominant_feature_weight')):.3f} | {_to_float(row.get('critical_path_bias_score')):.3f} | "
+            f"{_to_float(row.get('feature_entropy')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE92_FEATURE_SPACE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE93_PROFILECORE_COLUMNS = [
+    "row_id",
+    "true_mission",
+    "behavior_profile",
+    "archetype",
+    "pc1",
+    "pc2",
+    "pc3",
+    *FEATURE_NAMES,
+]
+
+
+def run_phase93_profilecore_analysis(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase93_profilecore"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+) -> Dict[str, object]:
+    """Run Phase9.3 ProfileCore integration prototype.
+
+    This uses existing Phase9.2 feature rows as the behavior-feature source and
+    performs PCA/archetype discovery without changing simulation logic.
+    """
+    phase92_rows = run_phase92_feature_space_evaluation(
+        seeds=seeds,
+        output_dir=os.path.join(output_dir, "phase92_source"),
+        config_path=config_path,
+        strategy_profiles=strategy_profiles,
+    )
+    analyzer = ProfileCorePCAAnalyzer(component_count=3, archetype_count=3)
+    result = analyzer.analyze(phase92_rows)
+    analysis = {
+        "pca_explained_variance": result.explained_variance,
+        "dominant_component": result.dominant_component,
+        "dominant_dimensions": result.dominant_dimensions,
+        "archetype_count": result.archetype_count,
+        "archetype_distribution": result.archetype_distribution,
+        "archetype_concentration": result.archetype_concentration,
+        "archetype_entropy": result.archetype_entropy,
+        "profilecore_connected": result.profilecore.connected,
+        "profilecore_detail": result.profilecore.detail,
+    }
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase93_profilecore_outputs(result.projected_rows, analysis, result.components, output_dir)
+    _plot_phase93_pca_variance(result.explained_variance, os.path.join(output_dir, "pca_variance.png"))
+    _plot_phase93_component_loadings(result.components, os.path.join(output_dir, "component_loadings.png"))
+    _plot_phase93_feature_projection(result.projected_rows, os.path.join(output_dir, "feature_projection.png"))
+    _plot_phase93_archetype_distribution(result.archetype_distribution, os.path.join(output_dir, "archetype_distribution.png"))
+    _write_phase93_profilecore_report(result.projected_rows, analysis, result.components, output_dir)
+    return {"rows": result.projected_rows, "analysis": analysis, "components": result.components}
+
+
+def _write_phase93_profilecore_outputs(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    components: List[Dict[str, float]],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "profilecore_feature_projection.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE93_PROFILECORE_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column, "") for column in PHASE93_PROFILECORE_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "profilecore_analysis.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis, "components": components}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase93_pca_variance(explained_variance: List[float], save_path: str) -> None:
+    labels = [f"PC{idx + 1}" for idx in range(len(explained_variance))]
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.bar(labels, explained_variance, color="#4c78a8")
+    ax.set_title("Phase9.3 PCA Explained Variance")
+    ax.set_ylim(0.0, 1.0)
+    ax.set_ylabel("explained variance ratio")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase93_component_loadings(components: List[Dict[str, float]], save_path: str) -> None:
+    component = components[0] if components else {}
+    ranked = sorted(FEATURE_NAMES, key=lambda feature: abs(float(component.get(feature, 0.0))), reverse=True)[:10]
+    values = [float(component.get(feature, 0.0)) for feature in ranked]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    colors = ["#4c78a8" if value >= 0 else "#f58518" for value in values]
+    ax.barh(np.arange(len(ranked)), values, color=colors)
+    ax.set_title("Phase9.3 PC1 Dominant Loadings")
+    ax.set_yticks(np.arange(len(ranked)))
+    ax.set_yticklabels(ranked)
+    ax.axvline(0.0, color="#333333", linewidth=0.8)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase93_feature_projection(rows: List[Dict[str, object]], save_path: str) -> None:
+    fig, ax = plt.subplots(figsize=(7, 5))
+    if rows:
+        archetypes = sorted({str(row.get("archetype")) for row in rows})
+        color_map = {name: idx for idx, name in enumerate(archetypes)}
+        colors = [color_map[str(row.get("archetype"))] for row in rows]
+        scatter = ax.scatter([_to_float(row.get("pc1")) for row in rows], [_to_float(row.get("pc2")) for row in rows], c=colors, cmap="tab10", alpha=0.85)
+        handles = [
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor=scatter.cmap(scatter.norm(idx)), label=name, markersize=8)
+            for name, idx in color_map.items()
+        ]
+        ax.legend(handles=handles, title="archetype", loc="best")
+    ax.set_title("Phase9.3 Behavior Feature Projection")
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase93_archetype_distribution(distribution: Dict[str, int], save_path: str) -> None:
+    labels = sorted(distribution)
+    values = [int(distribution[label]) for label in labels]
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.bar(labels, values, color="#54a24b")
+    ax.set_title("Phase9.3 Archetype Distribution")
+    ax.set_ylabel("rows")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase93_profilecore_report(
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    components: List[Dict[str, float]],
+    output_dir: str,
+) -> None:
+    variance = analysis.get("pca_explained_variance", [])
+    variance_text = ", ".join(f"PC{idx + 1}={_to_float(value):.3f}" for idx, value in enumerate(variance))
+    distribution = analysis.get("archetype_distribution", {})
+    lines = [
+        "# Phase9.3 ProfileCore Integration Prototype Report",
+        "",
+        "## Summary",
+        f"- PCA explained variance: `{variance_text}`.",
+        f"- Dominant component: `{analysis.get('dominant_component')}`.",
+        f"- Archetype count: `{analysis.get('archetype_count')}`.",
+        f"- Archetype concentration: `{_to_float(analysis.get('archetype_concentration')):.3f}`.",
+        f"- Archetype entropy: `{_to_float(analysis.get('archetype_entropy')):.3f}`.",
+        f"- ProfileCore connection: `{analysis.get('profilecore_connected')}` ({analysis.get('profilecore_detail')}).",
+        "",
+        "## Method",
+        "Phase9.3 connects CyberMatch feature vectors to ProfileCore context artifacts and applies numeric PCA to attack behavior features.",
+        "This is behavior archetype discovery, not mission classification. It does not add attackers, defenders, RL, LLMs, external APIs, or simulation logic.",
+        "",
+        "## Archetype Candidates",
+        "| archetype | rows |",
+        "|---|---:|",
+    ]
+    for name, count in sorted(distribution.items()):
+        lines.append(f"| {name} | {count} |")
+    lines.extend([
+        "",
+        "## Principal Components",
+        "| component | explained variance | dominant dimension |",
+        "|---|---:|---|",
+    ])
+    dominant_dimensions = analysis.get("dominant_dimensions", [])
+    for idx, value in enumerate(variance, start=1):
+        dimension = dominant_dimensions[idx - 1] if idx - 1 < len(dominant_dimensions) else ""
+        lines.append(f"| PC{idx} | {_to_float(value):.3f} | {dimension} |")
+    lines.extend([
+        "",
+        "## PC1 Loading Snapshot",
+        "| feature | loading |",
+        "|---|---:|",
+    ])
+    pc1 = components[0] if components else {}
+    for feature in sorted(FEATURE_NAMES, key=lambda item: abs(_to_float(pc1.get(item))), reverse=True)[:10]:
+        lines.append(f"| {feature} | {_to_float(pc1.get(feature)):.3f} |")
+    lines.extend([
+        "",
+        "## Rows",
+        "| row | mission | behavior profile | archetype | pc1 | pc2 |",
+        "|---|---|---|---|---:|---:|",
+    ])
+    for row in rows:
+        lines.append(
+            f"| {row.get('row_id')} | {row.get('true_mission')} | {row.get('behavior_profile')} | "
+            f"{row.get('archetype')} | {_to_float(row.get('pc1')):.3f} | {_to_float(row.get('pc2')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE93_PROFILECORE_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE94_ARCHETYPE_SUMMARY_COLUMNS = [
+    "archetype",
+    "row_count",
+    "dominant_feature",
+    "dominant_feature_mean",
+    "mean_feature_variance",
+    "adaptation_activity",
+    "deception_activity",
+    "critical_activity",
+    "utility_activity",
+    "stealth_activity",
+    "coalition_activity",
+    "archetype_signature",
+]
+
+
+def run_phase94_archetype_interpretation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase94_archetype_interpretation"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+    source_rows: Optional[List[Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """Run Phase9.4 archetype interpretation from discovered Phase9.3 rows.
+
+    Phase9.4 does not create archetypes. It characterizes the Phase9.3
+    archetype labels using existing feature vectors, missions, and behavior
+    profiles.
+    """
+    if source_rows is None:
+        phase93 = run_phase93_profilecore_analysis(
+            seeds=seeds,
+            output_dir=os.path.join(output_dir, "phase93_source"),
+            config_path=config_path,
+            strategy_profiles=strategy_profiles,
+        )
+        rows = list(phase93.get("rows", []))
+    else:
+        rows = [dict(row) for row in source_rows]
+    interpreter = ArchetypeInterpreter()
+    result = interpreter.analyze(rows)
+    analysis = {
+        "archetype_count": len(result.archetype_summary),
+        "archetype_signature": result.archetype_signature,
+        "archetype_feature_distance": result.archetype_feature_distance,
+        "archetype_mission_overlap": result.archetype_mission_overlap,
+        "archetype_profile_overlap": result.archetype_profile_overlap,
+        "archetype_stability": result.archetype_stability,
+        "archetype_interpretability_score": result.archetype_interpretability_score,
+        "mission_distribution": result.mission_distribution,
+        "behavior_profile_distribution": result.behavior_profile_distribution,
+        "feature_means": result.feature_means,
+        "feature_variances": result.feature_variances,
+    }
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase94_archetype_outputs(result, rows, analysis, output_dir)
+    _plot_phase94_feature_comparison(result, os.path.join(output_dir, "archetype_feature_comparison.png"))
+    _plot_phase94_label_distribution(
+        result.mission_distribution,
+        "Phase9.4 Archetype Mission Distribution",
+        os.path.join(output_dir, "archetype_mission_distribution.png"),
+    )
+    _plot_phase94_label_distribution(
+        result.behavior_profile_distribution,
+        "Phase9.4 Archetype Profile Distribution",
+        os.path.join(output_dir, "archetype_profile_distribution.png"),
+    )
+    _plot_phase94_distance_matrix(result.archetype_feature_distance, os.path.join(output_dir, "archetype_distance_matrix.png"))
+    _write_phase94_archetype_report(result, analysis, output_dir)
+    return {"rows": rows, "summary": result.archetype_summary, "analysis": analysis}
+
+
+def _write_phase94_archetype_outputs(
+    result: ArchetypeInterpretationResult,
+    rows: List[Dict[str, object]],
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    with open(os.path.join(output_dir, "archetype_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE94_ARCHETYPE_SUMMARY_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column, "") for column in PHASE94_ARCHETYPE_SUMMARY_COLUMNS} for row in result.archetype_summary])
+    with open(os.path.join(output_dir, "archetype_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "summary": result.archetype_summary, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase94_feature_comparison(result: ArchetypeInterpretationResult, save_path: str) -> None:
+    archetypes = sorted(result.feature_means)
+    selected = [
+        "utility_activity",
+        "expected_utility_activity",
+        "deception_activity",
+        "adaptation_activity",
+        "critical_focus",
+        "stealth_activity",
+        "coalition_activity",
+    ]
+    values = np.asarray(
+        [[float(result.feature_means[archetype].get(feature, 0.0)) for feature in selected] for archetype in archetypes],
+        dtype=float,
+    )
+    fig, ax = plt.subplots(figsize=(10, max(4, len(archetypes) * 0.8 + 2)))
+    if values.size == 0:
+        values = np.zeros((1, len(selected)), dtype=float)
+        archetypes = ["none"]
+    image = ax.imshow(values, cmap="viridis", aspect="auto", vmin=0.0, vmax=1.0)
+    ax.set_title("Phase9.4 Archetype Feature Comparison")
+    ax.set_xticks(np.arange(len(selected)))
+    ax.set_xticklabels(selected, rotation=35, ha="right")
+    ax.set_yticks(np.arange(len(archetypes)))
+    ax.set_yticklabels(archetypes)
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase94_label_distribution(distribution: Dict[str, Dict[str, int]], title: str, save_path: str) -> None:
+    archetypes = sorted(distribution)
+    labels = sorted({label for counts in distribution.values() for label in counts})
+    fig, ax = plt.subplots(figsize=(10, max(4, len(archetypes) * 0.8 + 2)))
+    if not archetypes or not labels:
+        ax.bar(["none"], [0], color="#4e79a7")
+        ax.set_title(title)
+        fig.tight_layout()
+        plt.savefig(save_path)
+        plt.close(fig)
+        return
+    left = np.zeros(len(archetypes), dtype=float)
+    for idx, label in enumerate(labels):
+        values = np.asarray([float(distribution[archetype].get(label, 0)) for archetype in archetypes], dtype=float)
+        ax.barh(np.arange(len(archetypes)), values, left=left, label=label, color=plt.cm.tab20(idx % 20))
+        left += values
+    ax.set_title(title)
+    ax.set_yticks(np.arange(len(archetypes)))
+    ax.set_yticklabels(archetypes)
+    ax.set_xlabel("rows")
+    ax.legend(loc="best", fontsize="small")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase94_distance_matrix(distance: Dict[str, Dict[str, float]], save_path: str) -> None:
+    labels = sorted(distance)
+    values = np.asarray([[float(distance[left].get(right, 0.0)) for right in labels] for left in labels], dtype=float)
+    fig, ax = plt.subplots(figsize=(7, 6))
+    if values.size == 0:
+        values = np.zeros((1, 1), dtype=float)
+        labels = ["none"]
+    image = ax.imshow(values, cmap="magma", aspect="auto", vmin=0.0)
+    ax.set_title("Phase9.4 Archetype Feature Distance")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    ax.set_yticks(np.arange(len(labels)))
+    ax.set_yticklabels(labels)
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase94_archetype_report(
+    result: ArchetypeInterpretationResult,
+    analysis: Dict[str, object],
+    output_dir: str,
+) -> None:
+    lines = [
+        "# Phase9.4 Archetype Interpretation Report",
+        "",
+        "## Summary",
+        f"- Archetype count: `{analysis.get('archetype_count')}`.",
+        f"- Mission overlap: `{_to_float(analysis.get('archetype_mission_overlap')):.3f}`.",
+        f"- Profile overlap: `{_to_float(analysis.get('archetype_profile_overlap')):.3f}`.",
+        f"- Stability: `{_to_float(analysis.get('archetype_stability')):.3f}`.",
+        f"- Interpretability score: `{_to_float(analysis.get('archetype_interpretability_score')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.4 interprets discovered Phase9.3 archetype labels from existing CyberMatch feature rows.",
+        "It does not add attackers, defenders, RL, LLMs, external APIs, ProfileCore internals, or simulation logic.",
+        "",
+        "## Archetype Summary",
+        "| archetype | rows | dominant feature | feature mean | signature |",
+        "|---|---:|---|---:|---|",
+    ]
+    for row in result.archetype_summary:
+        lines.append(
+            f"| {row.get('archetype')} | {row.get('row_count')} | {row.get('dominant_feature')} | "
+            f"{_to_float(row.get('dominant_feature_mean')):.3f} | {row.get('archetype_signature')} |"
+        )
+    lines.extend([
+        "",
+        "## Feature Distance",
+        "| archetype | " + " | ".join(sorted(result.archetype_feature_distance)) + " |",
+        "|---" + "|---:" * len(result.archetype_feature_distance) + "|",
+    ])
+    for left in sorted(result.archetype_feature_distance):
+        values = " | ".join(f"{_to_float(result.archetype_feature_distance[left].get(right)):.3f}" for right in sorted(result.archetype_feature_distance))
+        lines.append(f"| {left} | {values} |")
+    lines.extend([
+        "",
+        "## Mission Distribution",
+        "| archetype | mission distribution |",
+        "|---|---|",
+    ])
+    for archetype, counts in sorted(result.mission_distribution.items()):
+        lines.append(f"| {archetype} | {counts} |")
+    lines.extend([
+        "",
+        "## Behavior Profile Distribution",
+        "| archetype | profile distribution |",
+        "|---|---|",
+    ])
+    for archetype, counts in sorted(result.behavior_profile_distribution.items()):
+        lines.append(f"| {archetype} | {counts} |")
+    lines.extend([
+        "",
+        "## Interpretation Boundary",
+        "The signatures are descriptive only. Phase9.4 does not automatically name archetypes and does not claim causal intent.",
+    ])
+    with open(os.path.join(output_dir, "PHASE94_ARCHETYPE_INTERPRETATION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+PHASE95_STRATEGY_SUMMARY_COLUMNS = [
+    "row_id",
+    "true_mission",
+    "strategy_type",
+    "strategy_confidence",
+    "strategy_entropy",
+    "expected_strategy",
+    "strategy_match",
+    "behavior_profile",
+    "archetype",
+    "strategy_transition_count",
+    *STRATEGY_FEATURES,
+]
+
+
+def run_phase95_strategy_layer_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase95_strategy_layer"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+    source_rows: Optional[List[Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """Run Phase9.5 Strategy Layer evaluation from existing behavior rows."""
+    if source_rows is None:
+        phase93 = run_phase93_profilecore_analysis(
+            seeds=seeds,
+            output_dir=os.path.join(output_dir, "phase93_source"),
+            config_path=config_path,
+            strategy_profiles=strategy_profiles,
+        )
+        rows = list(phase93.get("rows", []))
+    else:
+        rows = [dict(row) for row in source_rows]
+    engine = StrategyInferenceEngine()
+    evaluated_rows = [_build_phase95_strategy_row(row, engine) for row in rows]
+    evaluated_rows.sort(key=lambda row: (str(row.get("true_mission")), str(row.get("strategy_type")), str(row.get("row_id"))))
+    analysis = _analyze_phase95_strategy_rows(evaluated_rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase95_strategy_outputs(evaluated_rows, analysis, output_dir)
+    _plot_phase95_distribution(analysis.get("strategy_distribution", {}), os.path.join(output_dir, "strategy_distribution.png"))
+    _plot_phase95_matrix(analysis.get("mission_strategy_matrix", {}), "Phase9.5 Mission x Strategy", os.path.join(output_dir, "mission_strategy_matrix.png"))
+    _plot_phase95_matrix(analysis.get("strategy_archetype_matrix", {}), "Phase9.5 Strategy x Archetype", os.path.join(output_dir, "strategy_archetype_matrix.png"))
+    _plot_phase95_matrix(analysis.get("strategy_profile_matrix", {}), "Phase9.5 Strategy x Behavior Profile", os.path.join(output_dir, "strategy_profile_matrix.png"))
+    _write_phase95_strategy_report(evaluated_rows, analysis, output_dir)
+    return {"rows": evaluated_rows, "analysis": analysis}
+
+
+def _build_phase95_strategy_row(row: Dict[str, object], engine: StrategyInferenceEngine) -> Dict[str, object]:
+    result = engine.infer(row)
+    true_mission = str(row.get("true_mission") or row.get("attacker_mission") or "")
+    expected = engine.expected_strategy_for_mission(true_mission)
+    strategy_history = row.get("strategy_history")
+    transition_count = _phase95_transition_count(strategy_history)
+    output = dict(row)
+    output.update(
+        {
+            "row_id": str(row.get("row_id") or row.get("mission_scenario") or row.get("scenario") or ""),
+            "true_mission": true_mission,
+            "strategy_type": result.strategy_type,
+            "strategy_confidence": result.strategy_confidence,
+            "strategy_entropy": result.strategy_entropy,
+            "strategy_distribution": result.strategy_scores,
+            "expected_strategy": expected,
+            "strategy_match": bool(expected == result.strategy_type) if expected else False,
+            "strategy_transition_count": transition_count,
+        }
+    )
+    output.update(result.features)
+    return output
+
+
+def _analyze_phase95_strategy_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    distribution = _phase95_distribution(row.get("strategy_type") for row in rows)
+    total = sum(distribution.values())
+    concentration = max(distribution.values()) / total if total > 0 else 0.0
+    entropy = _phase95_entropy(distribution.values())
+    match_values = [1.0 if row.get("strategy_match") else 0.0 for row in rows if row.get("expected_strategy")]
+    mission_strategy_matrix = _phase95_matrix(rows, "true_mission", "strategy_type")
+    strategy_profile_matrix = _phase95_matrix(rows, "strategy_type", "behavior_profile")
+    strategy_archetype_matrix = _phase95_matrix(rows, "strategy_type", "archetype")
+    return {
+        "strategy_distribution": distribution,
+        "strategy_match_rate": float(np.mean(match_values)) if match_values else 0.0,
+        "strategy_transition_count": int(sum(int(row.get("strategy_transition_count", 0)) for row in rows)),
+        "strategy_differences_observed": len(distribution) > 1,
+        "strategy_concentration": float(concentration),
+        "strategy_entropy": entropy,
+        "mission_strategy_overlap": _phase95_overlap(mission_strategy_matrix),
+        "strategy_profile_overlap": _phase95_overlap(strategy_profile_matrix),
+        "strategy_archetype_overlap": _phase95_overlap(strategy_archetype_matrix),
+        "mission_strategy_matrix": mission_strategy_matrix,
+        "strategy_profile_matrix": strategy_profile_matrix,
+        "strategy_archetype_matrix": strategy_archetype_matrix,
+    }
+
+
+def _write_phase95_strategy_outputs(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "strategy_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE95_STRATEGY_SUMMARY_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column, "") for column in PHASE95_STRATEGY_SUMMARY_COLUMNS} for row in rows])
+    with open(os.path.join(output_dir, "strategy_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase95_distribution(distribution: Dict[str, int], save_path: str) -> None:
+    labels = sorted(distribution)
+    values = [int(distribution[label]) for label in labels]
+    fig, ax = plt.subplots(figsize=(9, 4))
+    if not labels:
+        labels = ["none"]
+        values = [0]
+    ax.bar(np.arange(len(labels)), values, color="#4e79a7")
+    ax.set_title("Phase9.5 Strategy Distribution")
+    ax.set_ylabel("rows")
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _plot_phase95_matrix(matrix: Dict[str, Dict[str, int]], title: str, save_path: str) -> None:
+    rows = sorted(matrix)
+    columns = sorted({column for values in matrix.values() for column in values})
+    values = np.asarray([[float(matrix[row].get(column, 0)) for column in columns] for row in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(10, max(4, len(rows) * 0.8 + 2)))
+    if values.size == 0:
+        values = np.zeros((1, 1), dtype=float)
+        rows = ["none"]
+        columns = ["none"]
+    image = ax.imshow(values, cmap="viridis", aspect="auto")
+    ax.set_title(title)
+    ax.set_xticks(np.arange(len(columns)))
+    ax.set_xticklabels(columns, rotation=35, ha="right")
+    ax.set_yticks(np.arange(len(rows)))
+    ax.set_yticklabels(rows)
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase95_strategy_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase9.5 Strategy Layer Report",
+        "",
+        "## Summary",
+        f"- Strategy differences observed: `{analysis.get('strategy_differences_observed')}`.",
+        f"- Strategy concentration: `{_to_float(analysis.get('strategy_concentration')):.3f}`.",
+        f"- Strategy entropy: `{_to_float(analysis.get('strategy_entropy')):.3f}`.",
+        f"- Strategy match rate: `{_to_float(analysis.get('strategy_match_rate')):.3f}`.",
+        f"- Mission strategy overlap: `{_to_float(analysis.get('mission_strategy_overlap')):.3f}`.",
+        f"- Strategy profile overlap: `{_to_float(analysis.get('strategy_profile_overlap')):.3f}`.",
+        f"- Strategy archetype overlap: `{_to_float(analysis.get('strategy_archetype_overlap')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.5 introduces a lightweight strategy inference layer between Mission and Behavior.",
+        "It uses existing feature rows only and does not add attackers, defenders, RL, LLMs, external APIs, ProfileCore internals, or simulation logic.",
+        "",
+        "## Strategy Distribution",
+        "| strategy | rows |",
+        "|---|---:|",
+    ]
+    for strategy, count in sorted(analysis.get("strategy_distribution", {}).items()):
+        lines.append(f"| {strategy} | {count} |")
+    lines.extend([
+        "",
+        "## Rows",
+        "| row | mission | strategy | confidence | behavior profile | archetype |",
+        "|---|---|---|---:|---|---|",
+    ])
+    for row in rows:
+        lines.append(
+            f"| {row.get('row_id')} | {row.get('true_mission')} | {row.get('strategy_type')} | "
+            f"{_to_float(row.get('strategy_confidence')):.3f} | {row.get('behavior_profile')} | {row.get('archetype')} |"
+        )
+    lines.extend([
+        "",
+        "## Future Integration",
+        "The future concept is Mission -> Strategy -> Archetype -> Behavior.",
+        "Phase9.5 documents this direction but does not implement adaptive countermeasure selection.",
+    ])
+    with open(os.path.join(output_dir, "PHASE95_STRATEGY_LAYER_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def _phase95_matrix(rows: List[Dict[str, object]], row_key: str, column_key: str) -> Dict[str, Dict[str, int]]:
+    matrix: Dict[str, Dict[str, int]] = {}
+    for row in rows:
+        row_label = str(row.get(row_key) or "")
+        column_label = str(row.get(column_key) or "")
+        if not row_label or not column_label:
+            continue
+        matrix.setdefault(row_label, {})
+        matrix[row_label][column_label] = matrix[row_label].get(column_label, 0) + 1
+    return {row: dict(sorted(values.items())) for row, values in sorted(matrix.items())}
+
+
+def _phase95_distribution(values: object) -> Dict[str, int]:
+    distribution: Dict[str, int] = {}
+    for value in values:
+        label = str(value or "")
+        if not label:
+            continue
+        distribution[label] = distribution.get(label, 0) + 1
+    return dict(sorted(distribution.items()))
+
+
+def _phase95_entropy(counts: object) -> float:
+    values = [float(count) for count in counts if float(count) > 0.0]
+    total = sum(values)
+    if total <= 0.0 or len(values) <= 1:
+        return 0.0
+    probabilities = [value / total for value in values]
+    entropy = -sum(prob * np.log(prob) for prob in probabilities)
+    return float(np.clip(entropy / np.log(len(values)), 0.0, 1.0))
+
+
+def _phase95_overlap(matrix: Dict[str, Dict[str, int]]) -> float:
+    labels = sorted(matrix)
+    if len(labels) < 2:
+        return 0.0
+    overlaps: List[float] = []
+    for idx, left in enumerate(labels):
+        left_counts = matrix[left]
+        left_total = sum(int(value) for value in left_counts.values())
+        for right in labels[idx + 1 :]:
+            right_counts = matrix[right]
+            right_total = sum(int(value) for value in right_counts.values())
+            if left_total <= 0 or right_total <= 0:
+                overlaps.append(0.0)
+                continue
+            columns = set(left_counts) | set(right_counts)
+            overlaps.append(
+                float(
+                    sum(
+                        min(
+                            int(left_counts.get(column, 0)) / left_total,
+                            int(right_counts.get(column, 0)) / right_total,
+                        )
+                        for column in columns
+                    )
+                )
+            )
+    return float(np.clip(np.mean(overlaps), 0.0, 1.0)) if overlaps else 0.0
+
+
+def _phase95_transition_count(value: object) -> int:
+    if value is None:
+        return 0
+    if isinstance(value, np.ndarray):
+        items = [str(item) for item in value.reshape(-1).tolist()]
+    elif isinstance(value, (list, tuple)):
+        items = [str(item) for item in value]
+    else:
+        items = [token for token in str(value).split("|") if token]
+    return sum(1 for idx in range(1, len(items)) if items[idx] != items[idx - 1])
+
+
+PHASE96_TAXONOMY_COLUMNS = [
+    "existing_mission",
+    "intent",
+    "mission",
+    "target",
+    "strategy",
+]
+
+
+def run_phase96_taxonomy_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase96_taxonomy"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+    source_rows: Optional[List[Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """Run Phase9.6 taxonomy analysis without changing simulation behavior."""
+    if source_rows is None:
+        phase95 = run_phase95_strategy_layer_evaluation(
+            seeds=seeds,
+            output_dir=os.path.join(output_dir, "phase95_source"),
+            config_path=config_path,
+            strategy_profiles=strategy_profiles,
+        )
+        rows = list(phase95.get("rows", []))
+    else:
+        rows = [dict(row) for row in source_rows]
+    result = MissionTaxonomyAnalyzer().analyze(rows)
+    analysis = {
+        **result.metrics,
+        "intent_mission_matrix": result.intent_mission_matrix,
+        "mission_target_matrix": result.mission_target_matrix,
+        "target_strategy_matrix": result.target_strategy_matrix,
+    }
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase96_taxonomy_outputs(result, analysis, output_dir)
+    _plot_phase96_matrix(result.intent_mission_matrix, "Phase9.6 Intent x Mission", os.path.join(output_dir, "intent_mission_matrix.png"))
+    _plot_phase96_matrix(result.mission_target_matrix, "Phase9.6 Mission x Target", os.path.join(output_dir, "mission_target_matrix.png"))
+    _plot_phase96_matrix(result.target_strategy_matrix, "Phase9.6 Target x Strategy", os.path.join(output_dir, "target_strategy_matrix.png"))
+    _write_phase96_taxonomy_report(result, analysis, output_dir)
+    return {"rows": result.rows, "analysis": analysis}
+
+
+def _write_phase96_taxonomy_outputs(result: TaxonomyResult, analysis: Dict[str, object], output_dir: str) -> None:
+    with open(os.path.join(output_dir, "taxonomy_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=PHASE96_TAXONOMY_COLUMNS)
+        writer.writeheader()
+        writer.writerows([{column: row.get(column, "") for column in PHASE96_TAXONOMY_COLUMNS} for row in result.rows])
+    with open(os.path.join(output_dir, "taxonomy_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": result.rows, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+
+
+def _plot_phase96_matrix(matrix: Dict[str, Dict[str, int]], title: str, save_path: str) -> None:
+    rows = sorted(matrix)
+    columns = sorted({column for values in matrix.values() for column in values})
+    values = np.asarray([[float(matrix[row].get(column, 0)) for column in columns] for row in rows], dtype=float)
+    fig, ax = plt.subplots(figsize=(11, max(4, len(rows) * 0.7 + 2)))
+    if values.size == 0:
+        values = np.zeros((1, 1), dtype=float)
+        rows = ["none"]
+        columns = ["none"]
+    image = ax.imshow(values, cmap="viridis", aspect="auto")
+    ax.set_title(title)
+    ax.set_xticks(np.arange(len(columns)))
+    ax.set_xticklabels(columns, rotation=35, ha="right")
+    ax.set_yticks(np.arange(len(rows)))
+    ax.set_yticklabels(rows)
+    fig.colorbar(image, ax=ax)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase96_taxonomy_report(result: TaxonomyResult, analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase9.6 Target and Mission Decomposition Report",
+        "",
+        "## Summary",
+        f"- Intent count: `{analysis.get('intent_count')}`.",
+        f"- Mission count: `{analysis.get('mission_count')}`.",
+        f"- Target count: `{analysis.get('target_count')}`.",
+        f"- Taxonomy completeness: `{_to_float(analysis.get('taxonomy_completeness')):.3f}`.",
+        f"- Mission target overlap: `{_to_float(analysis.get('mission_target_overlap')):.3f}`.",
+        f"- Target strategy overlap: `{_to_float(analysis.get('target_strategy_overlap')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.6 decomposes existing CyberMatch mission labels into Intent, Mission, Target, and Strategy layers.",
+        "It is documentation and analysis only. It does not add attackers, defenders, RL, LLMs, external APIs, ProfileCore changes, benchmark changes, or simulation logic.",
+        "",
+        "## Intents",
+        ", ".join(INTENT_CLASSES),
+        "",
+        "## Missions",
+        ", ".join(MISSION_LAYER_CLASSES),
+        "",
+        "## Targets",
+        ", ".join(TARGET_CLASSES),
+        "",
+        "## Taxonomy Edges",
+        "| existing mission | intent | mission | target | strategy |",
+        "|---|---|---|---|---|",
+    ]
+    for row in result.rows:
+        lines.append(
+            f"| {row.get('existing_mission')} | {row.get('intent')} | {row.get('mission')} | "
+            f"{row.get('target')} | {row.get('strategy')} |"
+        )
+    lines.extend([
+        "",
+        "## Interpretation",
+        "The current mission labels are useful scenario anchors, but Phase9.6 treats them as composite labels that mix intent, mission form, and target class.",
+        "Separating Target from Mission is feasible at taxonomy level and is required before intent-aware defense can reason about target-specific countermeasures.",
+    ])
+    with open(os.path.join(output_dir, "PHASE96_TAXONOMY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def run_phase97_target_strategy_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase97_target_strategy"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+    source_rows: Optional[List[Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """Run Phase9.7 target-specific strategy analysis."""
+    if source_rows is None:
+        phase96 = run_phase96_taxonomy_evaluation(
+            seeds=seeds,
+            output_dir=os.path.join(output_dir, "phase96_source"),
+            config_path=config_path,
+            strategy_profiles=strategy_profiles,
+        )
+        rows = list(phase96.get("rows", []))
+    else:
+        rows = [dict(row) for row in source_rows]
+    engine = StrategyInferenceEngine()
+    evaluated = [_build_phase97_target_strategy_row(row, engine) for row in rows]
+    analysis = _analyze_phase97_target_strategy_rows(evaluated)
+    os.makedirs(output_dir, exist_ok=True)
+    _plot_phase95_matrix(analysis.get("target_strategy_matrix", {}), "Phase9.7 Target x Strategy", os.path.join(output_dir, "target_strategy_matrix.png"))
+    _plot_phase95_distribution(analysis.get("strategy_distribution", {}), os.path.join(output_dir, "strategy_distribution.png"))
+    _plot_phase97_bar(analysis.get("strategy_diversity_by_target", {}), "Phase9.7 Strategy Diversity", "diversity", os.path.join(output_dir, "strategy_diversity.png"))
+    _plot_phase97_bar(analysis.get("target_specificity_by_target", {}), "Phase9.7 Target Specificity", "specificity", os.path.join(output_dir, "target_specificity.png"))
+    _plot_phase97_bar(analysis.get("strategy_alignment_by_target", {}), "Phase9.7 Strategy Alignment", "alignment", os.path.join(output_dir, "strategy_alignment.png"))
+    _write_phase97_target_strategy_report(evaluated, analysis, output_dir)
+    with open(os.path.join(output_dir, "target_strategy_summary.json"), "w", encoding="utf-8") as f:
+        json.dump({"rows": evaluated, "analysis": analysis}, f, indent=4, ensure_ascii=False)
+    return {"rows": evaluated, "analysis": analysis}
+
+
+def _build_phase97_target_strategy_row(row: Dict[str, object], engine: StrategyInferenceEngine) -> Dict[str, object]:
+    target = str(row.get("target") or row.get("target_type") or "")
+    result = engine.infer(row, target=target)
+    candidates = engine.strategy_candidates_for_target(target)
+    alignment = 1.0 if result.strategy_type in candidates else 0.0
+    output = dict(row)
+    output.update(
+        {
+            "target": target,
+            "strategy_type": result.strategy_type,
+            "strategy_confidence": result.strategy_confidence,
+            "strategy_entropy": result.strategy_entropy,
+            "strategy_candidates": list(candidates),
+            "strategy_target_alignment": alignment,
+        }
+    )
+    output.update(result.features)
+    return output
+
+
+def _analyze_phase97_target_strategy_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    target_strategy_matrix = _phase95_matrix(rows, "target", "strategy_type")
+    strategy_distribution = _phase95_distribution(row.get("strategy_type") for row in rows)
+    target_count = max(len({str(row.get("target")) for row in rows if row.get("target")}), 1)
+    strategy_diversity = len(strategy_distribution) / max(len(STRATEGY_CLASSES), 1)
+    alignments = [_to_float(row.get("strategy_target_alignment")) for row in rows]
+    target_alignment = float(np.mean(alignments)) if alignments else 0.0
+    diversity_by_target: Dict[str, float] = {}
+    specificity_by_target: Dict[str, float] = {}
+    alignment_by_target: Dict[str, float] = {}
+    for target in sorted({str(row.get("target")) for row in rows if row.get("target")}):
+        target_rows = [row for row in rows if str(row.get("target")) == target]
+        strategies = {str(row.get("strategy_type")) for row in target_rows if row.get("strategy_type")}
+        candidates = TARGET_STRATEGY_MAP.get(target, [])
+        diversity_by_target[target] = len(strategies) / max(len(candidates), 1)
+        specificity_by_target[target] = 1.0 - ((len(strategies) - 1) / max(target_count - 1, 1))
+        alignment_by_target[target] = float(np.mean([_to_float(row.get("strategy_target_alignment")) for row in target_rows])) if target_rows else 0.0
+    return {
+        "strategy_differences_observed": len(strategy_distribution) > 1,
+        "strategy_diversity": float(np.clip(strategy_diversity, 0.0, 1.0)),
+        "strategy_target_alignment": float(np.clip(target_alignment, 0.0, 1.0)),
+        "strategy_target_entropy": _phase95_entropy(strategy_distribution.values()),
+        "target_specificity_score": float(np.clip(np.mean(list(specificity_by_target.values())) if specificity_by_target else 0.0, 0.0, 1.0)),
+        "strategy_concentration": max(strategy_distribution.values()) / sum(strategy_distribution.values()) if strategy_distribution else 0.0,
+        "target_strategy_matrix": target_strategy_matrix,
+        "strategy_distribution": strategy_distribution,
+        "strategy_diversity_by_target": diversity_by_target,
+        "target_specificity_by_target": specificity_by_target,
+        "strategy_alignment_by_target": alignment_by_target,
+    }
+
+
+def _plot_phase97_bar(values_by_label: Dict[str, float], title: str, ylabel: str, save_path: str) -> None:
+    labels = sorted(values_by_label)
+    values = [float(values_by_label[label]) for label in labels]
+    fig, ax = plt.subplots(figsize=(10, 4))
+    if not labels:
+        labels = ["none"]
+        values = [0.0]
+    ax.bar(np.arange(len(labels)), values, color="#59a14f")
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=30, ha="right")
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase97_target_strategy_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
+    lines = [
+        "# Phase9.7 Target-Specific Strategy Report",
+        "",
+        "## Summary",
+        f"- Strategy differences observed: `{analysis.get('strategy_differences_observed')}`.",
+        f"- Strategy diversity: `{_to_float(analysis.get('strategy_diversity')):.3f}`.",
+        f"- Target specificity score: `{_to_float(analysis.get('target_specificity_score')):.3f}`.",
+        f"- Strategy target alignment: `{_to_float(analysis.get('strategy_target_alignment')):.3f}`.",
+        f"- Strategy concentration: `{_to_float(analysis.get('strategy_concentration')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.7 expands strategy labels and restricts inference candidates by target class.",
+        "It does not add attackers, defenders, RL, LLMs, external APIs, ProfileCore changes, benchmark changes, or simulation logic.",
+        "",
+        "## Target Strategy Mapping",
+        "| target | strategies |",
+        "|---|---|",
+    ]
+    for target, strategies in sorted(TARGET_STRATEGY_MAP.items()):
+        lines.append(f"| {target} | {', '.join(strategies)} |")
+    lines.extend([
+        "",
+        "## Observed Rows",
+        "| target | strategy | confidence | alignment |",
+        "|---|---|---:|---:|",
+    ])
+    for row in rows:
+        lines.append(
+            f"| {row.get('target')} | {row.get('strategy_type')} | "
+            f"{_to_float(row.get('strategy_confidence')):.3f} | {_to_float(row.get('strategy_target_alignment')):.3f} |"
+        )
+    with open(os.path.join(output_dir, "PHASE97_TARGET_STRATEGY_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def run_phase98_strategy_validation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase98_strategy_validation"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+    source_rows: Optional[List[Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """Run Phase9.8 validation for the Phase9.7 Target -> Strategy model."""
+    if source_rows is None:
+        phase97 = run_phase97_target_strategy_evaluation(
+            seeds=seeds,
+            output_dir=os.path.join(output_dir, "phase97_source"),
+            config_path=config_path,
+            strategy_profiles=strategy_profiles,
+        )
+        rows = list(phase97.get("rows", []))
+    else:
+        rows = [dict(row) for row in source_rows]
+    engine = StrategyValidationEngine()
+    result = engine.validate(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase98_strategy_validation_artifacts(result, output_dir)
+    return {
+        "rows": result.rows,
+        "analysis": result.metrics,
+        "strategy_distance_matrix": result.strategy_distance_matrix,
+        "strategy_distinctiveness": result.strategy_distinctiveness,
+        "strategy_redundancy": result.strategy_redundancy,
+        "target_specificity_validation": result.target_specificity_validation,
+        "mission_strategy_explainability": result.mission_strategy_explainability,
+        "strategy_summary": result.strategy_summary,
+    }
+
+
+def _write_phase98_strategy_validation_artifacts(result: StrategyValidationResult, output_dir: str) -> None:
+    summary_path = os.path.join(output_dir, "strategy_validation_summary.csv")
+    fieldnames = [
+        "strategy_type",
+        "row_count",
+        "dominant_target",
+        "dominant_mission",
+        "mean_confidence",
+        "distinctiveness",
+        "redundancy",
+    ]
+    with open(summary_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in result.strategy_summary:
+            writer.writerow({key: row.get(key, "") for key in fieldnames})
+    with open(os.path.join(output_dir, "strategy_validation_summary.json"), "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "rows": result.rows,
+                "analysis": result.metrics,
+                "strategy_distance_matrix": result.strategy_distance_matrix,
+                "strategy_distinctiveness": result.strategy_distinctiveness,
+                "strategy_redundancy": result.strategy_redundancy,
+                "target_specificity_validation": result.target_specificity_validation,
+                "mission_strategy_explainability": result.mission_strategy_explainability,
+                "strategy_summary": result.strategy_summary,
+            },
+            f,
+            indent=4,
+            ensure_ascii=False,
+        )
+    _plot_phase98_distance_matrix(
+        result.strategy_distance_matrix,
+        "Phase9.8 Strategy Distance Matrix",
+        os.path.join(output_dir, "strategy_distance_matrix.png"),
+    )
+    _plot_phase97_bar(
+        result.strategy_distinctiveness,
+        "Phase9.8 Strategy Distinctiveness",
+        "distinctiveness",
+        os.path.join(output_dir, "strategy_distinctiveness.png"),
+    )
+    _plot_phase97_bar(
+        result.strategy_redundancy,
+        "Phase9.8 Strategy Redundancy",
+        "redundancy",
+        os.path.join(output_dir, "strategy_redundancy.png"),
+    )
+    _plot_phase97_bar(
+        result.target_specificity_validation,
+        "Phase9.8 Target Strategy Validation",
+        "specificity",
+        os.path.join(output_dir, "target_strategy_validation.png"),
+    )
+    _plot_phase97_bar(
+        result.mission_strategy_explainability,
+        "Phase9.8 Mission Strategy Explainability",
+        "explainability",
+        os.path.join(output_dir, "mission_strategy_explainability.png"),
+    )
+    _write_phase98_strategy_validation_report(result, output_dir)
+
+
+def _plot_phase98_distance_matrix(matrix: Dict[str, Dict[str, float]], title: str, save_path: str) -> None:
+    labels = sorted(matrix)
+    values = np.asarray(
+        [[float(matrix.get(row, {}).get(column, 0.0)) for column in labels] for row in labels],
+        dtype=float,
+    )
+    if values.size == 0:
+        labels = ["none"]
+        values = np.zeros((1, 1), dtype=float)
+    fig, ax = plt.subplots(figsize=(9, 8))
+    image = ax.imshow(values, cmap="viridis", vmin=0.0, vmax=1.0)
+    ax.set_title(title)
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_yticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=45, ha="right")
+    ax.set_yticklabels(labels)
+    fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase98_strategy_validation_report(result: StrategyValidationResult, output_dir: str) -> None:
+    metrics = result.metrics
+    lines = [
+        "# Phase9.8 Strategy Validation Report",
+        "",
+        "## Summary",
+        f"- Strategy validation pass: `{metrics.get('strategy_validation_pass')}`.",
+        f"- Strategy distinctiveness: `{_to_float(metrics.get('strategy_distinctiveness')):.3f}`.",
+        f"- Strategy redundancy: `{_to_float(metrics.get('strategy_redundancy')):.3f}`.",
+        f"- Strategy explainability: `{_to_float(metrics.get('strategy_explainability')):.3f}`.",
+        f"- Mission strategy consistency: `{_to_float(metrics.get('mission_strategy_consistency')):.3f}`.",
+        f"- Target specificity validation: `{_to_float(metrics.get('target_specificity_validation')):.3f}`.",
+        "",
+        "## Method",
+        "Phase9.8 validates the Phase9.7 Target -> Strategy model using existing rows only.",
+        "Strategy distance combines existing feature means with observed mission and target distributions.",
+        "The analysis does not add strategies, attackers, defenders, RL, LLMs, external APIs, ProfileCore changes, benchmark changes, or simulation logic.",
+        "",
+        "## Validation Metrics",
+        "| metric | value |",
+        "|---|---:|",
+    ]
+    for key in (
+        "strategy_consistency",
+        "strategy_stability",
+        "target_strategy_confidence",
+        "mission_strategy_consistency",
+        "strategy_redundancy",
+        "strategy_distinctiveness",
+        "strategy_explainability",
+        "target_specificity_validation",
+    ):
+        lines.append(f"| {key} | {_to_float(metrics.get(key)):.3f} |")
+    lines.extend([
+        "",
+        "## Strategy Summary",
+        "| strategy | rows | dominant target | dominant mission | confidence | distinctiveness | redundancy |",
+        "|---|---:|---|---|---:|---:|---:|",
+    ])
+    for row in result.strategy_summary:
+        lines.append(
+            f"| {row.get('strategy_type')} | {row.get('row_count')} | {row.get('dominant_target')} | "
+            f"{row.get('dominant_mission')} | {_to_float(row.get('mean_confidence')):.3f} | "
+            f"{_to_float(row.get('distinctiveness')):.3f} | {_to_float(row.get('redundancy')):.3f} |"
+        )
+    lines.extend([
+        "",
+        "## Mission Explainability",
+        "| mission | explainability |",
+        "|---|---:|",
+    ])
+    for mission, value in sorted(result.mission_strategy_explainability.items()):
+        lines.append(f"| {mission} | {_to_float(value):.3f} |")
+    lines.extend([
+        "",
+        "## Target Specificity Validation",
+        "| target | validation score |",
+        "|---|---:|",
+    ])
+    for target, value in sorted(result.target_specificity_validation.items()):
+        lines.append(f"| {target} | {_to_float(value):.3f} |")
+    with open(os.path.join(output_dir, "PHASE98_STRATEGY_VALIDATION_REPORT.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def run_phase99_decision_graph_evaluation(
+    seeds: Optional[List[int]] = None,
+    output_dir: str = os.path.join("output", "phase99_decision_graph"),
+    config_path: str = "config.json",
+    strategy_profiles: Optional[List[str]] = None,
+    source_rows: Optional[List[Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """Run Phase9.9 Decision Graph analysis from existing phase rows."""
+    if source_rows is None:
+        phase98 = run_phase98_strategy_validation(
+            seeds=seeds,
+            output_dir=os.path.join(output_dir, "phase98_source"),
+            config_path=config_path,
+            strategy_profiles=strategy_profiles,
+        )
+        rows = list(phase98.get("rows", []))
+    else:
+        rows = [dict(row) for row in source_rows]
+    builder = DecisionGraphBuilder()
+    graph = builder.build(rows)
+    os.makedirs(output_dir, exist_ok=True)
+    _write_phase99_decision_graph_artifacts(graph, builder, output_dir)
+    return {
+        "rows": graph.paths,
+        "analysis": graph.metrics,
+        "nodes": graph.nodes,
+        "edges": graph.edges,
+        "paths": graph.paths,
+        "explanations": [graph.explain_decision_path(path) for path in graph.paths],
+    }
+
+
+def _write_phase99_decision_graph_artifacts(graph: DecisionGraph, builder: DecisionGraphBuilder, output_dir: str) -> None:
+    summary_rows = [
+        {
+            "path_id": index,
+            **path,
+            "explanation": graph.explain_decision_path(path),
+        }
+        for index, path in enumerate(graph.paths, start=1)
+    ]
+    fieldnames = ["path_id", *GRAPH_LAYERS, "explanation"]
+    with open(os.path.join(output_dir, "decision_graph_summary.csv"), "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows([{field: row.get(field, "") for field in fieldnames} for row in summary_rows])
+    with open(os.path.join(output_dir, "decision_graph_summary.json"), "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "rows": summary_rows,
+                "analysis": graph.metrics,
+                "nodes": graph.nodes,
+                "edges": graph.edges,
+                "paths": graph.paths,
+                "explanations": [graph.explain_decision_path(path) for path in graph.paths],
+            },
+            f,
+            indent=4,
+            ensure_ascii=False,
+        )
+    _plot_phase99_decision_graph(graph, os.path.join(output_dir, "decision_graph.png"))
+    layer_artifacts = {
+        ("intent", "mission"): "intent_mission_graph.png",
+        ("mission", "target"): "mission_target_graph.png",
+        ("target", "strategy"): "target_strategy_graph.png",
+        ("strategy", "behavior_profile"): "strategy_behavior_graph.png",
+    }
+    for layers, filename in layer_artifacts.items():
+        matrix = builder.edge_matrix(graph, layers[0], layers[1])
+        _plot_phase95_matrix(matrix, f"Phase9.9 {layers[0]} x {layers[1]}", os.path.join(output_dir, filename))
+    _write_phase99_decision_graph_report(graph, summary_rows, output_dir)
+
+
+def _plot_phase99_decision_graph(graph: DecisionGraph, save_path: str) -> None:
+    layer_x = {layer: index for index, layer in enumerate(GRAPH_LAYERS)}
+    positions: Dict[Tuple[str, str], Tuple[float, float]] = {}
+    fig, ax = plt.subplots(figsize=(14, 8))
+    for layer in GRAPH_LAYERS:
+        labels = graph.nodes.get(layer, [])
+        count = max(len(labels), 1)
+        for index, label in enumerate(labels):
+            y = 1.0 - ((index + 1) / (count + 1))
+            positions[(layer, label)] = (float(layer_x[layer]), y)
+            ax.scatter([layer_x[layer]], [y], s=180, color="#4e79a7", zorder=3)
+            ax.text(layer_x[layer], y, label, fontsize=8, ha="center", va="bottom", rotation=15)
+    for source_layer, target_layer in GRAPH_EDGE_LAYERS:
+        prefix = f"{source_layer}->{target_layer}:"
+        for edge_key, targets in graph.edges.items():
+            if not edge_key.startswith(prefix):
+                continue
+            source = edge_key[len(prefix) :]
+            source_pos = positions.get((source_layer, source))
+            if source_pos is None:
+                continue
+            for target, count in targets.items():
+                target_pos = positions.get((target_layer, target))
+                if target_pos is None:
+                    continue
+                linewidth = 0.6 + min(float(count), 5.0) * 0.25
+                ax.plot([source_pos[0], target_pos[0]], [source_pos[1], target_pos[1]], color="#9c755f", alpha=0.55, linewidth=linewidth)
+    ax.set_title("Phase9.9 Decision Graph")
+    ax.set_xticks([layer_x[layer] for layer in GRAPH_LAYERS])
+    ax.set_xticklabels(GRAPH_LAYERS, rotation=20, ha="right")
+    ax.set_yticks([])
+    ax.set_xlim(-0.5, len(GRAPH_LAYERS) - 0.5)
+    ax.set_ylim(0.0, 1.05)
+    ax.grid(axis="x", linestyle=":", alpha=0.3)
+    fig.tight_layout()
+    plt.savefig(save_path)
+    plt.close(fig)
+
+
+def _write_phase99_decision_graph_report(graph: DecisionGraph, summary_rows: List[Dict[str, object]], output_dir: str) -> None:
+    metrics = graph.metrics
+    lines = [
+        "# Phase9.9 Decision Graph Report",
+        "",
+        "## Summary",
+        f"- Graph valid: `{metrics.get('graph_valid')}`.",
+        f"- Node count: `{metrics.get('decision_graph_nodes')}`.",
+        f"- Edge count: `{metrics.get('decision_graph_edges')}`.",
+        f"- Path count: `{metrics.get('decision_path_count')}`.",
+        f"- Graph connectivity: `{_to_float(metrics.get('decision_graph_connectivity')):.3f}`.",
+        f"- Graph consistency: `{_to_float(metrics.get('decision_graph_consistency')):.3f}`.",
+        f"- Decision explainability: `{_to_float(metrics.get('decision_explainability')):.3f}`.",
+        "",
+        "## Graph Structure",
+        "Intent -> Mission -> Target -> Strategy -> Behavior Profile -> Archetype",
+        "",
+        "## Metrics",
+        "| metric | value |",
+        "|---|---:|",
+    ]
+    for key in (
+        "decision_graph_nodes",
+        "decision_graph_edges",
+        "decision_graph_density",
+        "decision_graph_connectivity",
+        "decision_graph_consistency",
+        "decision_graph_entropy",
+        "decision_path_count",
+        "decision_explainability",
+    ):
+        lines.append(f"| {key} | {_to_float(metrics.get(key)):.3f} |")
+    lines.extend([
+        "",
+        "## Node Explorer",
+        "| layer | nodes |",
+        "|---|---|",
+    ])
+    for layer in GRAPH_LAYERS:
+        lines.append(f"| {layer} | {', '.join(graph.nodes.get(layer, []))} |")
+    lines.extend([
+        "",
+        "## Decision Path Explorer",
+        "| path | intent | mission | target | strategy | behavior | archetype |",
+        "|---:|---|---|---|---|---|---|",
+    ])
+    for row in summary_rows:
+        lines.append(
+            f"| {row.get('path_id')} | {row.get('intent')} | {row.get('mission')} | {row.get('target')} | "
+            f"{row.get('strategy')} | {row.get('behavior_profile')} | {row.get('archetype')} |"
+        )
+    lines.extend([
+        "",
+        "## Explainability Examples",
+    ])
+    for row in summary_rows[:10]:
+        lines.append(f"- {row.get('explanation')}")
+    lines.extend([
+        "",
+        "## Scope",
+        "Phase9.9 integrates existing analysis labels into a decision graph. It does not add attackers, defenders, RL, LLMs, external APIs, ProfileCore changes, benchmark changes, or simulation logic.",
+    ])
+    with open(os.path.join(output_dir, "PHASE99_DECISION_GRAPH_REPORT.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 
