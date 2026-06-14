@@ -1,6 +1,6 @@
 # CyberMatch Framework
 
-**CyberMatch v1.0.0-rc1**
+**CyberMatch v1.0.1**
 
 CyberMatch is a cyber decision-making simulator that reproduces attacker decision processes and enables comparative evaluation of defense strategies and security products.
 
