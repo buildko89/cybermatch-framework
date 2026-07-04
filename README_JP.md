@@ -103,6 +103,8 @@ Artifacts: CSV / JSON / PNG / Markdown reports
 
 ## Quick Start
 
+> **Note**: Phase 1〜5の大規模リファクタリングにより主要なコードは `src/` 配下に移動しましたが、ルートの `cybermatch.py` および `run_scenarios.py` は後方互換性のためのエイリアスとして残されています。そのため、以下の既存の実行コマンドや使い方は**一切変更なくそのまま動作します**。
+
 ### Windows
 
 ```powershell
@@ -257,6 +259,29 @@ python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
 - [Phase9 Summary](docs/PHASE9_SUMMARY.md)
 - [v1.0.0-rc1 Release Notes](docs/RELEASE_NOTES_v1.0.0_RC1.md)
 - [Reproducibility](docs/REPRODUCIBILITY.md)
+
+## リポジトリ構成
+
+```text
+cybermatch-framework/
+  README.md
+  README_JP.md
+  src/
+    cybermatch/
+      attacker/          # 攻撃者モデル
+      config/            # シミュレーション設定
+      defense/           # 防御戦略や最適化エンジン
+      evaluation/        # シナリオ実行・評価エンジン
+      models/            # データモデル (ProductProfileなど)
+      simulation/        # シミュレータ本体
+      visualization/     # 可視化モジュール
+  cybermatch.py          # 後方互換性用エイリアス
+  run_scenarios.py       # 後方互換性用エイリアス
+  strategy_layer.py      # 後方互換性用エイリアス
+  scenario_loader.py
+  benchmark_loader.py
+  ...
+```
 
 ## 今後のロードマップ
 

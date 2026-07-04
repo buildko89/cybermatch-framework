@@ -133,6 +133,8 @@ Additional planning and release notes:
 
 ## Quick Start
 
+> **Note**: During the Phase 1 to Phase 5 massive refactoring, core modules were moved into the `src/cybermatch/` directory. However, the root `cybermatch.py`, `run_scenarios.py`, and `strategy_layer.py` modules have been retained as aliases for backwards compatibility. This means that all existing execution commands, usage patterns, and test scripts **continue to work exactly as before without any changes**.
+
 Install dependencies:
 
 ```bash
@@ -243,8 +245,18 @@ python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
 cybermatch-framework/
   README.md
   README_JP.md
-  cybermatch.py
-  run_scenarios.py
+  src/
+    cybermatch/
+      attacker/
+      config/
+      defense/
+      evaluation/
+      models/
+      simulation/
+      visualization/
+  cybermatch.py        # Alias for backwards compatibility
+  run_scenarios.py     # Alias for backwards compatibility
+  strategy_layer.py    # Alias for backwards compatibility
   scenario_loader.py
   benchmark_loader.py
   benchmarks/

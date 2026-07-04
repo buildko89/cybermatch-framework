@@ -8,18 +8,28 @@ Phase8.6 does not change simulation logic, runner behavior, artifacts, benchmark
 
 ```text
 cybermatch-framework/
-  cybermatch.py                 # simulation models and simulator implementation
-  run_scenarios.py              # evaluation runners and artifact writers
+  src/
+    cybermatch/
+      attacker/                 # Attacker models and intelligence
+      config/                   # Simulation parameters and configs
+      defense/                  # Defense strategies and MPC engines
+      evaluation/               # Scenario evaluation runners
+      models/                   # Core data models like ProductProfile
+      simulation/               # The main CyberDefenseSimulator
+      visualization/            # Matplotlib visualizers
+  cybermatch_core/              # facade for external dependencies
+    products.py
+    scenarios.py
+    topologies.py
+    benchmarks.py
+    metrics.py
+    utils.py
+  cybermatch.py                 # (Alias) backwards compatibility for tests
+  run_scenarios.py              # (Alias) backwards compatibility for tests
+  strategy_layer.py             # (Alias) backwards compatibility for tests
   scenario_loader.py            # JSON scenario import
   topology_loader.py            # topology preset validation
   benchmark_loader.py           # benchmark validation
-  cybermatch_core/
-    products.py                 # ProductProfile and product loader facade
-    scenarios.py                # scenario loader facade
-    topologies.py               # topology loader facade
-    benchmarks.py               # benchmark loader facade
-    metrics.py                  # small shared metric helpers
-    utils.py                    # repository path helpers
 ```
 
 The top-level modules remain authoritative for backward compatibility. New code can prefer `cybermatch_core.*` imports where that improves readability.

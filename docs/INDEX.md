@@ -11,7 +11,8 @@ This index is the primary entry point for CyberMatch documentation.
 ## Architecture
 
 - [CyberMatch Architecture](CYBERMATCH_ARCHITECTURE.md)
-- [CyberMatch Refactoring Report](CYBERMATCH_REFACTORING_REPORT.md)
+- [CyberMatch Refactoring Report (Phase 8.6)](CYBERMATCH_REFACTORING_REPORT.md)
+- [CyberMatch Refactoring Report (Phase 1 to 5)](CYBERMATCH_REFACTORING_PHASE1_TO_5_REPORT.md)
 - [CyberMatch Scenario Import](CYBERMATCH_SCENARIO_IMPORT.md)
 - [CyberMatch Scenario Catalog](CYBERMATCH_SCENARIO_CATALOG.md)
 - [CyberMatch Benchmarks](CYBERMATCH_BENCHMARKS.md)
