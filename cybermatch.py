@@ -3030,11 +3030,14 @@ class CyberDefenseSimulator:
                 path_changed=path_changed,
                 no_progress=no_progress,
             )
+            # Oracle leak fix: attacker belief should be updated based on perceived success
+            perceived_success = (perceived_gain > 0.0)
+            perceived_decoy = attacked_decoy and detected # Attacker only knows it's a decoy if detected
             self.attacker.update_belief(
                 target_idx=selected_target,
-                success=success,
+                success=perceived_success,
                 detected=detected,
-                attacked_decoy=attacked_decoy,
+                attacked_decoy=perceived_decoy,
             )
             critical_reached = bool(
                 attack_active
