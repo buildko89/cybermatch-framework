@@ -47,6 +47,7 @@ This index is the primary entry point for CyberMatch documentation.
 ## Use Cases
 
 - [CyberMatch Use Cases](CYBERMATCH_USE_CASES.md)
+- [CyberMatch Business Implementation Plan](CYBERMATCH_BUSINESS_IMPLEMENTATION_PLAN.md)
 
 ## Roadmap
 
