@@ -16,3 +16,5 @@ smoke_fix*.py
 review/
 .claude/
 
+docs/
+report/

@@ -2,6 +2,8 @@ import csv
 import json
 import os
 from dataclasses import asdict
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
@@ -18262,6 +18264,8 @@ PHASE63_MISSION_PRODUCT_COLUMNS = [
     "product_profile_name",
     "product_category",
     "mission_name",
+    "topology_name",
+    "topology_adjustment_factor",
     "mission_scenario",
     "strategy_profile",
     "mission_effectiveness",
@@ -18278,6 +18282,120 @@ PHASE63_MISSION_PRODUCT_COLUMNS = [
 ]
 
 PHASE63_MISSION_ORDER = ["profit", "achievement", "persistence", "critical_hunter"]
+REPORT_MISSION_LABELS = {
+    "profit": "金銭獲得",
+    "achievement": "目標達成",
+    "persistence": "継続的な潜伏",
+    "critical_hunter": "重要資産の探索",
+}
+REPORT_PRODUCT_LABELS = {
+    "sample_ids": "IDS（侵入検知）",
+    "sample_ips": "IPS（侵入防御）",
+    "sample_honeypot": "ハニーポット",
+    "sample_deception": "デセプション",
+    "sample_xdr": "XDR（統合検知・対応）",
+}
+
+
+def _report_mission_label(value: object) -> str:
+    mission = str(value)
+    return REPORT_MISSION_LABELS.get(mission, mission)
+
+
+def _report_product_label(value: object) -> str:
+    product = str(value)
+    return REPORT_PRODUCT_LABELS.get(product, product)
+
+
+def _report_bool(value: object) -> str:
+    return "はい" if bool(value) else "いいえ"
+
+
+def _phase63_selected_missions(missions: Optional[List[str]]) -> List[Tuple[str, Dict[str, object]]]:
+    mission_by_key = {
+        str(mission.get("attacker_mission") or mission_name): (mission_name, mission)
+        for mission_name, mission in PHASE47_MISSION_PROFILES.items()
+    }
+    selected_keys = PHASE63_MISSION_ORDER if missions is None else list(dict.fromkeys(missions))
+    invalid_missions = [mission for mission in selected_keys if mission not in mission_by_key]
+    if invalid_missions:
+        raise ValueError(f"Unsupported Phase6.3 missions: {invalid_missions}")
+    if not selected_keys:
+        raise ValueError("Phase6.3 requires at least one mission.")
+    return [mission_by_key[mission_key] for mission_key in selected_keys]
+
+
+def _phase63_selected_profiles(product_profile_paths: Optional[List[str]]) -> Tuple[Dict[str, ProductProfile], Dict[str, str]]:
+    selected_paths = list(PHASE62_PRODUCT_PROFILE_FILES.items()) if product_profile_paths is None else [
+        (Path(path).stem, path) for path in product_profile_paths
+    ]
+    if not selected_paths:
+        raise ValueError("Phase6.3 requires at least one product profile.")
+
+    profiles: Dict[str, ProductProfile] = {}
+    profile_paths: Dict[str, str] = {}
+    for profile_id, path_value in selected_paths:
+        path = Path(path_value)
+        if not path.is_file():
+            raise ValueError(f"Product profile not found: {path_value}")
+        if profile_id in profiles:
+            raise ValueError(f"Duplicate Phase6.3 product profile: {profile_id}")
+        profiles[profile_id] = load_product_profile(str(path))
+        profile_paths[profile_id] = str(path)
+    return profiles, profile_paths
+
+
+def _phase63_apply_topology(
+    rows: List[Dict[str, object]],
+    topology_preset: Optional[str],
+) -> Optional[Dict[str, object]]:
+    if topology_preset is None:
+        return None
+
+    from topology_loader import resolve_topology_preset
+
+    topology = resolve_topology_preset(topology_preset)
+    metadata = topology.get("metadata", {})
+    characteristics = topology.get("characteristics", {})
+    topology_name = str(metadata.get("name", topology_preset)) if isinstance(metadata, dict) else topology_preset
+    if not isinstance(characteristics, dict):
+        raise ValueError(f"Topology characteristics are invalid: {topology_preset}")
+
+    for row in rows:
+        category = str(row.get("product_category", ""))
+        mission_name = str(row.get("mission_name", ""))
+        factor = 1.0 if category == "baseline" else _phase84_adjustment_factor(characteristics, mission_name, category)
+        row["topology_name"] = topology_name
+        row["topology_adjustment_factor"] = round(factor, 6)
+        row["mission_effectiveness"] = float(np.clip(_to_float(row.get("mission_effectiveness")) * factor, 0.0, 1.0))
+    return topology
+
+
+def _write_phase63_run_manifest(
+    output_dir: str,
+    missions: List[str],
+    profile_paths: Dict[str, str],
+    topology: Optional[Dict[str, object]],
+    seeds: Optional[List[int]],
+    config_path: str,
+    strategy_profiles: List[str],
+) -> None:
+    topology_metadata = topology.get("metadata", {}) if isinstance(topology, dict) else {}
+    manifest = {
+        "manifest_version": 1,
+        "runner": "phase63_mission_aware_product",
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "inputs": {
+            "missions": missions,
+            "product_profiles": profile_paths,
+            "topology": topology_metadata.get("name") if isinstance(topology_metadata, dict) else None,
+            "seeds": seeds if seeds is not None else "runner_default",
+            "strategy_profiles": strategy_profiles,
+            "config_path": config_path,
+        },
+    }
+    with open(os.path.join(output_dir, "run_manifest.json"), "w", encoding="utf-8") as handle:
+        json.dump(manifest, handle, indent=2, ensure_ascii=False)
 
 
 def run_phase63_mission_aware_product_evaluation(
@@ -18285,12 +18403,16 @@ def run_phase63_mission_aware_product_evaluation(
     output_dir: str = os.path.join("output", "phase63_mission_products"),
     config_path: str = "config.json",
     strategy_profiles: Optional[List[str]] = None,
+    missions: Optional[List[str]] = None,
+    product_profile_paths: Optional[List[str]] = None,
+    topology_preset: Optional[str] = None,
 ) -> List[Dict[str, object]]:
-    profiles = {profile_id: load_product_profile(path) for profile_id, path in PHASE62_PRODUCT_PROFILE_FILES.items()}
+    profiles, profile_paths = _phase63_selected_profiles(product_profile_paths)
+    selected_missions = _phase63_selected_missions(missions)
     strategy_values = strategy_profiles if strategy_profiles is not None else ["balanced"]
     scenarios: Dict[str, Dict[str, object]] = {}
     profile_ids = ["baseline", *profiles.keys()]
-    for mission_name, mission in PHASE47_MISSION_PROFILES.items():
+    for mission_name, mission in selected_missions:
         mission_key = str(mission.get("attacker_mission") or mission_name)
         scenario_name = _phase48_mission_name(mission_name).replace("phase48_", "phase63_", 1)
         weights = _phase423_mission_weights(mission_key)
@@ -18359,11 +18481,21 @@ def run_phase63_mission_aware_product_evaluation(
     rows = [_build_phase63_mission_product_row(row) for row in stats_rows]
     _add_phase63_product_deltas(rows)
     _add_phase63_mission_effectiveness(rows)
+    topology = _phase63_apply_topology(rows, topology_preset)
     _add_phase63_best_worst(rows)
     rows.sort(key=lambda row: (str(row.get("profile_id")), str(row.get("mission_name")), str(row.get("strategy_profile"))))
     analysis = _analyze_phase63_mission_product_rows(rows)
     os.makedirs(output_dir, exist_ok=True)
     _write_phase63_mission_product_summary(rows, analysis, output_dir)
+    _write_phase63_run_manifest(
+        output_dir,
+        [str(mission.get("attacker_mission") or mission_name) for mission_name, mission in selected_missions],
+        profile_paths,
+        topology,
+        seeds,
+        config_path,
+        strategy_values,
+    )
     _plot_phase63_mission_heatmap(rows, os.path.join(output_dir, "mission_product_heatmap.png"))
     _plot_phase63_mission_variance(rows, os.path.join(output_dir, "mission_variance.png"))
     _plot_phase63_vs_phase62(rows, os.path.join(output_dir, "phase63_vs_phase62.png"))
@@ -18460,13 +18592,14 @@ def _add_phase63_mission_effectiveness(rows: List[Dict[str, object]]) -> None:
 
 
 def _add_phase63_best_worst(rows: List[Dict[str, object]]) -> None:
+    selected_missions = _phase63_missions_from_rows(rows)
     for profile_id in sorted({str(row.get("profile_id")) for row in rows}):
         profile_rows = [row for row in rows if row.get("profile_id") == profile_id]
         if not profile_rows:
             continue
         mission_scores = {
             mission: float(np.mean([_to_float(row.get("mission_effectiveness")) for row in profile_rows if row.get("mission_name") == mission]))
-            for mission in PHASE63_MISSION_ORDER
+            for mission in selected_missions
         }
         best_mission = max(mission_scores, key=mission_scores.get)
         worst_mission = min(mission_scores, key=mission_scores.get)
@@ -18477,12 +18610,18 @@ def _add_phase63_best_worst(rows: List[Dict[str, object]]) -> None:
             row["mission_variance_score"] = variance
 
 
+def _phase63_missions_from_rows(rows: List[Dict[str, object]]) -> List[str]:
+    present_missions = {str(row.get("mission_name")) for row in rows}
+    return [mission for mission in PHASE63_MISSION_ORDER if mission in present_missions]
+
+
 def _analyze_phase63_mission_product_rows(rows: List[Dict[str, object]]) -> Dict[str, object]:
+    selected_missions = _phase63_missions_from_rows(rows)
     profile_ids = [profile for profile in list(dict.fromkeys(str(row.get("profile_id")) for row in rows)) if profile != "baseline"]
     matrix = {
         profile_id: {
             mission: float(np.mean([_to_float(row.get("mission_effectiveness")) for row in rows if row.get("profile_id") == profile_id and row.get("mission_name") == mission]))
-            for mission in PHASE63_MISSION_ORDER
+            for mission in selected_missions
         }
         for profile_id in profile_ids
     }
@@ -18490,10 +18629,10 @@ def _analyze_phase63_mission_product_rows(rows: List[Dict[str, object]]) -> Dict
     worst_by_profile = {profile_id: min(scores, key=scores.get) for profile_id, scores in matrix.items()}
     best_product_by_mission = {
         mission: max(profile_ids, key=lambda profile_id: matrix[profile_id].get(mission, 0.0)) if profile_ids else ""
-        for mission in PHASE63_MISSION_ORDER
+        for mission in selected_missions
     }
     return {
-        "missions": PHASE63_MISSION_ORDER,
+        "missions": selected_missions,
         "profiles": profile_ids,
         "matrix": matrix,
         "best_mission_by_product": best_by_profile,
@@ -18517,16 +18656,17 @@ def _write_phase63_mission_product_summary(rows: List[Dict[str, object]], analys
 
 
 def _plot_phase63_mission_heatmap(rows: List[Dict[str, object]], save_path: str) -> None:
+    selected_missions = _phase63_missions_from_rows(rows)
     profile_ids = [profile for profile in list(dict.fromkeys(str(row.get("profile_id")) for row in rows)) if profile != "baseline"]
-    grid = np.zeros((len(profile_ids), len(PHASE63_MISSION_ORDER)), dtype=float)
+    grid = np.zeros((len(profile_ids), len(selected_missions)), dtype=float)
     for i, profile_id in enumerate(profile_ids):
-        for j, mission in enumerate(PHASE63_MISSION_ORDER):
+        for j, mission in enumerate(selected_missions):
             grid[i, j] = float(np.mean([_to_float(row.get("mission_effectiveness")) for row in rows if row.get("profile_id") == profile_id and row.get("mission_name") == mission]))
     fig, ax = plt.subplots(figsize=(10, 5))
     im = ax.imshow(grid, cmap="viridis", aspect="auto", vmin=0.0, vmax=max(1.0, float(np.max(grid)) if grid.size else 1.0))
     ax.set_title("Product x Mission Effectiveness")
-    ax.set_xticks(np.arange(len(PHASE63_MISSION_ORDER)))
-    ax.set_xticklabels(PHASE63_MISSION_ORDER, rotation=20, ha="right")
+    ax.set_xticks(np.arange(len(selected_missions)))
+    ax.set_xticklabels(selected_missions, rotation=20, ha="right")
     ax.set_yticks(np.arange(len(profile_ids)))
     ax.set_yticklabels(profile_ids)
     fig.colorbar(im, ax=ax, label="mission_effectiveness")
@@ -18583,45 +18723,63 @@ def _plot_phase63_vs_phase62(rows: List[Dict[str, object]], save_path: str) -> N
 
 def _write_phase63_mission_product_report(rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
     matrix = analysis.get("matrix", {})
-    lines = [
-        "# Phase6.3 Mission-Aware Product Evaluation Report",
-        "",
-        "## Research Question",
-        "同じ製品でも Mission ごとに有効性は変わるか。",
-        "",
-        "## Added Metrics",
-        "`mission_name`, `mission_effectiveness`, `mission_success_delta`, `mission_disruption_delta`, `mission_detection_delta`, `best_mission`, `worst_mission`, `mission_variance_score`.",
-        "",
-        "## Product x Mission Matrix",
-        "| product | profit | achievement | persistence | critical_hunter | best_mission | worst_mission |",
-        "|---|---:|---:|---:|---:|---|---|",
-    ]
+    missions = [str(mission) for mission in analysis.get("missions", [])]
+    best_by_mission = analysis.get("best_product_by_mission", {})
     best_by_profile = analysis.get("best_mission_by_product", {})
     worst_by_profile = analysis.get("worst_mission_by_product", {})
+    manifest_path = os.path.join(output_dir, "run_manifest.json")
+    manifest_inputs: Dict[str, object] = {}
+    if os.path.exists(manifest_path):
+        with open(manifest_path, "r", encoding="utf-8") as handle:
+            manifest = json.load(handle)
+        if isinstance(manifest, dict) and isinstance(manifest.get("inputs"), dict):
+            manifest_inputs = manifest["inputs"]
+
+    lines = [
+        "# 防御策の比較評価レポート",
+        "",
+        "## このレポートで分かること",
+        "選択した想定環境と攻撃者の目的において、どの防御策プロファイルが比較的高い効果を示したかを確認できます。",
+        "",
+        "## 評価条件",
+        f"- 想定環境: `{manifest_inputs.get('topology', '未記録')}`",
+        f"- 攻撃者の目的: {"、".join(_report_mission_label(mission) for mission in missions) or '未記録'}",
+        f"- 比較する防御策: {"、".join(_report_product_label(product) for product in analysis.get('profiles', [])) or '未記録'}",
+        f"- 再現用seed: `{manifest_inputs.get('seeds', '未記録')}`",
+        "",
+        "## 結論",
+    ]
+    for mission in missions:
+        winner = best_by_mission.get(mission, "")
+        score = _to_float(matrix.get(winner, {}).get(mission)) if isinstance(matrix.get(winner, {}), dict) else 0.0
+        lines.append(f"- **{_report_mission_label(mission)}**: 有力候補は **{_report_product_label(winner)}**（比較スコア `{score:.3f}`）です。")
+    lines.extend(
+        [
+            "",
+            "## 防御策と攻撃者目的の比較",
+            "| 防御策 | " + " | ".join(_report_mission_label(mission) for mission in missions) + " | 効果が高い目的 | 効果が低い目的 |",
+        "|---|" + "|".join("---:" for _ in missions) + "|---|---|",
+        ]
+    )
     for profile_id, scores in matrix.items():
         lines.append(
-            f"| {profile_id} | "
-            f"{_to_float(scores.get('profit')):.3f} | "
-            f"{_to_float(scores.get('achievement')):.3f} | "
-            f"{_to_float(scores.get('persistence')):.3f} | "
-            f"{_to_float(scores.get('critical_hunter')):.3f} | "
-            f"{best_by_profile.get(profile_id)} | {worst_by_profile.get(profile_id)} |"
+            f"| {_report_product_label(profile_id)} | " + " | ".join(f"{_to_float(scores.get(mission)):.3f}" for mission in missions) + " | "
+            f"{_report_mission_label(best_by_profile.get(profile_id, ''))} | {_report_mission_label(worst_by_profile.get(profile_id, ''))} |"
         )
     lines.extend(
         [
             "",
-            "## Mission Winners",
-            f"`{analysis.get('best_product_by_mission')}`",
+            "## 結果の読み方",
+            "- **比較スコア**: 設定した条件における防御策の相対的な効果を表します。高いほど、このモデル条件で攻撃者の目的を妨げる傾向が強いことを示します。",
+            "- **効果が高い／低い目的**: 同じ防御策でも、攻撃者の目的によって効き方が異なることを示します。",
             "",
-            "## Validation Questions",
-            f"- Mission differences observed: `{analysis.get('mission_differences_observed')}`.",
-            f"- Product differences observed: `{analysis.get('product_differences_observed')}`.",
-            f"- Best/worst missions vary by product: `{analysis.get('best_worst_vary_by_product')}`.",
-            f"- Single strongest product exists: `{analysis.get('single_strongest_product_exists')}`.",
-            f"- Evaluation framework valid: `{analysis.get('framework_valid')}`.",
+            "## 比較の確認事項",
+            f"- 目的による効果差が観測されたか: `{_report_bool(analysis.get('mission_differences_observed'))}`",
+            f"- 目的ごとに有力候補が異なるか: `{_report_bool(analysis.get('product_differences_observed'))}`",
+            f"- すべての目的で同じ候補が有力か: `{_report_bool(analysis.get('single_strongest_product_exists'))}`",
             "",
-            "## Interpretation",
-            "Phase6.3 is not a product ranking. It shows how imported product profiles behave differently against profit, achievement, persistence, and critical-hunter missions, which is the bridge toward Scenario-Specific Product Evaluation.",
+            "## 注意事項",
+            "この結果は、記録された想定環境・攻撃者目的・防御策プロファイル・seedに基づく比較評価です。実製品の認証、実環境での侵害防止、または一律な製品順位を証明するものではありません。",
         ]
     )
     with open(os.path.join(output_dir, "PHASE63_MISSION_PRODUCT_REPORT.md"), "w", encoding="utf-8") as f:
@@ -19516,26 +19674,28 @@ def _write_phase85_outputs(summary_rows: List[Dict[str, object]], detail_rows: L
 def _write_phase85_report(summary_rows: List[Dict[str, object]], analysis: Dict[str, object], output_dir: str) -> None:
     first = summary_rows[0] if summary_rows else {}
     lines = [
-        "# Phase8.5 CyberMatch Standard Benchmark Report",
+        "# CyberMatch 標準ベンチマーク比較レポート",
         "",
-        "## Research Question",
-        "CyberMatchの標準Benchmarkを定義できるか？",
+        "## このレポートで分かること",
+        "複数の想定シナリオ・環境・攻撃者目的を横断したときに、防御策プロファイルがどのような傾向を示すかを確認できます。",
         "",
-        "## Interpretation Boundary",
-        "This report describes results under the CyberMatch Standard Benchmark conditions. It is not a strongest-product certification.",
+        "## 結論",
+        f"- **総合的に高い候補**: `{_report_product_label(analysis.get('strongest_overall'))}`",
+        f"- **結果が最も安定している候補**: `{_report_product_label(analysis.get('most_consistent'))}`",
+        f"- **条件による差が最も大きい候補**: `{_report_product_label(analysis.get('highest_variance'))}`",
         "",
-        "## Standard Benchmark",
-        f"- Version: `{first.get('benchmark_version', '')}`",
-        f"- Evaluation matrix size: `{analysis.get('evaluation_matrix_size')}`",
-        f"- Benchmark completeness: `{analysis.get('benchmark_completeness')}`",
+        "## 比較条件の範囲",
+        f"- ベンチマーク設定の版: `{first.get('benchmark_version', '')}`",
+        f"- 比較パターン数: `{analysis.get('evaluation_matrix_size')}`",
+        f"- 比較条件の充足度: `{analysis.get('benchmark_completeness')}`",
         "",
-        "## Product Ranking",
-        "| rank | product | benchmark_score | consistency_score | variance_score |",
+        "## 防御策の横断比較",
+        "| 順位 | 防御策 | 横断比較スコア | 結果の安定性 | 条件による差 |",
         "|---:|---|---:|---:|---:|",
     ]
     for row in summary_rows:
         lines.append(
-            f"| {row.get('benchmark_rank')} | {row.get('product_profile')} | "
+            f"| {row.get('benchmark_rank')} | {_report_product_label(row.get('product_profile'))} | "
             f"{_to_float(row.get('benchmark_score')):.3f} | "
             f"{_to_float(row.get('consistency_score')):.3f} | "
             f"{_to_float(row.get('variance_score')):.3f} |"
@@ -19543,13 +19703,23 @@ def _write_phase85_report(summary_rows: List[Dict[str, object]], analysis: Dict[
     lines.extend(
         [
             "",
-            "## Interpretation",
-            f"- Strongest overall: `{analysis.get('strongest_overall')}`.",
-            f"- Strongest by mission: `{analysis.get('strongest_by_mission')}`.",
-            f"- Strongest by scenario: `{analysis.get('strongest_by_scenario')}`.",
-            f"- Strongest by topology: `{analysis.get('strongest_by_topology')}`.",
-            f"- Most consistent: `{analysis.get('most_consistent')}`.",
-            f"- Highest variance: `{analysis.get('highest_variance')}`.",
+            "## 攻撃者の目的ごとの有力候補",
+        ]
+    )
+    strongest_by_mission = analysis.get("strongest_by_mission", {})
+    if isinstance(strongest_by_mission, dict):
+        for mission, product in sorted(strongest_by_mission.items()):
+            lines.append(f"- **{_report_mission_label(mission)}**: `{_report_product_label(product)}`")
+    lines.extend(
+        [
+            "",
+            "## 結果の読み方",
+            "- **横断比較スコア**: 複数の比較条件を平均した相対スコアです。高いほど、この標準条件セットで比較的高い効果を示します。",
+            "- **結果の安定性**: 条件が変わっても結果が大きく変わりにくい度合いです。高いほど安定しています。",
+            "- **条件による差**: シナリオ・環境・攻撃者目的により結果が変化する度合いです。高いほど、個別条件を確認する必要があります。",
+            "",
+            "## 注意事項",
+            "このレポートはCyberMatchの標準条件での比較結果です。実製品の認証、実環境での効果の保証、またはすべての条件での最適製品を示すものではありません。個別の提案では、対象環境と攻撃者目的を指定した比較結果も確認してください。",
         ]
     )
     with open(os.path.join(output_dir, "PHASE85_STANDARD_BENCHMARK_REPORT.md"), "w", encoding="utf-8") as f:

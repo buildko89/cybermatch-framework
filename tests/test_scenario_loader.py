@@ -63,7 +63,10 @@ def test_run_scenario_from_file_smoke(tmp_path, monkeypatch):
     scenario_path = tmp_path / "scenario.json"
     scenario_path.write_text(json.dumps(scenario), encoding="utf-8")
 
+    received_kwargs = {}
+
     def fake_phase63(**kwargs):
+        received_kwargs.update(kwargs)
         output_dir = kwargs["output_dir"]
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         return [{"ok": True}]
@@ -77,6 +80,10 @@ def test_run_scenario_from_file_smoke(tmp_path, monkeypatch):
     assert result["runner"] == "phase63_mission_aware_product"
     assert result["rows"] == 1
     assert (tmp_path / "scenario_output").is_dir()
+    assert result["success"] is True
+    assert received_kwargs["missions"] == scenario["missions"]
+    assert received_kwargs["product_profile_paths"] == scenario["products"]
+    assert received_kwargs["topology_preset"] == "default_enterprise"
 
 
 def test_load_scenario_catalog():

@@ -58,3 +58,6 @@ def test_phase85_standard_benchmark_runner_smoke(tmp_path, monkeypatch):
     assert (tmp_path / "phase85" / "standard_topology_heatmap.png").exists()
     assert (tmp_path / "phase85" / "standard_mission_heatmap.png").exists()
     assert (tmp_path / "phase85" / "PHASE85_STANDARD_BENCHMARK_REPORT.md").exists()
+    report = (tmp_path / "phase85" / "PHASE85_STANDARD_BENCHMARK_REPORT.md").read_text(encoding="utf-8")
+    assert "# CyberMatch 標準ベンチマーク比較レポート" in report
+    assert "## 結論" in report

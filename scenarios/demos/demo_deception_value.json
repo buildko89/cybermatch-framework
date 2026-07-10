@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "name": "demo_deception_value",
+    "description": "Deceptionが攻撃者の迂回・無駄行動・撤退に与える影響を示すデモ",
+    "version": "1.0",
+    "industry": "technology"
+  },
+  "evaluation": {
+    "runner": "phase63_mission_aware_product",
+    "output_dir": "output/phase63_mission_products",
+    "seeds": [0]
+  },
+  "missions": ["persistence", "critical_hunter"],
+  "products": [
+    "profiles/products/sample_honeypot.json",
+    "profiles/products/sample_deception.json",
+    "profiles/products/sample_xdr.json"
+  ],
+  "topology": {
+    "preset": "cloud_native"
+  },
+  "characteristics": {
+    "critical_asset_count": 2,
+    "identity_dependency": "high",
+    "operational_sensitivity": "medium",
+    "deception_effectiveness": "high"
+  },
+  "demo": {
+    "conclusion": "Deceptionの価値は成功率だけでなく、攻撃者行動の変化として比較できる。"
+  }
+}

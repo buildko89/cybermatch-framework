@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "name": "demo_ot_factory_defense",
+    "description": "OT環境で、重要資産と運用感度を踏まえた防御優先順位を示すデモ",
+    "version": "1.0",
+    "industry": "manufacturing"
+  },
+  "evaluation": {
+    "runner": "phase63_mission_aware_product",
+    "output_dir": "output/phase63_mission_products",
+    "seeds": [0]
+  },
+  "missions": ["achievement", "critical_hunter"],
+  "products": [
+    "profiles/products/sample_ips.json",
+    "profiles/products/sample_deception.json",
+    "profiles/products/sample_xdr.json"
+  ],
+  "topology": {
+    "preset": "ot_environment"
+  },
+  "characteristics": {
+    "critical_asset_count": 5,
+    "identity_dependency": "medium",
+    "operational_sensitivity": "high",
+    "deception_effectiveness": "low"
+  },
+  "demo": {
+    "conclusion": "守る資産とトポロジの違いにより、防御策の比較結果と優先順位は変化する。"
+  }
+}

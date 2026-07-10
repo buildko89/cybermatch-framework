@@ -169,6 +169,10 @@ def run_scenario_from_file(path: str) -> Dict[str, Any]:
         runner_kwargs["output_dir"] = output_dir
     if seeds is not None:
         runner_kwargs["seeds"] = seeds
+    if runner == "phase63_mission_aware_product":
+        runner_kwargs["missions"] = scenario["missions"]
+        runner_kwargs["product_profile_paths"] = scenario["products"]
+        runner_kwargs["topology_preset"] = str(scenario.get("topology", {}).get("preset", "default_enterprise"))
 
     from run_scenarios import run_phase62_product_profile_evaluation, run_phase63_mission_aware_product_evaluation
 

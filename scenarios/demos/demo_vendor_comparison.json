@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "name": "demo_vendor_comparison",
+    "description": "プリセールス向けに、missionごとに適した防御製品プロファイルが異なることを示すデモ",
+    "version": "1.0",
+    "industry": "finance"
+  },
+  "evaluation": {
+    "runner": "phase63_mission_aware_product",
+    "output_dir": "output/phase63_mission_products",
+    "seeds": [0]
+  },
+  "missions": ["profit", "achievement"],
+  "products": [
+    "profiles/products/sample_ids.json",
+    "profiles/products/sample_ips.json",
+    "profiles/products/sample_xdr.json"
+  ],
+  "topology": {
+    "preset": "enterprise"
+  },
+  "characteristics": {
+    "critical_asset_count": 5,
+    "identity_dependency": "high",
+    "operational_sensitivity": "high",
+    "deception_effectiveness": "medium"
+  },
+  "demo": {
+    "conclusion": "同じ環境でも、攻撃者のmissionにより適した製品プロファイルは変化する。"
+  }
+}
