@@ -33,7 +33,7 @@ CyberMatch は、単に ATT&CK technique を再生したり、検知が発火し
 
 ## CyberMatch Decision Model
 
-Phase9では、攻撃者意思決定モデルを次の階層として整理しました。
+攻撃者意思決定モデルを次の階層として整理しています。
 
 ```text
 Intent
@@ -45,12 +45,6 @@ Intent
 ```
 
 このモデルは分析層です。Runtime Delegation、Defense Concept実行、RL、LLM、外部API、新しい攻撃者・防御者ロジックは追加していません。
-
-## Current Status
-
-- Phase9 Complete
-- Decision Graph Available
-- Defense Concept Evaluation (Phase10) Planned
 
 ## ユースケース
 
@@ -99,166 +93,98 @@ Scenario / Configuration / Product Profiles
 Artifacts: CSV / JSON / PNG / Markdown reports
 ```
 
-詳細は [CyberMatch Architecture](docs/CYBERMATCH_ARCHITECTURE.md) を参照してください。
+## 環境構築とGUIの起動方法 (Quick Start)
 
-## Quick Start
+CyberMatch は、Pythonベースのシミュレータエンジンと、評価結果をブラウザ上で確認できる Streamlit のGUIダッシュボードを備えています。
 
-> **Note**: Phase 1〜5の大規模リファクタリングにより主要なコードは `src/` 配下に移動しましたが、ルートの `cybermatch.py` および `run_scenarios.py` は後方互換性のためのエイリアスとして残されています。そのため、以下の既存の実行コマンドや使い方は**一切変更なくそのまま動作します**。
+### 1. 動作環境のセットアップ
 
-### Windows
+Python 3.12 互換環境を推奨します。
 
+#### Windowsの場合
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python scripts/run_tests.py --smoke
 ```
 
-Streamlit GUI MVP を起動する場合:
-
-```bash
-streamlit run apps/streamlit_app.py
-```
-
-画面左のサイドバーで日本語/英語を切り替えられます。
-
-### WSL2
-
+#### WSL2 / Linuxの場合
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-python scripts/run_tests.py --smoke
 ```
 
-### Python
-
-Python 3.12 互換環境を推奨します。主要依存関係は `requirements.txt` に定義されています。
-
-### pytest
-
-通常の開発では smoke または phase-specific profile を使います。
-
+#### 動作確認テスト (Smoke Test)
+環境が正しく構築できたか確認するために、以下のテストを実行してください。
 ```bash
 python scripts/run_tests.py --smoke
-python scripts/run_tests.py --phase phase5
-python -m pytest
 ```
 
-## 代表実験
+### 2. GUI（ダッシュボード）の起動方法
 
-### Phase4
-
-Intelligence-driven active defense を評価します。
-
-```bash
-python scripts/run_phase4.py --quick
-```
-
-### Phase5
-
-Coalition、counter-deception、awareness、hunting を評価します。
-
-```bash
-python scripts/run_tests.py --phase phase5
-```
-
-### Phase6
-
-Product Interface、Product Profile、Mission-Aware Product Evaluation を評価します。
-
-代表的な出力先:
-
-- `output/phase61_product_interface/`
-- `output/phase62_product_profiles/`
-- `output/phase63_mission_products/`
-
-### Phase7.2
-
-Product Evaluation 限定の Streamlit GUI MVP を起動します。
+評価の実行や結果の確認は、Streamlit を用いたダッシュボードからブラウザ上で視覚的に行えます。以下のコマンドを実行してください。
 
 ```bash
 streamlit run apps/streamlit_app.py
 ```
 
-GUIは日本語/英語の表示切替に対応しています。
+実行すると、ターミナルに以下のようなURLが表示されます。
+```text
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.x.x:8501
+```
+お使いのブラウザで `http://localhost:8501` にアクセスすると、CyberMatch の GUIダッシュボードが表示されます。画面左のサイドバーから「日本語」と「English」の表示言語を切り替えることができます。
 
-### Phase7.3
+#### GUIダッシュボードでできること
+- **Scenario**: 評価条件ファイル（JSON）の確認と読み込み
+- **Products**: 比較対象となる各防御策（製品）プロファイルの確認
+- **Run**: シミュレーションの実行（評価条件の適用や手動実行）
+- **Results**: シミュレーション結果の確認（目的に応じた最適な防御策の比較やヒートマップ表示、レポートのダウンロード）
 
-Phase7.3 adds an interpretation-focused dashboard for mission-aware product evaluation.
+## 代表実験とCLIでの実行
 
-Results画面では、mission別の最適product、coverageが弱いmission、mission variance、product detail、既存heatmap artifact、CSV/JSON/Markdown downloadを表示します。simulation logicは変更しません。
+GUIだけでなく、コマンドライン（CLI）から直接各種評価シミュレーションを実行することも可能です。以下は代表的なシミュレーションの実行例です。
 
-### Phase8.1
+> **Note**: これまでの大規模リファクタリングにより主要なコードは `src/` 配下に移動しましたが、ルートの `cybermatch.py` および `run_scenarios.py` は後方互換性のためのエイリアスとして残されています。そのため、既存の実行コマンドや使い方は変更なくそのまま動作します。
 
-CyberMatch v1.0 に向けた Scenario Import foundation を追加します。Product Evaluation / Mission-Aware Product Evaluation の条件をJSON scenarioとして定義し、既存runnerへdispatchします。
-
+### Active Defense 評価
+Intelligence-driven active defense のシミュレーションを評価します。
 ```bash
+python scripts/run_phase4.py --quick
+```
+
+### Coalition & Counter-Deception 評価
+複数攻撃者(Coalition)、counter-deception、awareness、hunting を評価します。
+```bash
+python scripts/run_tests.py --phase phase5
+```
+
+### Mission-Aware Product Evaluation (防御策の比較評価)
+製品プロファイルを読み込み、攻撃者の目的（Mission）ごとにどの防御策が有効かを評価します。（※この評価はGUIの「Run」画面からも実行可能です）
+```bash
+python scripts/run_scenarios.py
+# または特定のシナリオを指定する場合
 python scripts/run_scenario.py scenarios/mission_product_eval_basic.json
 ```
 
-### Phase8.2
+### Scenario Catalog & Benchmark Suite
+金融、医療、クラウドネイティブ、工場など、複数のシナリオプリセットを用いた横断的なベンチマーク評価を行います。
 
-Scenario Catalog foundation を追加します。金融、病院、cloud-native startup、工場、small business のような再利用可能なscenario presetを選択できます。
-
+シナリオカタログの確認:
 ```bash
 python scripts/run_scenario.py --list
 ```
-
-### Phase8.3
-
-Benchmark Suite foundation を追加します。Scenario x Mission x Product を横断した再現可能な比較評価を行います。
-
-```bash
-python scripts/run_scenario.py benchmarks/product_evaluation_benchmark.json
-```
-
-### Phase8.4
-
-Enterprise Topology Library foundation を追加します。ネットワークシミュレータではなく、企業構成の違いを評価軸として扱う軽量なtopology presetです。
-
-```bash
-python -c "from run_scenarios import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"
-```
-
-### Phase8.5
-
-CyberMatch v1.0 の基準となる Standard Benchmark Suite を定義します。同じScenario、Topology、Mission、Product、Seedで再現可能な比較評価を行います。
-
+標準ベンチマークスイートの実行:
 ```bash
 python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
 ```
 
-## ドキュメント
-
-- [Documentation Index](docs/INDEX.md)
-- [Vision](docs/CYBERMATCH_VISION.md)
-- [Architecture](docs/CYBERMATCH_ARCHITECTURE.md)
-- [Status](docs/CYBERMATCH_STATUS.md)
-- [End State](docs/CYBERMATCH_END_STATE.md)
-- [Use Cases](docs/CYBERMATCH_USE_CASES.md)
-- [Roadmap](docs/CYBERMATCH_ROADMAP.md)
-- [GUI Vision](docs/CYBERMATCH_GUI_VISION.md)
-- [GUI UX](docs/CYBERMATCH_GUI_UX.md)
-- [GUI MVP](docs/CYBERMATCH_GUI_MVP.md)
-- [Scenario Import](docs/CYBERMATCH_SCENARIO_IMPORT.md)
-- [Scenario Catalog](docs/CYBERMATCH_SCENARIO_CATALOG.md)
-- [Benchmarks](docs/CYBERMATCH_BENCHMARKS.md)
-- [Standard Benchmark](docs/CYBERMATCH_STANDARD_BENCHMARK.md)
-- [Topologies](docs/CYBERMATCH_TOPOLOGIES.md)
-- [Intent Inference](docs/CYBERMATCH_INTENT_INFERENCE.md)
-- [Behavior Profiles](docs/CYBERMATCH_BEHAVIOR_PROFILES.md)
-- [ProfileCore Integration Design](docs/CYBERMATCH_PROFILECORE_INTEGRATION.md)
-- [ProfileCore Analysis](docs/CYBERMATCH_PROFILECORE_ANALYSIS.md)
-- [Archetypes](docs/CYBERMATCH_ARCHETYPES.md)
-- [Strategy Layer](docs/CYBERMATCH_STRATEGY_LAYER.md)
-- [Attacker Taxonomy](docs/CYBERMATCH_ATTACKER_TAXONOMY.md)
-- [Target-Specific Strategies](docs/CYBERMATCH_TARGET_STRATEGIES.md)
-- [Strategy Validation](docs/CYBERMATCH_STRATEGY_VALIDATION.md)
-- [Decision Graph](docs/CYBERMATCH_DECISION_GRAPH.md)
-- [Phase9 Summary](docs/PHASE9_SUMMARY.md)
-- [v1.0.0-rc1 Release Notes](docs/RELEASE_NOTES_v1.0.0_RC1.md)
-- [Reproducibility](docs/REPRODUCIBILITY.md)
+### Topology Evaluation
+企業ネットワークの構成（Topology）の違いによる影響を評価します。
+```bash
+python -c "from run_scenarios import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"
+```
 
 ## リポジトリ構成
 
@@ -280,7 +206,15 @@ cybermatch-framework/
   strategy_layer.py      # 後方互換性用エイリアス
   scenario_loader.py
   benchmark_loader.py
-  ...
+  benchmarks/            # ベンチマーク設定
+  topologies/            # ネットワーク構成設定
+  scenarios/             # シナリオ設定
+  profiles/              # 防御策などのプロファイル定義
+  apps/
+    streamlit_app.py     # GUIダッシュボードのメインアプリケーション
+  scripts/               # CLI用の実行スクリプト群
+  tests/                 # テストコード
+  output/                # 実行結果出力先 (gitignored)
 ```
 
 ## 今後のロードマップ
@@ -294,5 +228,3 @@ v1.0 に向けた主な方向性:
 - Product plugin integration
 - Scenario-specific product evaluation
 - Reproducible benchmark suite
-
-CyberMatch の到達点と制約は [CyberMatch Status](docs/CYBERMATCH_STATUS.md) にまとめています。
