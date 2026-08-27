@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "id": "critical_path_approach_v1",
+  "version": "1.0",
+  "title": "Repeated critical-path approach",
+  "hypothesis": "Multiple critical-path observations in a short tumbling window warrant investigation.",
+  "source": "observed",
+  "required_fields": [
+    "campaign_id",
+    "actor_id",
+    "event_id",
+    "event_type",
+    "step"
+  ],
+  "group_by": [
+    "campaign_id",
+    "actor_id"
+  ],
+  "operations": [
+    {
+      "operator": "filter",
+      "field": "event_type",
+      "predicate": "in",
+      "value": [
+        "critical_path_entry",
+        "critical_path_progress",
+        "critical_path_near_target",
+        "critical_asset_reach"
+      ]
+    },
+    {
+      "operator": "window",
+      "kind": "tumbling",
+      "size_steps": 5
+    },
+    {
+      "operator": "aggregate",
+      "function": "count",
+      "as": "critical_event_count"
+    }
+  ],
+  "finding": {
+    "severity": "medium",
+    "title": "Repeated critical-path activity",
+    "reason": "A five-step window contains multiple critical-path observations.",
+    "score": 0.7,
+    "condition": {
+      "field": "critical_event_count",
+      "predicate": "gte",
+      "value": 2
+    }
+  },
+  "metadata": {
+    "tags": [
+      "critical-path",
+      "aggregation"
+    ]
+  }
+}

@@ -18,7 +18,10 @@ SLOW_TEST_NAME_TOKENS = (
 def pytest_collection_modifyitems(items):
     for item in items:
         name = item.name
-        if "phase92" in name or "feature_space" in name:
+        node_id = item.nodeid.lower()
+        if "threat_hunting" in node_id:
+            item.add_marker(pytest.mark.threat_hunting)
+        elif "phase92" in name or "feature_space" in name:
             item.add_marker(pytest.mark.phase92)
             item.add_marker(pytest.mark.feature)
         elif "phase91" in name or "behavior_profile" in name or "behavior" in name:
