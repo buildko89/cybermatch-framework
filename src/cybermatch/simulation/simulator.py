@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import logging
 import json
 import os
+from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional, Tuple
 
@@ -18,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 from src.cybermatch.models.product import ProductProfile, load_product_profile
 from src.cybermatch.config.simulation_config import SimulationConfig
-
-
 from src.cybermatch.attacker.attacker_model import AttackerModel
 from src.cybermatch.defense.ilp_mpc_strategy import OptimizationEngine
 from src.cybermatch.visualization.visualizer import Visualizer
@@ -305,6 +304,100 @@ class CyberDefenseSimulator:
             'suspicion_history': [],
             'deception_knowledge_history': [],
         }
+        self.threat_hunting_controller = self._create_threat_hunting_controller()
+        self.threat_hunting_feedback_action_count = 0
+        if self.config.threat_hunting_typed_telemetry_enabled:
+            self.history['typed_telemetry'] = []
+        if self.config.threat_hunting_feedback_enabled:
+            self.history['threat_hunting_feedback'] = []
+            self.history['threat_hunting_active_feedback_count'] = []
+            self.history['threat_hunting_feedback_effect'] = []
+        if self.config.attacker_stealth_enabled:
+            self.history['attacker_stealth_active'] = []
+            self.history['attacker_slowdown'] = []
+
+    def _create_threat_hunting_controller(self):
+        if not self.config.threat_hunting_feedback_enabled:
+            return None
+        # Import lazily: threat_hunting's public facade also exposes scenario
+        # runners, and those runners import this simulator.
+        from src.cybermatch.threat_hunting.feedback_policy import ClosedLoopThreatHuntingController
+        from src.cybermatch.threat_hunting.recipes import ThreatHuntingRecipeLoader, default_recipe_root
+
+        recipe_root = default_recipe_root().resolve()
+        loader = ThreatHuntingRecipeLoader(recipe_root)
+        relative_paths = []
+        repository_root = Path(__file__).resolve().parents[3]
+        for value in self.config.threat_hunting_recipe_paths:
+            requested = Path(value)
+            candidate = (
+                requested.resolve()
+                if requested.is_absolute()
+                else (repository_root / requested).resolve()
+            )
+            if not candidate.is_relative_to(recipe_root):
+                raise ValueError(f"threat hunting recipe must be below {recipe_root}: {value}")
+            relative_paths.append(candidate.relative_to(recipe_root))
+        recipes = loader.load_many(relative_paths)
+        return ClosedLoopThreatHuntingController(recipes)
+
+    def _active_threat_hunting_effects(self, step: int, target_node: int):
+        from src.cybermatch.threat_hunting.feedback_policy import (
+            DefenderActionEffects,
+            summarize_feedback_effects,
+        )
+
+        if self.threat_hunting_controller is None:
+            return (), DefenderActionEffects()
+        active = self.threat_hunting_controller.active_at(step)
+        effects = summarize_feedback_effects(
+            active,
+            source_node=int(self.attacker.current_node),
+            target_node=target_node if target_node >= 0 else None,
+        )
+        return active, effects
+
+    def _typed_threat_hunting_events(
+        self,
+        *,
+        step: int,
+        source_node: int,
+        target_node: int,
+        event_types: List[str],
+        attack_active: bool,
+        success: bool,
+        detected: bool,
+        credential_used: bool,
+    ):
+        if not self.config.threat_hunting_typed_telemetry_enabled:
+            return ()
+        from src.cybermatch.threat_hunting.telemetry import (
+            TypedTelemetryContext,
+            build_typed_telemetry,
+        )
+
+        return build_typed_telemetry(
+            TypedTelemetryContext(
+                step=step,
+                campaign_id=self.config.threat_hunting_campaign_id,
+                scenario_id=self.config.threat_hunting_scenario_id,
+                seed=self.config.seed,
+                actor_id=self.config.threat_hunting_actor_id,
+                source_node=source_node if source_node >= 0 else None,
+                target_node=target_node if target_node >= 0 else None,
+                source_role=self._node_role(source_node),
+                target_role=self._node_role(target_node),
+                observable_event_types=tuple(event_types),
+                attack_active=attack_active,
+                success=success,
+                detected=detected,
+                credential_used=credential_used,
+                c2_jitter_ratio=self.config.c2_jitter_ratio,
+                dns_tunnel_chunk_size=self.config.dns_tunnel_chunk_size,
+                process_masquerading=self.config.process_masquerading,
+                domain_homoglyph_enabled=self.config.domain_homoglyph_enabled,
+            )
+        )
 
     def _create_attacker(self) -> AttackerModel:
         return AttackerModel(
@@ -397,6 +490,13 @@ class CyberDefenseSimulator:
             frustration_no_progress=self.config.frustration_no_progress,
             frustration_decay=self.config.frustration_decay,
             frustration_retreat_threshold=self.config.frustration_retreat_threshold,
+            stealth_enabled=self.config.attacker_stealth_enabled,
+            c2_jitter_ratio=self.config.c2_jitter_ratio,
+            dns_tunnel_chunk_size=self.config.dns_tunnel_chunk_size,
+            process_masquerading=self.config.process_masquerading,
+            domain_homoglyph_enabled=self.config.domain_homoglyph_enabled,
+            hunting_awareness_threshold=self.config.hunting_awareness_threshold,
+            sleep_or_slowdown_factor=self.config.sleep_or_slowdown_factor,
         )
 
     def _attacker_risk_view(self) -> np.ndarray:
@@ -867,7 +967,12 @@ class CyberDefenseSimulator:
                 attack_vector[selected_target] = float(self.attacker.attack_budget)
                 self.attacker.previous_selected_target = int(self.attacker.last_selected_target)
                 self.attacker.last_selected_target = selected_target
-            attacked_decoy = self._is_decoy_target(selected_target)
+            attack_source_node = int(self.attacker.current_node)
+            active_hunting_feedback, hunting_effects = self._active_threat_hunting_effects(t, selected_target)
+            attacker_slowdown = self.attacker.should_slow_down(t, hunting_effects.confidence)
+            if hunting_effects.blocked or attacker_slowdown:
+                attack_vector = np.zeros(self.config.n_nodes, dtype=float)
+            attacked_decoy = self._is_decoy_target(selected_target) or hunting_effects.redirected
             target_defense_strength = self._target_defense_strength(selected_target, r_opt)
             d_current = self.config.d_base + self.config.beta * np.tanh(self.x_current) + attack_vector
             raw_x = self.config.alpha * self.x_current + d_current - self.M @ r_opt
@@ -905,6 +1010,18 @@ class CyberDefenseSimulator:
                     success = self._attack_succeeds(gained, attacked_decoy, target_defense_strength)
                     if self.config.coalition_enabled and not success and self.rng.random() < success_prob:
                         success = True
+                feedback_success_penalty = self.config.threat_hunting_feedback_success_penalty * sum(
+                    (hunting_effects.additional_auth, hunting_effects.redirected)
+                )
+                if hunting_effects.blocked:
+                    feedback_success_penalty = 1.0
+                if feedback_success_penalty > 0.0:
+                    success_prob = float(np.clip(success_prob - feedback_success_penalty, 0.0, 1.0))
+                    success = (
+                        bool(self.rng.random() < success_prob)
+                        if self.config.attacker_lateral_enabled or self.config.stochastic_success
+                        else bool(success_prob >= 0.5)
+                    )
                 if not success:
                     gained = 0.0
                 # Perceived gain: what the attacker believes they gained (belief-based, no decoy penalty).
@@ -950,7 +1067,6 @@ class CyberDefenseSimulator:
                         )
                 if self.config.attacker_lateral_enabled:
                     detection_prob = self._lateral_detection_probability(credential_decoy_trigger)
-                    detected = bool(self.rng.random() < detection_prob)
                 else:
                     detection_prob = self._attack_detection_probability(
                         r_opt,
@@ -959,13 +1075,30 @@ class CyberDefenseSimulator:
                         target_defense_strength,
                         credential_decoy_trigger,
                     )
-                    detected = self._detect_attacker(
-                        r_opt,
-                        success,
-                        attacked_decoy=attacked_decoy,
-                        target_defense_strength=target_defense_strength,
-                        credential_decoy_trigger=credential_decoy_trigger,
+                detection_prob = float(
+                    np.clip(detection_prob * self.attacker.stealth_detection_multiplier(), 0.0, 1.0)
+                )
+                feedback_detection = any(
+                    (
+                        hunting_effects.monitoring,
+                        hunting_effects.blocked,
+                        hunting_effects.redirected,
+                        hunting_effects.additional_auth,
                     )
+                )
+                if feedback_detection:
+                    detection_prob = float(
+                        np.clip(
+                            detection_prob + self.config.threat_hunting_feedback_monitoring_bonus,
+                            0.0,
+                            1.0,
+                        )
+                    )
+                detected = (
+                    bool(self.rng.random() < detection_prob)
+                    if self.config.attacker_lateral_enabled or self.config.stochastic_detection
+                    else bool(detection_prob >= 0.5)
+                )
             else:
                 success = False
                 detected = False
@@ -1004,6 +1137,14 @@ class CyberDefenseSimulator:
                 credential_decoy_trigger=credential_decoy_trigger,
                 path_changed=path_changed,
                 no_progress=no_progress,
+            )
+            self.attacker.observe_defender_consequence(
+                blocked=hunting_effects.blocked,
+                delayed=bool(attacker_slowdown or hunting_effects.additional_auth),
+                detected=bool(active_hunting_feedback and detected),
+                redirected=hunting_effects.redirected,
+                confidence_decay=self.config.threat_hunting_feedback_confidence_decay,
+                frustration_increase=self.config.threat_hunting_feedback_frustration,
             )
             # Oracle leak fix: attacker belief should be updated based on perceived success
             perceived_success = (perceived_gain > 0.0)
@@ -1064,6 +1205,23 @@ class CyberDefenseSimulator:
                 critical_path_events,
                 selected_target,
             )
+            typed_hunting_events = self._typed_threat_hunting_events(
+                step=t,
+                source_node=attack_source_node,
+                target_node=selected_target,
+                event_types=extracted_observable_events,
+                attack_active=attack_active,
+                success=success,
+                detected=detected,
+                credential_used=credential_used,
+            )
+            created_hunting_feedback = ()
+            if self.threat_hunting_controller is not None:
+                created_hunting_feedback = self.threat_hunting_controller.observe(
+                    typed_hunting_events,
+                    current_step=t,
+                )
+                self.threat_hunting_feedback_action_count += len(created_hunting_feedback)
             coalition_handover_event = self._update_coalition_delegation(
                 step=t,
                 observable_events=extracted_observable_events,
@@ -1172,6 +1330,39 @@ class CyberDefenseSimulator:
             self.history['selected_policy_history'].append(str(self.current_adaptive_policy_id))
             self.history['observable_events'].append("|".join(observable_events))
             self.history['critical_path_events'].append("|".join(critical_path_events))
+            if self.config.threat_hunting_typed_telemetry_enabled:
+                from src.cybermatch.threat_hunting.telemetry import serialize_typed_telemetry
+
+                self.history['typed_telemetry'].append(serialize_typed_telemetry(typed_hunting_events))
+            if self.config.threat_hunting_feedback_enabled:
+                self.history['threat_hunting_feedback'].append(
+                    json.dumps(
+                        {
+                            "created": [value.to_dict() for value in created_hunting_feedback],
+                            "active_feedback_ids": [value.feedback_id for value in active_hunting_feedback],
+                        },
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    )
+                )
+                self.history['threat_hunting_active_feedback_count'].append(len(active_hunting_feedback))
+                self.history['threat_hunting_feedback_effect'].append(
+                    json.dumps(
+                        {
+                            "monitoring": hunting_effects.monitoring,
+                            "blocked": hunting_effects.blocked,
+                            "redirected": hunting_effects.redirected,
+                            "additional_auth": hunting_effects.additional_auth,
+                            "confidence": hunting_effects.confidence,
+                        },
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    )
+                )
+            if self.config.attacker_stealth_enabled:
+                self.history['attacker_stealth_active'].append(True)
+                self.history['attacker_slowdown'].append(bool(attacker_slowdown))
             self.history['noise_history'].append("|".join(noise_events))
             self.history['signal_history'].append("|".join(signal_events))
             self.history['fake_signal_history'].append("|".join(fake_signal_events))

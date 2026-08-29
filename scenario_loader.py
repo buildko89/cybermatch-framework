@@ -17,6 +17,7 @@ ALLOWED_RUNNERS = {
     "phase62_product_profile",
     "phase63_mission_aware_product",
     "hunting_recipe_evaluation",
+    "hunting_closed_loop_evaluation",
 }
 
 ALLOWED_MISSIONS = {
@@ -146,10 +147,17 @@ def validate_scenario(scenario: Dict[str, Any]) -> None:
                 raise ScenarioValidationError(f"characteristics.{key} must be low, medium, or high.")
 
     hunting = scenario.get("hunting")
-    if runner == "hunting_recipe_evaluation" and not isinstance(hunting, dict):
-        raise ScenarioValidationError("hunting_recipe_evaluation requires a hunting object.")
+    if runner in {"hunting_recipe_evaluation", "hunting_closed_loop_evaluation"} and not isinstance(hunting, dict):
+        raise ScenarioValidationError(f"{runner} requires a hunting object.")
     if hunting is not None:
         _validate_hunting_section(hunting)
+    if runner == "hunting_closed_loop_evaluation":
+        from src.cybermatch.threat_hunting.closed_loop_evaluation import normalize_stealth_sweep
+
+        try:
+            normalize_stealth_sweep(hunting.get("stealth_sweep"))
+        except ValueError as exc:
+            raise ScenarioValidationError(str(exc)) from exc
 
 
 def _validate_hunting_section(hunting: object) -> None:
@@ -162,6 +170,7 @@ def _validate_hunting_section(hunting: object) -> None:
         "noise_profiles",
         "simulation_steps",
         "simulation_overrides",
+        "stealth_sweep",
     }
     unknown = sorted(set(hunting) - allowed)
     if unknown:
@@ -261,6 +270,24 @@ def run_scenario_from_file(path: str) -> Dict[str, Any]:
         from src.cybermatch.threat_hunting.scenario_runner import run_hunting_recipe_evaluation
 
         rows = run_hunting_recipe_evaluation(scenario, output_dir=output_dir)
+        return {
+            "scenario_name": metadata["name"],
+            "runner": runner,
+            "output_dir": output_dir,
+            "rows": len(rows),
+            "success": True,
+        }
+
+    if runner == "hunting_closed_loop_evaluation":
+        from src.cybermatch.threat_hunting.closed_loop_evaluation import (
+            run_hunting_closed_loop_evaluation,
+        )
+
+        rows = run_hunting_closed_loop_evaluation(
+            scenario,
+            output_dir=output_dir,
+            seeds=seeds,
+        )
         return {
             "scenario_name": metadata["name"],
             "runner": runner,

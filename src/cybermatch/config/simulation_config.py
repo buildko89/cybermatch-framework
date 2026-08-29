@@ -206,6 +206,25 @@ class SimulationConfig:
     observable_events_enabled: bool = False
     critical_path_events_enabled: bool = False
     threat_hunting_enabled: bool = False
+    threat_hunting_recipe_paths: List[str] = field(default_factory=list)
+    threat_hunting_output_enabled: bool = False
+    threat_hunting_feedback_enabled: bool = False
+    threat_hunting_typed_telemetry_enabled: bool = False
+    threat_hunting_cost_profile: Optional[str] = None
+    threat_hunting_campaign_id: str = "simulation"
+    threat_hunting_scenario_id: str = "simulation"
+    threat_hunting_actor_id: str = "attacker_0"
+    threat_hunting_feedback_monitoring_bonus: float = 0.25
+    threat_hunting_feedback_success_penalty: float = 0.25
+    threat_hunting_feedback_confidence_decay: float = 0.90
+    threat_hunting_feedback_frustration: float = 1.0
+    attacker_stealth_enabled: bool = False
+    c2_jitter_ratio: float = 0.0
+    dns_tunnel_chunk_size: int = 0
+    process_masquerading: bool = False
+    domain_homoglyph_enabled: bool = False
+    hunting_awareness_threshold: float = 1.0
+    sleep_or_slowdown_factor: float = 1.0
     intelligence_defender_enabled: bool = False
     selected_intelligence_policy: str = ""
     intelligence_risk_score: float = 0.0
@@ -455,6 +474,69 @@ class SimulationConfig:
         errors = []
         if not isinstance(self.threat_hunting_enabled, bool):
             errors.append("threat_hunting_enabled must be a boolean")
+        for key in (
+            "threat_hunting_output_enabled",
+            "threat_hunting_feedback_enabled",
+            "threat_hunting_typed_telemetry_enabled",
+            "attacker_stealth_enabled",
+            "process_masquerading",
+            "domain_homoglyph_enabled",
+        ):
+            if not isinstance(getattr(self, key), bool):
+                errors.append(f"{key} must be a boolean")
+        if not isinstance(self.threat_hunting_recipe_paths, list) or any(
+            not isinstance(path, str) or not path.strip()
+            for path in self.threat_hunting_recipe_paths
+        ):
+            errors.append("threat_hunting_recipe_paths must be a list of non-empty strings")
+        if len(set(self.threat_hunting_recipe_paths)) != len(self.threat_hunting_recipe_paths):
+            errors.append("threat_hunting_recipe_paths must not contain duplicates")
+        if self.threat_hunting_cost_profile is not None and (
+            not isinstance(self.threat_hunting_cost_profile, str)
+            or not self.threat_hunting_cost_profile.strip()
+        ):
+            errors.append("threat_hunting_cost_profile must be a non-empty string or None")
+        for key in (
+            "threat_hunting_campaign_id",
+            "threat_hunting_scenario_id",
+            "threat_hunting_actor_id",
+        ):
+            if not isinstance(getattr(self, key), str) or not getattr(self, key).strip():
+                errors.append(f"{key} must be a non-empty string")
+        for key in (
+            "threat_hunting_feedback_monitoring_bonus",
+            "threat_hunting_feedback_success_penalty",
+            "threat_hunting_feedback_confidence_decay",
+            "c2_jitter_ratio",
+            "hunting_awareness_threshold",
+        ):
+            value = getattr(self, key)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
+                errors.append(f"{key} must be between 0 and 1")
+        if (
+            isinstance(self.threat_hunting_feedback_frustration, bool)
+            or not isinstance(self.threat_hunting_feedback_frustration, (int, float))
+            or self.threat_hunting_feedback_frustration < 0
+        ):
+            errors.append("threat_hunting_feedback_frustration must be >= 0")
+        if (
+            isinstance(self.dns_tunnel_chunk_size, bool)
+            or not isinstance(self.dns_tunnel_chunk_size, int)
+            or self.dns_tunnel_chunk_size < 0
+        ):
+            errors.append("dns_tunnel_chunk_size must be a non-negative integer")
+        if (
+            isinstance(self.sleep_or_slowdown_factor, bool)
+            or not isinstance(self.sleep_or_slowdown_factor, (int, float))
+            or self.sleep_or_slowdown_factor < 1
+        ):
+            errors.append("sleep_or_slowdown_factor must be >= 1")
+        if self.threat_hunting_feedback_enabled and not self.threat_hunting_enabled:
+            errors.append("threat_hunting_feedback_enabled requires threat_hunting_enabled")
+        if self.threat_hunting_feedback_enabled and not self.threat_hunting_typed_telemetry_enabled:
+            errors.append("threat_hunting_feedback_enabled requires typed telemetry")
+        if self.threat_hunting_feedback_enabled and not self.threat_hunting_recipe_paths:
+            errors.append("threat_hunting_feedback_enabled requires threat_hunting_recipe_paths")
 
         if self.n_nodes <= 0:
             errors.append("n_nodes must be > 0")

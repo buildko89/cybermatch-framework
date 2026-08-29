@@ -126,6 +126,7 @@ Once running, your terminal will display a URL (usually `http://localhost:8501`)
 - **Results**: View detailed metrics, mission-aware effectiveness heatmaps, and download generated reports.
 - **Threat Hunting**: Review the 18-case hunting benchmark, tune auditable recipe parameters, inspect evidence timelines, and export H1/H2 artifacts without feeding truth labels back into the detector.
   External CSV/JSONL telemetry can be mapped explicitly, and optional K-Means or Isolation Forest detectors preserve training IDs, feature/preprocessing hashes, seed, threshold, and model provenance.
+  Opt-in closed-loop scenarios under `scenarios/threat_hunting/threat_hunt_*.json` compare open/closed feedback on identical seeds and report separate attacker-stealth and decision-neutralization lifts. Run one with `python scripts/run_scenario.py scenarios/threat_hunting/threat_hunt_c2_jitter.json`.
 
 ## Command-Line Execution (Representative Experiments)
 

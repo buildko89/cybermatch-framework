@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable, Mapping, Sequence
 from numbers import Integral, Real
 from pathlib import Path
@@ -14,7 +15,7 @@ from .models import GroundTruthLabel, HuntEvent, SCHEMA_VERSION, stable_identifi
 
 HistorySource: TypeAlias = Mapping[str, object] | str | Path
 
-OBSERVED_HISTORY_KEYS = ("observable_events", "critical_path_events")
+OBSERVED_HISTORY_KEYS = ("typed_telemetry", "observable_events", "critical_path_events")
 GROUND_TRUTH_HISTORY_KEYS = frozenset(
     {
         "attacker_critical_true_gain",
@@ -132,6 +133,50 @@ def _normalize_observed_event_type(event_type: str) -> str | None:
     return event_type
 
 
+def _typed_events_at(
+    value: object,
+    *,
+    step: int,
+    campaign_id: str,
+    scenario_id: str,
+    seed: int | None,
+) -> list[HuntEvent]:
+    if isinstance(value, np.generic):
+        value = value.item()
+    if isinstance(value, bytes):
+        try:
+            value = value.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise HistoryAdapterError("typed_telemetry contains invalid UTF-8") from exc
+    if not isinstance(value, str):
+        raise HistoryAdapterError("typed_telemetry entries must be JSON strings")
+    try:
+        payload = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise HistoryAdapterError(f"typed_telemetry step {step} is invalid JSON: {exc}") from exc
+    if not isinstance(payload, Mapping) or not isinstance(payload.get("events"), list):
+        raise HistoryAdapterError(f"typed_telemetry step {step} must contain an events array")
+    result: list[HuntEvent] = []
+    for ordinal, item in enumerate(payload["events"]):
+        try:
+            event = HuntEvent.from_dict(item)
+        except (TypeError, ValueError) as exc:
+            raise HistoryAdapterError(
+                f"typed_telemetry step {step} event {ordinal} is invalid: {exc}"
+            ) from exc
+        if (
+            event.step != step
+            or event.campaign_id != campaign_id
+            or event.scenario_id != scenario_id
+            or event.seed != seed
+        ):
+            raise HistoryAdapterError(
+                f"typed_telemetry step {step} event {ordinal} metadata does not match adapter metadata"
+            )
+        result.append(event)
+    return result
+
+
 def _bool_value(value: object, field_name: str) -> bool:
     if isinstance(value, (bool, np.bool_)):
         return bool(value)
@@ -189,6 +234,9 @@ class HistoryObservationAdapter:
         available_keys = [key for key in self._history_keys if key in history]
         if not available_keys:
             raise HistoryAdapterError("history contains no supported observed event fields")
+        typed_mode = "typed_telemetry" in available_keys
+        if typed_mode:
+            available_keys = ["typed_telemetry"]
         sequences = {key: _as_sequence(history[key], key) for key in available_keys}
         lengths = {len(values) for values in sequences.values()}
         if len(lengths) != 1:
@@ -198,6 +246,17 @@ class HistoryObservationAdapter:
         events: list[HuntEvent] = []
         step_count = lengths.pop()
         for step in range(step_count):
+            if "typed_telemetry" in sequences:
+                events.extend(
+                    _typed_events_at(
+                        sequences["typed_telemetry"][step],
+                        step=step,
+                        campaign_id=campaign_id,
+                        scenario_id=scenario_id,
+                        seed=seed,
+                    )
+                )
+                continue
             event_sources: dict[str, set[str]] = {}
             for history_key in available_keys:
                 for raw_event_type in _split_event_value(sequences[history_key][step], history_key):
@@ -245,7 +304,9 @@ class HistoryObservationAdapter:
                         },
                     )
                 )
-        return events
+        if len({event.event_id for event in events}) != len(events):
+            raise HistoryAdapterError("observed telemetry contains duplicate event IDs")
+        return sorted(events, key=lambda event: (event.step, event.event_id)) if typed_mode else events
 
 
 class HistoryGroundTruthAdapter:

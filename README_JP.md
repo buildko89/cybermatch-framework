@@ -126,6 +126,7 @@ streamlit run apps/streamlit_app.py
 - **Results**: 詳細な指標、目的に応じた有効性のヒートマップ表示、生成されたレポートのダウンロード。
 - **脅威ハンティング**: 18ケースのベンチマーク確認、監査可能なレシピパラメータ調整、証拠タイムラインの確認、正解ラベルを検知器へ還流しないH1/H2成果物の出力。
   外部CSV/JSONLは明示mappingで取り込みでき、任意のK-Means／Isolation Forest検知ではtraining ID、feature・前処理hash、seed、threshold、model provenanceを保存します。
+  `scenarios/threat_hunting/threat_hunt_*.json` のopt-in closed-loopシナリオでは、同一seedでopen/closed feedbackを比較し、attacker stealth liftとdecision-neutralization liftを分離して報告します。例: `python scripts/run_scenario.py scenarios/threat_hunting/threat_hunt_c2_jitter.json`
 
 ## コマンドラインでの実行 (Representative Experiments)
 

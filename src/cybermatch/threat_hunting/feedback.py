@@ -1,8 +1,4 @@
-"""Future closed-loop feedback contract.
-
-H1 exposes the contract and a no-op sink only. The simulator does not consume
-feedback until a later, explicitly opt-in implementation phase.
-"""
+"""Typed feedback contract shared by offline and opt-in closed-loop hunting."""
 
 from __future__ import annotations
 

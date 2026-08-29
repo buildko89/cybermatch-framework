@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "name": "threat_hunt_pstree_lateral",
+    "description": "Paired closed-loop experiment for process masquerading during lateral movement.",
+    "version": "1.0"
+  },
+  "evaluation": {
+    "runner": "hunting_closed_loop_evaluation",
+    "output_dir": "output/threat_hunting/threat_hunt_pstree_lateral",
+    "seeds": [0, 1, 2]
+  },
+  "missions": ["critical_hunter"],
+  "products": ["profiles/products/sample_threat_hunting_platform.json"],
+  "topology": {"preset": "enterprise"},
+  "hunting": {
+    "recipes": [
+      "recipes/threat_hunting/critical_path_approach_v1.json",
+      "recipes/threat_hunting/credential_to_critical_path_v1.json"
+    ],
+    "evaluation_runs": 3,
+    "noise_profiles": ["none"],
+    "simulation_steps": 20,
+    "simulation_overrides": {
+      "stochastic_detection": true,
+      "stochastic_success": true,
+      "perceived_utility_enabled": true,
+      "frustration_enabled": true,
+      "retreat_based_on": "frustration",
+      "frustration_retreat_threshold": 8.0,
+      "attacker_patience": 30
+    },
+    "stealth_sweep": [
+      {"name": "zero", "attacker_stealth_enabled": false, "process_masquerading": false},
+      {"name": "linear", "attacker_stealth_enabled": true, "process_masquerading": true, "sleep_or_slowdown_factor": 1.0},
+      {"name": "saturation", "attacker_stealth_enabled": true, "process_masquerading": true, "hunting_awareness_threshold": 0.7, "sleep_or_slowdown_factor": 2.0},
+      {"name": "strong", "attacker_stealth_enabled": true, "process_masquerading": true, "hunting_awareness_threshold": 0.5, "sleep_or_slowdown_factor": 4.0}
+    ]
+  }
+}

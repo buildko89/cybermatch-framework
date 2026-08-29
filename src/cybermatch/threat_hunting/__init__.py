@@ -33,6 +33,13 @@ from .feedback import (
     ThreatHuntingFeedback,
     ThreatHuntingFeedbackSink,
 )
+from .feedback_policy import (
+    ClosedLoopThreatHuntingController,
+    DefenderActionEffects,
+    FeedbackPolicyConfig,
+    ThreatHuntingFeedbackPolicy,
+    summarize_feedback_effects,
+)
 from .engine import (
     ThreatHuntingEngine,
     ThreatHuntingEngineError,
@@ -114,19 +121,40 @@ from .reporting import (
     ThreatHuntingReportWriter,
     load_threat_hunting_report,
 )
+from .telemetry import (
+    TELEMETRY_FAMILIES,
+    TypedTelemetryContext,
+    build_typed_telemetry,
+    serialize_typed_telemetry,
+)
 from .scenario_runner import run_hunting_history_evaluation, run_hunting_recipe_evaluation
 from .benchmark_runner import run_hunting_benchmark
+from .closed_loop_evaluation import (
+    CLOSED_LOOP_CSV_FILENAME,
+    CLOSED_LOOP_REPORT_FILENAME,
+    CLOSED_LOOP_SUMMARY_FILENAME,
+    STEALTH_PARAMETER_FIELDS,
+    STEALTH_PROFILE_NAMES,
+    normalize_stealth_sweep,
+    run_hunting_closed_loop_evaluation,
+)
 
 
 __all__ = [
     "AGGREGATE_FUNCTIONS",
     "ARTIFACT_FORMAT_VERSION",
     "CRITICAL_PATH_EVENT_TYPES",
+    "CLOSED_LOOP_CSV_FILENAME",
+    "CLOSED_LOOP_REPORT_FILENAME",
+    "CLOSED_LOOP_SUMMARY_FILENAME",
+    "ClosedLoopThreatHuntingController",
     "DERIVE_FUNCTIONS",
+    "DefenderActionEffects",
     "DEFAULT_EVALUATED_LABEL_TYPES",
     "EVENTS_FILENAME",
     "EVALUATION_ARTIFACT_FILENAMES",
     "FEEDBACK_ACTION_TYPES",
+    "FeedbackPolicyConfig",
     "EXTERNAL_EVENT_FIELDS",
     "ExternalFieldMapping",
     "ExternalMappingError",
@@ -186,6 +214,7 @@ __all__ = [
     "ThreatHuntingEvaluator",
     "ThreatHuntingExecutionError",
     "ThreatHuntingFeedback",
+    "ThreatHuntingFeedbackPolicy",
     "ThreatHuntingFeedbackSink",
     "ThreatHuntingInputError",
     "ThreatHuntingLimitError",
@@ -201,20 +230,29 @@ __all__ = [
     "ThreatHuntingRunConfig",
     "TruthMatch",
     "TruthMatchingPolicy",
+    "TELEMETRY_FAMILIES",
+    "STEALTH_PARAMETER_FIELDS",
+    "STEALTH_PROFILE_NAMES",
+    "TypedTelemetryContext",
     "AnalystCostProfile",
     "WINDOW_KINDS",
     "canonical_json",
+    "build_typed_telemetry",
     "compare_detector_findings",
     "default_recipe_root",
     "hash_history_source",
     "load_threat_hunting_artifacts",
     "load_threat_hunting_report",
+    "normalize_stealth_sweep",
     "mapping_manifest",
     "normalize_recipe_overrides",
     "run_hunting_benchmark",
+    "run_hunting_closed_loop_evaluation",
     "run_hunting_history_evaluation",
     "run_hunting_recipe_evaluation",
+    "serialize_typed_telemetry",
     "stable_identifier",
     "threat_hunting_main",
+    "summarize_feedback_effects",
     "validate_recipe",
 ]

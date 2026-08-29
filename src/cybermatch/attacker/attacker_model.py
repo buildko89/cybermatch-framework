@@ -121,6 +121,13 @@ class AttackerModel:
     frustration_no_progress: float = 0.5
     frustration_decay: float = 0.95
     frustration_retreat_threshold: float = 10.0
+    stealth_enabled: bool = False
+    c2_jitter_ratio: float = 0.0
+    dns_tunnel_chunk_size: int = 0
+    process_masquerading: bool = False
+    domain_homoglyph_enabled: bool = False
+    hunting_awareness_threshold: float = 1.0
+    sleep_or_slowdown_factor: float = 1.0
 
     # 内部状態
     no_success_steps: int = 0
@@ -201,6 +208,58 @@ class AttackerModel:
         if self.frustration_steps <= 0:
             return float(self.frustration)
         return float(self.frustration_sum / self.frustration_steps)
+
+    def stealth_detection_multiplier(self) -> float:
+        if not self.stealth_enabled:
+            return 1.0
+        jitter_reduction = 0.30 * min(max(float(self.c2_jitter_ratio), 0.0), 1.0)
+        chunk_reduction = (
+            0.20 * (1.0 - min(max(float(self.dns_tunnel_chunk_size), 0.0) / 1024.0, 1.0))
+            if self.dns_tunnel_chunk_size > 0
+            else 0.0
+        )
+        masquerading_reduction = 0.15 if self.process_masquerading else 0.0
+        homoglyph_reduction = 0.10 if self.domain_homoglyph_enabled else 0.0
+        return float(np.clip(1.0 - jitter_reduction - chunk_reduction - masquerading_reduction - homoglyph_reduction, 0.2, 1.0))
+
+    def should_slow_down(self, step: int, observed_hunting_pressure: float) -> bool:
+        if not self.stealth_enabled or self.sleep_or_slowdown_factor <= 1.0:
+            return False
+        if observed_hunting_pressure < self.hunting_awareness_threshold:
+            return False
+        interval = max(1, int(np.ceil(self.sleep_or_slowdown_factor)))
+        return step % interval != 0
+
+    def observe_defender_consequence(
+        self,
+        *,
+        blocked: bool,
+        delayed: bool,
+        detected: bool,
+        redirected: bool,
+        confidence_decay: float,
+        frustration_increase: float,
+    ) -> None:
+        """Consume only attacker-observable consequences, never a Finding."""
+
+        if not self.enabled or self.retreated or not any((blocked, delayed, detected, redirected)):
+            return
+        if self.perceived_utility_enabled:
+            self.confidence *= float(np.clip(confidence_decay, 0.0, 1.0))
+        if self.frustration_enabled:
+            impact_count = sum((blocked, delayed, detected, redirected))
+            impact = max(float(frustration_increase), 0.0) * impact_count
+            self.frustration += impact
+            if blocked or delayed:
+                self.ai_replanning_cost += impact
+            if detected:
+                self.ai_operational_risk_cost += impact
+            if redirected:
+                self.ai_uncertainty_cost += impact
+            self.max_frustration = max(self.max_frustration, self.frustration)
+            if self.retreat_based_on == "frustration" and self.frustration > self.frustration_retreat_threshold:
+                self.frustration_retreats += 1
+                self.retreated = True
 
     def select_attack(self, x_current: np.ndarray, M_current: np.ndarray) -> np.ndarray:
         previous_target = self.last_selected_target
