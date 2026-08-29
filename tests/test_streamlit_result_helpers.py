@@ -7,6 +7,7 @@ from apps.streamlit_app import (
     build_hunting_event_summary,
     build_hunting_evidence_timeline,
     build_hunting_heatmap_rows,
+    build_hunting_model_summary,
     build_hunting_summary_cards,
     build_recipe_operation_rows,
     build_user_run_summary,
@@ -173,6 +174,32 @@ def test_hunting_summary_and_charts_use_only_succeeded_rows():
         }
     ]
     assert bubbles[0]["false_positives_per_100_steps"] == 1.5
+
+
+def test_hunting_model_summary_exposes_reproducibility_fields():
+    rows = build_hunting_model_summary(
+        {
+            "plugin_id": "sklearn_kmeans_distance_v1",
+            "model_kind": "kmeans_distance",
+            "feature_schema": ["attributes.bytes", "step"],
+            "training_data_ids": ["seed-1", "seed-2"],
+            "random_seed": 17,
+            "threshold": 1.23456,
+            "model_hash": "abc123",
+        }
+    )
+
+    assert rows == [
+        {
+            "plugin": "sklearn_kmeans_distance_v1",
+            "model": "kmeans_distance",
+            "features": "attributes.bytes, step",
+            "training_data_count": 2,
+            "random_seed": 17,
+            "threshold": 1.2346,
+            "model_hash": "abc123",
+        }
+    ]
 
 
 def test_hunting_data_summary_and_evidence_timeline_are_deterministic():

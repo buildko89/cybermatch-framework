@@ -125,6 +125,7 @@ Once running, your terminal will display a URL (usually `http://localhost:8501`)
 - **Run**: Execute the simulations based on your selected scenario and products.
 - **Results**: View detailed metrics, mission-aware effectiveness heatmaps, and download generated reports.
 - **Threat Hunting**: Review the 18-case hunting benchmark, tune auditable recipe parameters, inspect evidence timelines, and export H1/H2 artifacts without feeding truth labels back into the detector.
+  External CSV/JSONL telemetry can be mapped explicitly, and optional K-Means or Isolation Forest detectors preserve training IDs, feature/preprocessing hashes, seed, threshold, and model provenance.
 
 ## Command-Line Execution (Representative Experiments)
 

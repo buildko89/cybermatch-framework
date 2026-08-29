@@ -40,6 +40,7 @@ from .engine import (
     ThreatHuntingInputError,
     ThreatHuntingLimitError,
 )
+from .external import ExternalTelemetryAdapter, ExternalTelemetryError
 from .evaluation import (
     DEFAULT_EVALUATED_LABEL_TYPES,
     AnalystCostProfile,
@@ -59,6 +60,23 @@ from .models import (
     JsonScalar,
     canonical_json,
     stable_identifier,
+)
+from .mappings import (
+    EXTERNAL_EVENT_FIELDS,
+    ExternalFieldMapping,
+    ExternalMappingError,
+    mapping_manifest,
+)
+from .model_plugins import (
+    MODEL_KINDS,
+    MODEL_MANIFEST_RELATIVE_PATH,
+    MODEL_PLUGIN_VERSION,
+    ModelDetectionResult,
+    ModelPluginManifest,
+    SklearnAnomalyPlugin,
+    ThreatHuntingModelError,
+    ThreatHuntingModelPlugin,
+    compare_detector_findings,
 )
 from .operators import OperatorExecutionError
 from .recipes import (
@@ -109,6 +127,11 @@ __all__ = [
     "EVENTS_FILENAME",
     "EVALUATION_ARTIFACT_FILENAMES",
     "FEEDBACK_ACTION_TYPES",
+    "EXTERNAL_EVENT_FIELDS",
+    "ExternalFieldMapping",
+    "ExternalMappingError",
+    "ExternalTelemetryAdapter",
+    "ExternalTelemetryError",
     "FINDING_SEVERITIES",
     "FILTER_PREDICATES",
     "FINDINGS_FILENAME",
@@ -135,6 +158,11 @@ __all__ = [
     "LoadedThreatHuntingArtifacts",
     "MANIFEST_FILENAME",
     "METRICS_FILENAME",
+    "MODEL_KINDS",
+    "MODEL_MANIFEST_RELATIVE_PATH",
+    "MODEL_PLUGIN_VERSION",
+    "ModelDetectionResult",
+    "ModelPluginManifest",
     "NullThreatHuntingFeedbackSink",
     "OPERATOR_REGISTRY",
     "OperatorExecutionError",
@@ -147,6 +175,7 @@ __all__ = [
     "RecipeValidationError",
     "REPORT_FILENAME",
     "SUMMARY_FILENAME",
+    "SklearnAnomalyPlugin",
     "ThreatHuntingArtifactError",
     "ThreatHuntingArtifactExistsError",
     "ThreatHuntingArtifactPaths",
@@ -160,6 +189,8 @@ __all__ = [
     "ThreatHuntingFeedbackSink",
     "ThreatHuntingInputError",
     "ThreatHuntingLimitError",
+    "ThreatHuntingModelError",
+    "ThreatHuntingModelPlugin",
     "ThreatHuntingRecipe",
     "ThreatHuntingRecipeLoader",
     "apply_recipe_overrides",
@@ -173,10 +204,12 @@ __all__ = [
     "AnalystCostProfile",
     "WINDOW_KINDS",
     "canonical_json",
+    "compare_detector_findings",
     "default_recipe_root",
     "hash_history_source",
     "load_threat_hunting_artifacts",
     "load_threat_hunting_report",
+    "mapping_manifest",
     "normalize_recipe_overrides",
     "run_hunting_benchmark",
     "run_hunting_history_evaluation",

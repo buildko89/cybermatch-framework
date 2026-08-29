@@ -15,6 +15,7 @@ import numpy as np
 from .adapters import HistorySource
 from .config import ThreatHuntingRunConfig
 from .models import Finding, HuntEvent, SCHEMA_VERSION, canonical_json
+from .model_plugins import MODEL_MANIFEST_RELATIVE_PATH, ModelPluginManifest
 from .recipes import ThreatHuntingRecipe
 
 
@@ -157,6 +158,7 @@ def _validate_bundle_inputs(
     campaign_id: str,
     scenario_id: str,
     seed: int | None,
+    model_manifest: ModelPluginManifest | None = None,
 ) -> None:
     if any(not isinstance(event, HuntEvent) for event in events):
         raise ThreatHuntingArtifactError("events must contain HuntEvent observations only")
@@ -175,10 +177,14 @@ def _validate_bundle_inputs(
         for event in events
     ):
         raise ThreatHuntingArtifactError("event metadata does not match artifact metadata")
+    allowed_finding_sources = {(recipe.recipe_id, recipe.version)}
+    if model_manifest is not None:
+        allowed_finding_sources.add(
+            (f"model:{model_manifest.plugin_id}", model_manifest.plugin_version)
+        )
     if any(
         finding.campaign_id != campaign_id
-        or finding.recipe_id != recipe.recipe_id
-        or finding.recipe_version != recipe.version
+        or (finding.recipe_id, finding.recipe_version) not in allowed_finding_sources
         for finding in findings
     ):
         raise ThreatHuntingArtifactError("finding metadata does not match artifact metadata")
@@ -219,6 +225,7 @@ class ThreatHuntingArtifactWriter:
         scenario_id: str,
         seed: int | None,
         recipe_overrides: Mapping[str, object] | None = None,
+        model_manifest: ModelPluginManifest | Mapping[str, object] | None = None,
     ) -> ThreatHuntingArtifactPaths:
         if not isinstance(recipe, ThreatHuntingRecipe):
             raise ThreatHuntingArtifactError("recipe must be a ThreatHuntingRecipe")
@@ -227,6 +234,13 @@ class ThreatHuntingArtifactWriter:
         campaign_id = _require_metadata_string(campaign_id, "campaign_id")
         scenario_id = _require_metadata_string(scenario_id, "scenario_id")
         seed = _require_seed(seed)
+        normalized_model_manifest = None
+        if model_manifest is not None:
+            normalized_model_manifest = (
+                model_manifest
+                if isinstance(model_manifest, ModelPluginManifest)
+                else ModelPluginManifest.from_dict(model_manifest)
+            )
         supplied_events = tuple(events)
         supplied_findings = tuple(findings)
         if any(not isinstance(event, HuntEvent) for event in supplied_events):
@@ -254,6 +268,7 @@ class ThreatHuntingArtifactWriter:
             campaign_id,
             scenario_id,
             seed,
+            normalized_model_manifest,
         )
         source_history_hash = hash_history_source(source_history)
 
@@ -296,6 +311,11 @@ class ThreatHuntingArtifactWriter:
             }
             _write_json(summary_path, summary)
 
+            if normalized_model_manifest is not None:
+                model_path = self._output_dir / MODEL_MANIFEST_RELATIVE_PATH
+                model_path.parent.mkdir()
+                _write_json(model_path, normalized_model_manifest.to_dict())
+
             artifact_descriptors = {
                 filename: {
                     "sha256": _sha256_file(self._output_dir / filename),
@@ -303,6 +323,12 @@ class ThreatHuntingArtifactWriter:
                 }
                 for filename in _HASHED_ARTIFACT_FILENAMES
             }
+            if normalized_model_manifest is not None:
+                model_path = self._output_dir / MODEL_MANIFEST_RELATIVE_PATH
+                artifact_descriptors[MODEL_MANIFEST_RELATIVE_PATH] = {
+                    "sha256": _sha256_file(model_path),
+                    "size_bytes": model_path.stat().st_size,
+                }
             manifest: dict[str, object] = {
                 "schema_version": SCHEMA_VERSION,
                 "artifact_format_version": ARTIFACT_FORMAT_VERSION,
@@ -328,6 +354,11 @@ class ThreatHuntingArtifactWriter:
                         "recipe_overrides must contain JSON values"
                     ) from exc
                 manifest["recipe_overrides"] = normalized_overrides
+            if normalized_model_manifest is not None:
+                manifest["model_manifest"] = {
+                    "path": MODEL_MANIFEST_RELATIVE_PATH,
+                    "model_hash": normalized_model_manifest.model_hash,
+                }
             artifact_hash = _sha256_bytes(canonical_json(manifest).encode("utf-8"))
             manifest["artifact_hash"] = artifact_hash
             _write_json(manifest_path, manifest)
@@ -389,6 +420,25 @@ def load_threat_hunting_artifacts(
             raise ThreatHuntingArtifactError(f"artifact hash verification failed: {filename}")
         if path.stat().st_size != descriptor.get("size_bytes"):
             raise ThreatHuntingArtifactError(f"artifact size verification failed: {filename}")
+    model_reference = manifest.get("model_manifest")
+    if model_reference is not None:
+        if not isinstance(model_reference, Mapping) or model_reference.get("path") != MODEL_MANIFEST_RELATIVE_PATH:
+            raise ThreatHuntingArtifactError("model manifest reference is invalid")
+        descriptor = descriptors.get(MODEL_MANIFEST_RELATIVE_PATH)
+        model_path = root / MODEL_MANIFEST_RELATIVE_PATH
+        if not isinstance(descriptor, Mapping) or not isinstance(descriptor.get("sha256"), str):
+            raise ThreatHuntingArtifactError("model manifest descriptor is missing")
+        if not model_path.is_file() or _sha256_file(model_path) != descriptor["sha256"]:
+            raise ThreatHuntingArtifactError("model manifest hash verification failed")
+        if model_path.stat().st_size != descriptor.get("size_bytes"):
+            raise ThreatHuntingArtifactError("model manifest size verification failed")
+        model_value = _load_json(model_path)
+        try:
+            loaded_model = ModelPluginManifest.from_dict(model_value)
+        except (TypeError, ValueError) as exc:
+            raise ThreatHuntingArtifactError(f"model manifest is invalid: {exc}") from exc
+        if loaded_model.model_hash != model_reference.get("model_hash"):
+            raise ThreatHuntingArtifactError("model manifest reference disagrees with artifact")
 
     events: list[HuntEvent] = []
     try:

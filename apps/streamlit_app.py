@@ -996,6 +996,24 @@ def build_recipe_operation_rows(recipe_payload: Dict[str, Any]) -> List[Dict[str
     return result
 
 
+def build_hunting_model_summary(model_manifest: Any) -> List[Dict[str, Any]]:
+    if not isinstance(model_manifest, dict):
+        return []
+    features = model_manifest.get("feature_schema", [])
+    training = model_manifest.get("training_data_ids", [])
+    return [
+        {
+            "plugin": str(model_manifest.get("plugin_id", "")),
+            "model": str(model_manifest.get("model_kind", "")),
+            "features": ", ".join(str(value) for value in features) if isinstance(features, list) else "",
+            "training_data_count": len(training) if isinstance(training, list) else 0,
+            "random_seed": model_manifest.get("random_seed"),
+            "threshold": round_metric(model_manifest.get("threshold")),
+            "model_hash": str(model_manifest.get("model_hash", "")),
+        }
+    ]
+
+
 def safe_hunting_artifact_dir(path_value: Any) -> Optional[Path]:
     if not isinstance(path_value, str) or not path_value:
         return None
@@ -2601,6 +2619,12 @@ def _render_hunting_artifact(artifact_dir: Path, labels: Dict[str, str]) -> None
     events = [event.to_dict() for event in artifacts.events]
     findings = [finding.to_dict() for finding in artifacts.findings]
     metrics = dict(report.evaluation.metrics)
+    model_reference = artifacts.manifest.get("model_manifest")
+    model_path = None
+    model_payload = None
+    if isinstance(model_reference, dict) and model_reference.get("path") == "models/model_manifest.json":
+        model_path = artifact_dir / "models" / "model_manifest.json"
+        model_payload = read_json(model_path)
 
     st.subheader(labels["data_summary"])
     event_cards = st.columns(4)
@@ -2625,6 +2649,9 @@ def _render_hunting_artifact(artifact_dir: Path, labels: Dict[str, str]) -> None
             use_container_width=True,
             hide_index=True,
         )
+    if model_payload is not None:
+        st.subheader("Model provenance")
+        st.dataframe(build_hunting_model_summary(model_payload), use_container_width=True, hide_index=True)
 
     st.subheader(labels["findings"])
     if findings:
@@ -2652,6 +2679,8 @@ def _render_hunting_artifact(artifact_dir: Path, labels: Dict[str, str]) -> None
             render_download(artifact_dir / "metrics.json", "Metrics JSON", "application/json", {"missing": "Missing"})
         with cols[3]:
             render_download(artifact_dir / "THREAT_HUNTING_REPORT.md", "Report", "text/markdown", {"missing": "Missing"})
+        if model_path is not None:
+            render_download(model_path, "Model manifest", "application/json", {"missing": "Missing"})
 
 
 def render_hunting(text: Dict[str, Any]) -> None:
