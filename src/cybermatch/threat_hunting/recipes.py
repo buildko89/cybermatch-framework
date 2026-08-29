@@ -615,6 +615,82 @@ def default_recipe_root() -> Path:
     return Path(__file__).resolve().parents[3] / "recipes" / "threat_hunting"
 
 
+RECIPE_OVERRIDE_FIELDS = frozenset(
+    {
+        "window_size_steps",
+        "sequence_max_span_steps",
+        "finding_threshold",
+        "finding_score",
+    }
+)
+
+
+def normalize_recipe_overrides(overrides: Mapping[str, object] | None) -> dict[str, int | float]:
+    """Validate the small, auditable override surface shared by CLI and GUI."""
+
+    if overrides is None:
+        return {}
+    if not isinstance(overrides, Mapping):
+        raise RecipeValidationError("recipe overrides must be an object")
+    unknown = sorted(set(overrides) - RECIPE_OVERRIDE_FIELDS)
+    if unknown:
+        raise RecipeValidationError(f"recipe overrides have unknown fields: {', '.join(unknown)}")
+    normalized: dict[str, int | float] = {}
+    for key, value in overrides.items():
+        if key in {"window_size_steps", "sequence_max_span_steps"}:
+            normalized[key] = _require_integer(value, f"recipe_overrides.{key}", minimum=1)
+        elif key == "finding_score":
+            number = _require_number(value, f"recipe_overrides.{key}")
+            if not 0.0 <= number <= 1.0:
+                raise RecipeValidationError(f"recipe_overrides.{key} must be between 0 and 1")
+            normalized[key] = number
+        else:
+            number = _require_number(value, f"recipe_overrides.{key}")
+            if number < 0.0:
+                raise RecipeValidationError(f"recipe_overrides.{key} must be non-negative")
+            normalized[key] = number
+    return {key: normalized[key] for key in sorted(normalized)}
+
+
+def apply_recipe_overrides(
+    recipe: ThreatHuntingRecipe,
+    overrides: Mapping[str, object] | None,
+) -> ThreatHuntingRecipe:
+    """Return a newly validated recipe with deterministic parameter overrides."""
+
+    if not isinstance(recipe, ThreatHuntingRecipe):
+        raise RecipeValidationError("recipe must be a ThreatHuntingRecipe")
+    normalized = normalize_recipe_overrides(overrides)
+    if not normalized:
+        return recipe
+    payload = recipe.to_dict()
+    operations = payload["operations"]
+    if "window_size_steps" in normalized:
+        windows = [operation for operation in operations if operation["operator"] == "window"]
+        if not windows:
+            raise RecipeValidationError("window_size_steps requires a window operator")
+        for operation in windows:
+            operation["size_steps"] = normalized["window_size_steps"]
+    if "sequence_max_span_steps" in normalized:
+        sequences = [operation for operation in operations if operation["operator"] == "sequence"]
+        if not sequences:
+            raise RecipeValidationError("sequence_max_span_steps requires a sequence operator")
+        for operation in sequences:
+            operation["max_span_steps"] = normalized["sequence_max_span_steps"]
+    finding = payload["finding"]
+    if "finding_threshold" in normalized:
+        condition = finding.get("condition")
+        if not isinstance(condition, dict):
+            raise RecipeValidationError("finding_threshold requires a finding condition")
+        condition["value"] = normalized["finding_threshold"]
+    if "finding_score" in normalized:
+        finding["score"] = normalized["finding_score"]
+    metadata = dict(payload.get("metadata", {}))
+    metadata["recipe_overrides"] = normalized
+    payload["metadata"] = metadata
+    return validate_recipe(payload)
+
+
 __all__ = [
     "AGGREGATE_FUNCTIONS",
     "DERIVE_FUNCTIONS",
@@ -623,12 +699,15 @@ __all__ = [
     "OPERATOR_REGISTRY",
     "RANK_FUNCTIONS",
     "WINDOW_KINDS",
+    "RECIPE_OVERRIDE_FIELDS",
     "RecipeFinding",
     "RecipeLoadError",
     "RecipeOperation",
     "RecipeValidationError",
     "ThreatHuntingRecipe",
     "ThreatHuntingRecipeLoader",
+    "apply_recipe_overrides",
     "default_recipe_root",
+    "normalize_recipe_overrides",
     "validate_recipe",
 ]

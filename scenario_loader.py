@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parent
 ALLOWED_RUNNERS = {
     "phase62_product_profile",
     "phase63_mission_aware_product",
+    "hunting_recipe_evaluation",
 }
 
 ALLOWED_MISSIONS = {
@@ -38,6 +39,12 @@ ALLOWED_CHARACTERISTIC_LEVELS = {
     "low",
     "medium",
     "high",
+}
+
+ALLOWED_HUNTING_NOISE_PROFILES = {
+    "none",
+    "moderate",
+    "adversarial",
 }
 
 CATALOG_DIR = ROOT / "scenarios" / "catalog"
@@ -107,9 +114,11 @@ def validate_scenario(scenario: Dict[str, Any]) -> None:
         if not product_path.is_file():
             raise ScenarioValidationError(f"Product profile not found: {product_path_value}")
         try:
-            json.loads(product_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            raise ScenarioValidationError(f"Product profile JSON is invalid: {product_path_value}: {exc}") from exc
+            from src.cybermatch.models.product import load_product_profile
+
+            load_product_profile(str(product_path))
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise ScenarioValidationError(f"Product profile is invalid: {product_path_value}: {exc}") from exc
 
     topology = scenario.get("topology", {})
     if not isinstance(topology, dict):
@@ -135,6 +144,80 @@ def validate_scenario(scenario: Dict[str, Any]) -> None:
             value = characteristics.get(key)
             if value not in ALLOWED_CHARACTERISTIC_LEVELS:
                 raise ScenarioValidationError(f"characteristics.{key} must be low, medium, or high.")
+
+    hunting = scenario.get("hunting")
+    if runner == "hunting_recipe_evaluation" and not isinstance(hunting, dict):
+        raise ScenarioValidationError("hunting_recipe_evaluation requires a hunting object.")
+    if hunting is not None:
+        _validate_hunting_section(hunting)
+
+
+def _validate_hunting_section(hunting: object) -> None:
+    if not isinstance(hunting, dict):
+        raise ScenarioValidationError("hunting must be an object when provided.")
+    allowed = {
+        "recipes",
+        "baseline_runs",
+        "evaluation_runs",
+        "noise_profiles",
+        "simulation_steps",
+        "simulation_overrides",
+    }
+    unknown = sorted(set(hunting) - allowed)
+    if unknown:
+        raise ScenarioValidationError(f"hunting has unknown fields: {', '.join(unknown)}")
+
+    recipes = hunting.get("recipes")
+    if not isinstance(recipes, list) or not recipes:
+        raise ScenarioValidationError("hunting.recipes must be a non-empty list.")
+    recipe_root = (ROOT / "recipes" / "threat_hunting").resolve()
+    from src.cybermatch.threat_hunting import ThreatHuntingRecipeLoader
+
+    loader = ThreatHuntingRecipeLoader(recipe_root)
+    for recipe_path_value in recipes:
+        if not isinstance(recipe_path_value, str) or not recipe_path_value:
+            raise ScenarioValidationError("hunting recipe paths must be non-empty strings.")
+        recipe_path = _resolve_repo_path(recipe_path_value).resolve()
+        if not recipe_path.is_relative_to(recipe_root):
+            raise ScenarioValidationError(
+                f"hunting recipe must be below recipes/threat_hunting: {recipe_path_value}"
+            )
+        try:
+            loader.load(recipe_path.relative_to(recipe_root))
+        except ValueError as exc:
+            raise ScenarioValidationError(f"Invalid hunting recipe {recipe_path_value}: {exc}") from exc
+
+    noise_profiles = hunting.get("noise_profiles", ["none"])
+    if not isinstance(noise_profiles, list) or not noise_profiles:
+        raise ScenarioValidationError("hunting.noise_profiles must be a non-empty list.")
+    if any(not isinstance(value, str) for value in noise_profiles):
+        raise ScenarioValidationError("hunting.noise_profiles must contain strings.")
+    if len(set(noise_profiles)) != len(noise_profiles):
+        raise ScenarioValidationError("hunting.noise_profiles must not contain duplicates.")
+    invalid_noise = sorted(set(noise_profiles) - ALLOWED_HUNTING_NOISE_PROFILES)
+    if invalid_noise:
+        raise ScenarioValidationError(f"Unsupported hunting noise profiles: {invalid_noise}")
+
+    for key, minimum in (("baseline_runs", 0), ("evaluation_runs", 1), ("simulation_steps", 1)):
+        if key not in hunting:
+            continue
+        value = hunting[key]
+        if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+            qualifier = "positive" if minimum == 1 else "non-negative"
+            raise ScenarioValidationError(f"hunting.{key} must be a {qualifier} integer.")
+
+    overrides = hunting.get("simulation_overrides", {})
+    if not isinstance(overrides, dict):
+        raise ScenarioValidationError("hunting.simulation_overrides must be an object.")
+    from src.cybermatch.config.simulation_config import SimulationConfig
+
+    valid_config_fields = set(SimulationConfig.__dataclass_fields__)
+    invalid_overrides = sorted(set(overrides) - valid_config_fields)
+    if invalid_overrides:
+        raise ScenarioValidationError(
+            "hunting.simulation_overrides has unknown SimulationConfig fields: "
+            + ", ".join(invalid_overrides)
+        )
 
 
 def list_available_scenarios(catalog_dir: str | None = None) -> List[Path]:
@@ -173,6 +256,18 @@ def run_scenario_from_file(path: str) -> Dict[str, Any]:
         runner_kwargs["missions"] = scenario["missions"]
         runner_kwargs["product_profile_paths"] = scenario["products"]
         runner_kwargs["topology_preset"] = str(scenario.get("topology", {}).get("preset", "default_enterprise"))
+
+    if runner == "hunting_recipe_evaluation":
+        from src.cybermatch.threat_hunting.scenario_runner import run_hunting_recipe_evaluation
+
+        rows = run_hunting_recipe_evaluation(scenario, output_dir=output_dir)
+        return {
+            "scenario_name": metadata["name"],
+            "runner": runner,
+            "output_dir": output_dir,
+            "rows": len(rows),
+            "success": True,
+        }
 
     from run_scenarios import run_phase62_product_profile_evaluation, run_phase63_mission_aware_product_evaluation
 

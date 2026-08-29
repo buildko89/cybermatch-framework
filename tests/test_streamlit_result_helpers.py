@@ -1,6 +1,17 @@
 from __future__ import annotations
 
-from apps.streamlit_app import build_decision_recommendations, build_user_run_summary, localize_report_markdown
+from apps.streamlit_app import (
+    TEXT,
+    build_decision_recommendations,
+    build_hunting_bubble_rows,
+    build_hunting_event_summary,
+    build_hunting_evidence_timeline,
+    build_hunting_heatmap_rows,
+    build_hunting_summary_cards,
+    build_recipe_operation_rows,
+    build_user_run_summary,
+    localize_report_markdown,
+)
 
 
 def test_decision_recommendations_selects_winner_and_primary_driver():
@@ -109,3 +120,106 @@ def test_report_is_unchanged_for_english_gui():
     source = "# Phase9.0 Intent Inference Report\n\n## Summary\n"
 
     assert localize_report_markdown(source, "PHASE90_INTENT_INFERENCE_REPORT.md", "en") == source
+
+
+def test_hunting_navigation_is_available_in_both_languages():
+    assert TEXT["日本語"]["nav_to_key"]["脅威ハンティング"] == "hunting"
+    assert TEXT["English"]["nav_to_key"]["Threat Hunting"] == "hunting"
+
+
+def test_hunting_summary_and_charts_use_only_succeeded_rows():
+    rows = [
+        {
+            "status": "succeeded",
+            "mission_name": "critical_hunter",
+            "product_profile": "product_a",
+            "recipe_id": "recipe_a",
+            "noise_profile": "none",
+            "f1": 0.75,
+            "finding_count": 2,
+            "false_positives_per_100_steps": 1.5,
+        },
+        {
+            "status": "unsupported",
+            "mission_name": "critical_hunter",
+            "product_profile": "product_b",
+            "recipe_id": "recipe_a",
+            "noise_profile": "none",
+            "f1": 1.0,
+            "finding_count": 10,
+        },
+    ]
+
+    cards = build_hunting_summary_cards(
+        rows,
+        {"evaluation_matrix_size": 2, "benchmark_completeness": 0.5},
+    )
+    heatmap = build_hunting_heatmap_rows(rows)
+    bubbles = build_hunting_bubble_rows(rows)
+
+    assert cards == {
+        "evaluation_matrix_size": 2,
+        "succeeded_cases": 1,
+        "completeness": 0.5,
+        "finding_count": 2,
+        "mean_f1": 0.75,
+    }
+    assert heatmap == [
+        {
+            "mission": "critical_hunter",
+            "product": "product_a",
+            "recipe": "recipe_a",
+            "mean_f1": 0.75,
+        }
+    ]
+    assert bubbles[0]["false_positives_per_100_steps"] == 1.5
+
+
+def test_hunting_data_summary_and_evidence_timeline_are_deterministic():
+    events = [
+        {
+            "event_id": "event-b",
+            "step": 2,
+            "event_type": "critical_path_progress",
+            "signal_class": "derived_signal",
+            "source_role": None,
+            "target_role": "critical_asset",
+        },
+        {
+            "event_id": "event-a",
+            "step": 1,
+            "event_type": "credential_use",
+            "signal_class": "telemetry",
+            "source_role": "identity_server",
+            "target_role": None,
+        },
+        {
+            "event_id": "event-c",
+            "step": 3,
+            "event_type": "credential_use",
+            "signal_class": "telemetry",
+            "source_role": None,
+            "target_role": None,
+        },
+    ]
+
+    assert build_hunting_event_summary(events)[0] == {
+        "event_type": "credential_use",
+        "signal_class": "telemetry",
+        "count": 2,
+    }
+    timeline = build_hunting_evidence_timeline(events, ["event-b", "event-a"])
+    assert [row["event_id"] for row in timeline] == ["event-a", "event-b"]
+
+
+def test_recipe_operation_rows_end_with_finding_node():
+    rows = build_recipe_operation_rows(
+        {
+            "operations": [
+                {"operator": "filter", "field": "event_type", "predicate": "eq", "value": "scan"}
+            ],
+            "finding": {"score": 0.5},
+        }
+    )
+
+    assert [row["operator"] for row in rows] == ["filter", "finding"]

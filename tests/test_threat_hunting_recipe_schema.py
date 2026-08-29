@@ -10,6 +10,7 @@ from cybermatch_core.threat_hunting import (
     RecipeValidationError,
     ThreatHuntingRecipe,
     ThreatHuntingRecipeLoader,
+    apply_recipe_overrides,
     default_recipe_root,
     validate_recipe,
 )
@@ -84,6 +85,38 @@ def test_default_sample_recipes_load_and_use_observed_fields_only():
         "critical_path_approach_v1",
     ]
     assert all(recipe.source == "observed" for recipe in recipes)
+
+
+def test_recipe_overrides_are_validated_and_change_recipe_hash():
+    recipe = ThreatHuntingRecipeLoader(default_recipe_root()).load(
+        "critical_path_approach_v1.json"
+    )
+
+    overridden = apply_recipe_overrides(
+        recipe,
+        {"window_size_steps": 7, "finding_threshold": 3, "finding_score": 0.8},
+    )
+
+    assert overridden.recipe_hash != recipe.recipe_hash
+    assert overridden.operations[1].parameters["size_steps"] == 7
+    assert overridden.finding.condition["value"] == 3.0
+    assert overridden.finding.score == 0.8
+    assert overridden.metadata["recipe_overrides"] == {
+        "finding_score": 0.8,
+        "finding_threshold": 3.0,
+        "window_size_steps": 7,
+    }
+
+
+def test_recipe_override_rejects_operator_mismatch_and_unknown_field():
+    recipe = ThreatHuntingRecipeLoader(default_recipe_root()).load(
+        "critical_path_approach_v1.json"
+    )
+
+    with pytest.raises(RecipeValidationError, match="requires a sequence operator"):
+        apply_recipe_overrides(recipe, {"sequence_max_span_steps": 4})
+    with pytest.raises(RecipeValidationError, match="unknown fields: oracle_threshold"):
+        apply_recipe_overrides(recipe, {"oracle_threshold": 1})
 
 
 @pytest.mark.parametrize(

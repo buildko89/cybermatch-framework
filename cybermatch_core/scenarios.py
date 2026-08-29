@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from scenario_loader import (
+    ALLOWED_HUNTING_NOISE_PROFILES,
     ALLOWED_MISSIONS,
     ALLOWED_RUNNERS,
     ScenarioValidationError,
@@ -15,6 +16,7 @@ from scenario_loader import (
 
 
 __all__ = [
+    "ALLOWED_HUNTING_NOISE_PROFILES",
     "ALLOWED_MISSIONS",
     "ALLOWED_RUNNERS",
     "ScenarioValidationError",

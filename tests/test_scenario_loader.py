@@ -42,6 +42,39 @@ def test_valid_scenario_load():
     assert scenario["evaluation"]["runner"] == "phase63_mission_aware_product"
 
 
+def test_hunting_scenario_loads_with_optional_schema_extension():
+    scenario = load_scenario("scenarios/threat_hunting/credential_critical_path_smoke.json")
+
+    assert scenario["evaluation"]["runner"] == "hunting_recipe_evaluation"
+    assert scenario["hunting"]["baseline_runs"] == 0
+    assert scenario["hunting"]["noise_profiles"] == ["none", "moderate", "adversarial"]
+
+
+def test_hunting_scenario_rejects_truth_oracle_override():
+    scenario = _valid_scenario()
+    scenario["evaluation"]["runner"] = "hunting_recipe_evaluation"
+    scenario["hunting"] = {
+        "recipes": ["recipes/threat_hunting/critical_path_approach_v1.json"],
+        "noise_profiles": ["none"],
+        "simulation_overrides": {"oracle_visibility": True},
+    }
+
+    with pytest.raises(ScenarioValidationError, match="unknown SimulationConfig fields: oracle_visibility"):
+        validate_scenario(scenario)
+
+
+def test_hunting_scenario_rejects_recipe_outside_trusted_root():
+    scenario = _valid_scenario()
+    scenario["evaluation"]["runner"] = "hunting_recipe_evaluation"
+    scenario["hunting"] = {
+        "recipes": ["profiles/products/sample_ids.json"],
+        "noise_profiles": ["none"],
+    }
+
+    with pytest.raises(ScenarioValidationError, match="must be below recipes/threat_hunting"):
+        validate_scenario(scenario)
+
+
 def test_invalid_mission_fails():
     scenario = _valid_scenario()
     scenario["missions"] = ["profit", "unsupported_mission"]
@@ -84,6 +117,45 @@ def test_run_scenario_from_file_smoke(tmp_path, monkeypatch):
     assert received_kwargs["missions"] == scenario["missions"]
     assert received_kwargs["product_profile_paths"] == scenario["products"]
     assert received_kwargs["topology_preset"] == "default_enterprise"
+
+
+def test_run_hunting_scenario_from_file_smoke(tmp_path, monkeypatch):
+    scenario = load_scenario("scenarios/threat_hunting/credential_critical_path_smoke.json")
+    scenario["evaluation"]["output_dir"] = str(tmp_path / "hunting")
+    scenario["products"] = ["profiles/products/sample_threat_hunting_platform.json"]
+    scenario["hunting"]["recipes"] = [
+        "recipes/threat_hunting/critical_path_approach_v1.json"
+    ]
+    scenario["hunting"]["noise_profiles"] = ["none"]
+    scenario_path = tmp_path / "hunting_scenario.json"
+    scenario_path.write_text(json.dumps(scenario), encoding="utf-8")
+
+    history = {
+        "observable_events": [
+            "critical_path_entry",
+            "critical_path_progress",
+            "critical_path_near_target",
+        ],
+        "critical_path_events": [
+            "critical_path_entry",
+            "critical_path_progress",
+            "critical_path_near_target",
+        ],
+        "critical_compromise": [False, False, True],
+    }
+    monkeypatch.setattr(
+        "src.cybermatch.threat_hunting.scenario_runner._simulate_history",
+        lambda config: history,
+    )
+
+    result = run_scenario_from_file(str(scenario_path))
+
+    assert result["runner"] == "hunting_recipe_evaluation"
+    assert result["rows"] == 1
+    summary = json.loads((tmp_path / "hunting" / "hunting_scenario_summary.json").read_text(encoding="utf-8"))
+    assert summary["manifest"]["completeness"] == 1.0
+    assert summary["rows"][0]["status"] == "succeeded"
+    assert (Path(summary["rows"][0]["artifact_dir"]) / "metrics.json").is_file()
 
 
 def test_load_scenario_catalog():

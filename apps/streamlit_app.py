@@ -27,6 +27,13 @@ SCENARIO_CATALOG_DIR = SCENARIO_DIR / "catalog"
 DEMO_SCENARIO_DIR = SCENARIO_DIR / "demos"
 BENCHMARK_DIR = ROOT / "benchmarks"
 TOPOLOGY_DIR = ROOT / "topologies"
+HUNTING_RECIPE_DIR = ROOT / "recipes" / "threat_hunting"
+HUNTING_OUTPUT_ROOT = ROOT / "output" / "threat_hunting"
+HUNTING_BENCHMARK_OUTPUT_DIR = HUNTING_OUTPUT_ROOT / "cybermatch_hunting_v1"
+HUNTING_BENCHMARK_SUMMARY = HUNTING_BENCHMARK_OUTPUT_DIR / "hunting_benchmark_summary.json"
+HUNTING_BENCHMARK_CSV = HUNTING_BENCHMARK_OUTPUT_DIR / "hunting_benchmark_summary.csv"
+HUNTING_LOG_PATH = HUNTING_OUTPUT_ROOT / "streamlit_hunting_run.log"
+HUNTING_EXPERIMENT_LOG_PATH = HUNTING_OUTPUT_ROOT / "streamlit_hunting_experiment.log"
 PHASE63_OUTPUT_DIR = ROOT / "output" / "phase63_mission_products"
 PHASE62_OUTPUT_DIR = ROOT / "output" / "phase62_product_profiles"
 PHASE83_OUTPUT_DIR = ROOT / "output" / "phase83_benchmark_suite"
@@ -324,7 +331,7 @@ JAPANESE_REPORT_TERMS = {
 
 TEXT = {
     "日本語": {
-        "nav": ["ホーム", "シナリオ", "製品", "実行", "結果", "ベンチマーク"],
+        "nav": ["ホーム", "シナリオ", "製品", "実行", "結果", "ベンチマーク", "脅威ハンティング"],
         "nav_to_key": {
             "ホーム": "home",
             "シナリオ": "scenario",
@@ -332,6 +339,7 @@ TEXT = {
             "実行": "run",
             "結果": "results",
             "ベンチマーク": "benchmark",
+            "脅威ハンティング": "hunting",
         },
         "language": "表示言語",
         "report_locale": "ja",
@@ -570,7 +578,7 @@ TEXT = {
         "not_found": "not found.",
     },
     "English": {
-        "nav": ["Home", "Scenario", "Products", "Run", "Results", "Benchmark"],
+        "nav": ["Home", "Scenario", "Products", "Run", "Results", "Benchmark", "Threat Hunting"],
         "nav_to_key": {
             "Home": "home",
             "Scenario": "scenario",
@@ -578,6 +586,7 @@ TEXT = {
             "Run": "run",
             "Results": "results",
             "Benchmark": "benchmark",
+            "Threat Hunting": "hunting",
         },
         "language": "Display language",
         "report_locale": "en",
@@ -862,6 +871,139 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def list_hunting_benchmark_files() -> List[Path]:
+    result: List[Path] = []
+    for path in list_benchmark_files():
+        payload = read_json(path)
+        metadata = payload.get("metadata", {}) if isinstance(payload, dict) else {}
+        if isinstance(metadata, dict) and metadata.get("type") == "threat_hunting":
+            result.append(path)
+    return result
+
+
+def list_hunting_recipe_files() -> List[Path]:
+    return sorted(HUNTING_RECIPE_DIR.glob("*.json")) if HUNTING_RECIPE_DIR.exists() else []
+
+
+def list_hunting_history_files() -> List[Path]:
+    if not HUNTING_BENCHMARK_OUTPUT_DIR.exists():
+        return []
+    return sorted(HUNTING_BENCHMARK_OUTPUT_DIR.glob("runs/*/*/histories/*.npz"))
+
+
+def build_hunting_summary_cards(
+    rows: List[Dict[str, Any]], manifest: Dict[str, Any]
+) -> Dict[str, Any]:
+    succeeded = [row for row in rows if row.get("status") == "succeeded"]
+    f1_values = [to_float(row.get("f1")) for row in succeeded]
+    return {
+        "evaluation_matrix_size": int(manifest.get("evaluation_matrix_size", len(rows)) or 0),
+        "succeeded_cases": len(succeeded),
+        "completeness": round(to_float(manifest.get("benchmark_completeness")), 4),
+        "finding_count": sum(int(to_float(row.get("finding_count"))) for row in succeeded),
+        "mean_f1": round(mean(f1_values), 4),
+    }
+
+
+def build_hunting_heatmap_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    groups: Dict[tuple[str, str, str], List[float]] = {}
+    for row in rows:
+        if row.get("status") != "succeeded":
+            continue
+        key = (
+            str(row.get("mission_name", "")),
+            str(row.get("product_profile", "")),
+            str(row.get("recipe_id", "")),
+        )
+        groups.setdefault(key, []).append(to_float(row.get("f1")))
+    return [
+        {
+            "mission": key[0],
+            "product": key[1],
+            "recipe": key[2],
+            "mean_f1": round(mean(values), 4),
+        }
+        for key, values in sorted(groups.items())
+    ]
+
+
+def build_hunting_bubble_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "product": str(row.get("product_profile", "")),
+            "recipe": str(row.get("recipe_id", "")),
+            "noise": str(row.get("noise_profile", "")),
+            "f1": to_float(row.get("f1")),
+            "false_positives_per_100_steps": to_float(
+                row.get("false_positives_per_100_steps")
+            ),
+            "finding_count": int(to_float(row.get("finding_count"))),
+        }
+        for row in rows
+        if row.get("status") == "succeeded"
+    ]
+
+
+def build_hunting_event_summary(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    counts: Dict[tuple[str, str], int] = {}
+    for event in events:
+        key = (str(event.get("event_type", "unknown")), str(event.get("signal_class", "unknown")))
+        counts[key] = counts.get(key, 0) + 1
+    return [
+        {"event_type": key[0], "signal_class": key[1], "count": count}
+        for key, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    ]
+
+
+def build_hunting_evidence_timeline(
+    events: List[Dict[str, Any]], evidence_event_ids: List[str]
+) -> List[Dict[str, Any]]:
+    wanted = set(evidence_event_ids)
+    return [
+        {
+            "step": int(event.get("step", 0)),
+            "event_type": str(event.get("event_type", "")),
+            "signal_class": str(event.get("signal_class", "")),
+            "source_role": event.get("source_role"),
+            "target_role": event.get("target_role"),
+            "event_id": str(event.get("event_id", "")),
+        }
+        for event in sorted(events, key=lambda value: (int(value.get("step", 0)), str(value.get("event_id", ""))))
+        if event.get("event_id") in wanted
+    ]
+
+
+def build_recipe_operation_rows(recipe_payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    result: List[Dict[str, Any]] = []
+    for index, operation in enumerate(recipe_payload.get("operations", []), start=1):
+        if not isinstance(operation, dict):
+            continue
+        parameters = {key: value for key, value in operation.items() if key != "operator"}
+        result.append(
+            {
+                "step": index,
+                "operator": str(operation.get("operator", "")),
+                "parameters": json.dumps(parameters, ensure_ascii=False, sort_keys=True),
+            }
+        )
+    result.append(
+        {
+            "step": len(result) + 1,
+            "operator": "finding",
+            "parameters": json.dumps(recipe_payload.get("finding", {}), ensure_ascii=False, sort_keys=True),
+        }
+    )
+    return result
+
+
+def safe_hunting_artifact_dir(path_value: Any) -> Optional[Path]:
+    if not isinstance(path_value, str) or not path_value:
+        return None
+    path = Path(path_value).resolve()
+    output_root = (ROOT / "output").resolve()
+    return path if path.is_relative_to(output_root) and path.is_dir() else None
+
+
 def localize_report_markdown(report: str, report_name: str, locale: str) -> str:
     if locale != "ja" or not report or report.startswith("# 防御策の比較評価レポート") or report.startswith("# CyberMatch 標準ベンチマーク比較レポート"):
         return report
@@ -999,6 +1141,12 @@ def render_benchmark_metadata(path: Path, text: Dict[str, Any]) -> None:
     mission_count = len(benchmark_data.get("missions", []))
     product_count = len(benchmark_data.get("products", []))
     matrix_size = scenario_count * (topology_count or 1) * mission_count * product_count
+    if metadata.get("type") == "threat_hunting":
+        matrix_size *= (
+            len(benchmark_data.get("recipes", []))
+            * len(benchmark_data.get("noise_profiles", []))
+            * len(benchmark_data.get("seeds", [0]))
+        )
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     with col1:
         st.metric(text["benchmark_name"], str(metadata.get("name", "")))
@@ -2382,6 +2530,351 @@ def render_benchmark(text: Dict[str, Any]) -> None:
         st.markdown(localize_report_markdown(report, PHASE85_ARTIFACTS["report"].name, text["report_locale"]))
 
 
+def _hunting_labels(locale: str) -> Dict[str, str]:
+    if locale == "ja":
+        return {
+            "title": "脅威ハンティング",
+            "intro": "観測可能なテレメトリだけを共通レシピで分析し、製品能力・ノイズ・攻撃目的ごとの検出品質を比較します。Findingは防御policyへ自動反映されません。",
+            "benchmark": "ハンティング・ベンチマーク",
+            "run": "smoke benchmarkを実行",
+            "immutable": "既存結果を保護するため、同じ出力先は上書きしません。再実行する場合は既存出力を退避してください。",
+            "missing": "結果がありません。smoke benchmarkを実行してください。",
+            "wizard": "レシピ選択とパラメータ",
+            "focus": "調査したい仮説",
+            "recipe": "ハンティングレシピ",
+            "pipeline": "分析パイプライン",
+            "overrides": "recipe override（manifestへ保存）",
+            "experiment": "選択した履歴でパラメータ実験を実行",
+            "history": "入力履歴",
+            "product": "製品プロファイル",
+            "results": "評価結果",
+            "data_summary": "データ概要",
+            "metrics": "評価指標",
+            "findings": "Finding一覧",
+            "timeline": "根拠イベントのタイムライン",
+            "heatmap": "Mission × Product × Recipe ヒートマップ",
+            "distribution": "製品別F1分布",
+            "bubble": "検出品質とアナリスト負荷",
+            "downloads": "再現用artifactのダウンロード",
+            "done": "脅威ハンティング実行が完了しました。",
+        }
+    return {
+        "title": "Threat Hunting",
+        "intro": "Analyze defender-observable telemetry with shared recipes and compare detection quality across products, noise profiles, and missions. Findings are not fed back into defender policy.",
+        "benchmark": "Hunting benchmark",
+        "run": "Run smoke benchmark",
+        "immutable": "Existing outputs are immutable. Move the current output before running the same benchmark again.",
+        "missing": "No results found. Run the smoke benchmark first.",
+        "wizard": "Recipe and parameters",
+        "focus": "Investigation hypothesis",
+        "recipe": "Hunting recipe",
+        "pipeline": "Analysis pipeline",
+        "overrides": "Recipe overrides (saved to manifest)",
+        "experiment": "Run parameter experiment on selected history",
+        "history": "Input history",
+        "product": "Product profile",
+        "results": "Evaluation results",
+        "data_summary": "Data summary",
+        "metrics": "Evaluation metrics",
+        "findings": "Findings",
+        "timeline": "Evidence timeline",
+        "heatmap": "Mission × Product × Recipe heatmap",
+        "distribution": "F1 distribution by product",
+        "bubble": "Detection quality and analyst burden",
+        "downloads": "Download reproducibility artifacts",
+        "done": "Threat-hunting run completed.",
+    }
+
+
+def _render_hunting_artifact(artifact_dir: Path, labels: Dict[str, str]) -> None:
+    from cybermatch_core.threat_hunting import (
+        load_threat_hunting_artifacts,
+        load_threat_hunting_report,
+    )
+
+    try:
+        artifacts = load_threat_hunting_artifacts(artifact_dir)
+        report = load_threat_hunting_report(artifact_dir)
+    except ValueError as exc:
+        st.error(str(exc))
+        return
+    events = [event.to_dict() for event in artifacts.events]
+    findings = [finding.to_dict() for finding in artifacts.findings]
+    metrics = dict(report.evaluation.metrics)
+
+    st.subheader(labels["data_summary"])
+    event_cards = st.columns(4)
+    event_cards[0].metric("Events", len(events))
+    event_cards[1].metric("Event types", len({event["event_type"] for event in events}))
+    event_cards[2].metric("Signal classes", len({event["signal_class"] for event in events}))
+    event_cards[3].metric("Steps", report.evaluation.total_steps)
+    st.dataframe(build_hunting_event_summary(events), use_container_width=True, hide_index=True)
+
+    st.subheader(labels["metrics"])
+    metric_cards = st.columns(5)
+    metric_cards[0].metric("Precision", round_metric(metrics.get("precision")))
+    metric_cards[1].metric("Recall", round_metric(metrics.get("recall")))
+    metric_cards[2].metric("F1", round_metric(metrics.get("f1")))
+    metric_cards[3].metric("Findings", int(to_float(metrics.get("finding_count"))))
+    metric_cards[4].metric(
+        "FP / 100 steps", round_metric(metrics.get("false_positives_per_100_steps"))
+    )
+    with st.expander("All metrics"):
+        st.dataframe(
+            [{"metric": key, "value": value} for key, value in sorted(metrics.items())],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    st.subheader(labels["findings"])
+    if findings:
+        st.dataframe(findings, use_container_width=True, hide_index=True)
+        finding_ids = [str(finding["finding_id"]) for finding in findings]
+        selected_id = st.selectbox("Finding ID", finding_ids, key=f"finding_{artifact_dir.name}")
+        selected = next(finding for finding in findings if finding["finding_id"] == selected_id)
+        st.subheader(labels["timeline"])
+        st.dataframe(
+            build_hunting_evidence_timeline(events, list(selected["evidence_event_ids"])),
+            use_container_width=True,
+            hide_index=True,
+        )
+    else:
+        st.info("No findings for this product / recipe / noise combination.")
+
+    with st.expander(labels["downloads"], expanded=False):
+        manifest = artifact_dir / "threat_hunting_manifest.json"
+        cols = st.columns(4)
+        with cols[0]:
+            render_download(manifest, "Manifest", "application/json", {"missing": "Missing"})
+        with cols[1]:
+            render_download(artifact_dir / "findings.csv", "Findings CSV", "text/csv", {"missing": "Missing"})
+        with cols[2]:
+            render_download(artifact_dir / "metrics.json", "Metrics JSON", "application/json", {"missing": "Missing"})
+        with cols[3]:
+            render_download(artifact_dir / "THREAT_HUNTING_REPORT.md", "Report", "text/markdown", {"missing": "Missing"})
+
+
+def render_hunting(text: Dict[str, Any]) -> None:
+    import altair as alt
+
+    locale = str(text.get("report_locale", "en"))
+    labels = _hunting_labels(locale)
+    st.title(labels["title"])
+    st.info(labels["intro"])
+
+    benchmark_files = list_hunting_benchmark_files()
+    st.subheader(labels["benchmark"])
+    if not benchmark_files:
+        st.warning("benchmarks/cybermatch_hunting_v1.json not found")
+        return
+    selected_benchmark = st.selectbox(
+        "Benchmark JSON", benchmark_files, format_func=lambda path: path.name, key="hunting_benchmark"
+    )
+    render_benchmark_metadata(selected_benchmark, text)
+    if HUNTING_BENCHMARK_SUMMARY.exists():
+        st.caption(labels["immutable"])
+    if st.button(
+        labels["run"],
+        type="primary",
+        disabled=runner_is_active() or HUNTING_BENCHMARK_OUTPUT_DIR.exists(),
+    ):
+        start_runner(
+            [sys.executable, str(ROOT / "scripts" / "run_scenario.py"), str(selected_benchmark)],
+            HUNTING_LOG_PATH,
+            "hunting_done",
+        )
+        st.rerun()
+    render_runner_status({**text, "hunting_done": labels["done"]})
+
+    st.subheader(labels["wizard"])
+    recipe_files = list_hunting_recipe_files()
+    focus_options = {
+        "ja": ["重要資産への接近", "認証情報からの横移動"],
+        "en": ["Critical-asset approach", "Credential-driven lateral movement"],
+    }[locale]
+    focus = st.selectbox(labels["focus"], focus_options)
+    default_recipe = 1 if ("認証" in focus or "Credential" in focus) else 0
+    default_recipe = min(default_recipe, max(len(recipe_files) - 1, 0))
+    if not recipe_files:
+        st.warning("recipes/threat_hunting/*.json not found")
+        return
+    selected_recipe = st.selectbox(
+        labels["recipe"], recipe_files, index=default_recipe, format_func=lambda path: path.stem
+    )
+    recipe_payload = read_json(selected_recipe)
+    if not isinstance(recipe_payload, dict):
+        st.error(f"Invalid recipe: {selected_recipe}")
+        return
+    st.caption(str(recipe_payload.get("hypothesis", "")))
+    st.dataframe(build_recipe_operation_rows(recipe_payload), use_container_width=True, hide_index=True)
+
+    overrides: Dict[str, int | float] = {}
+    operations = [value for value in recipe_payload.get("operations", []) if isinstance(value, dict)]
+    window = next((value for value in operations if value.get("operator") == "window"), None)
+    sequence = next((value for value in operations if value.get("operator") == "sequence"), None)
+    finding = recipe_payload.get("finding", {})
+    condition = finding.get("condition") if isinstance(finding, dict) else None
+    parameter_columns = st.columns(3)
+    if window is not None:
+        overrides["window_size_steps"] = int(
+            parameter_columns[0].number_input(
+                "Window steps", min_value=1, max_value=1000, value=int(window.get("size_steps", 5))
+            )
+        )
+    if sequence is not None:
+        overrides["sequence_max_span_steps"] = int(
+            parameter_columns[0].number_input(
+                "Sequence span", min_value=1, max_value=1000, value=int(sequence.get("max_span_steps", 8))
+            )
+        )
+    if isinstance(condition, dict) and isinstance(condition.get("value"), (int, float)):
+        overrides["finding_threshold"] = float(
+            parameter_columns[1].number_input(
+                "Finding threshold", min_value=0.0, value=float(condition["value"]), step=0.5
+            )
+        )
+    overrides["finding_score"] = float(
+        parameter_columns[2].slider(
+            "Finding score", min_value=0.0, max_value=1.0, value=float(finding.get("score", 0.5)), step=0.05
+        )
+    )
+    override_json = json.dumps(overrides, ensure_ascii=False, sort_keys=True)
+    st.code(override_json, language="json")
+    st.download_button(
+        labels["overrides"],
+        data=override_json + "\n",
+        file_name="recipe_overrides.json",
+        mime="application/json",
+    )
+
+    history_files = list_hunting_history_files()
+    hunting_products = [
+        path
+        for path in sorted(PRODUCT_PROFILE_DIR.glob("*.json"))
+        if isinstance(read_json(path), dict) and "hunting" in read_json(path)
+    ]
+    if history_files and hunting_products:
+        selected_history = st.selectbox(
+            labels["history"], history_files, format_func=lambda path: str(path.relative_to(HUNTING_OUTPUT_ROOT))
+        )
+        selected_product = st.selectbox(
+            labels["product"], hunting_products, format_func=lambda path: path.stem, key="hunting_product"
+        )
+        if st.button(labels["experiment"], disabled=runner_is_active()):
+            run_id = f"ui_{int(time.time() * 1000)}"
+            output_dir = HUNTING_OUTPUT_ROOT / "ui_runs" / run_id
+            config_path = selected_history.with_suffix(".config.json")
+            config_payload = read_json(config_path)
+            seed = int(config_payload.get("seed", 0)) if isinstance(config_payload, dict) else 0
+            command = [
+                sys.executable,
+                str(ROOT / "scripts" / "run_threat_hunting_evaluation.py"),
+                "--history",
+                str(selected_history),
+                "--recipe",
+                str(selected_recipe.relative_to(ROOT)),
+                "--output",
+                str(output_dir),
+                "--scenario-id",
+                "gui_parameter_experiment",
+                "--campaign-id",
+                selected_history.stem,
+                "--seed",
+                str(seed),
+                "--product-profile",
+                str(selected_product.relative_to(ROOT)),
+                "--recipe-overrides",
+                override_json,
+            ]
+            st.session_state["hunting_ui_artifact"] = str(output_dir)
+            start_runner(command, HUNTING_EXPERIMENT_LOG_PATH, "hunting_done")
+            st.rerun()
+
+    payload = read_json(HUNTING_BENCHMARK_SUMMARY)
+    if not isinstance(payload, dict):
+        st.warning(labels["missing"])
+        return
+    manifest = payload.get("manifest", {})
+    rows = payload.get("detail_rows", [])
+    if not isinstance(manifest, dict) or not isinstance(rows, list):
+        st.error("Invalid hunting benchmark summary")
+        return
+
+    st.subheader(labels["results"])
+    cards = build_hunting_summary_cards(rows, manifest)
+    card_columns = st.columns(5)
+    card_columns[0].metric("Matrix", cards["evaluation_matrix_size"])
+    card_columns[1].metric("Succeeded", cards["succeeded_cases"])
+    card_columns[2].metric("Completeness", cards["completeness"])
+    card_columns[3].metric("Findings", cards["finding_count"])
+    card_columns[4].metric("Mean F1", cards["mean_f1"])
+
+    heatmap_rows = build_hunting_heatmap_rows(rows)
+    st.subheader(labels["heatmap"])
+    st.altair_chart(
+        alt.Chart(alt.Data(values=heatmap_rows))
+        .mark_rect()
+        .encode(
+            x=alt.X("recipe:N", title="Recipe"),
+            y=alt.Y("product:N", title="Product"),
+            color=alt.Color("mean_f1:Q", scale=alt.Scale(domain=[0, 1])),
+            column=alt.Column("mission:N", title="Mission"),
+            tooltip=["mission", "product", "recipe", "mean_f1"],
+        ),
+        use_container_width=True,
+    )
+    bubble_rows = build_hunting_bubble_rows(rows)
+    chart_columns = st.columns(2)
+    with chart_columns[0]:
+        st.subheader(labels["distribution"])
+        st.altair_chart(
+            alt.Chart(alt.Data(values=bubble_rows))
+            .mark_boxplot()
+            .encode(x=alt.X("product:N", title="Product"), y=alt.Y("f1:Q", title="F1"), color="product:N"),
+            use_container_width=True,
+        )
+    with chart_columns[1]:
+        st.subheader(labels["bubble"])
+        st.altair_chart(
+            alt.Chart(alt.Data(values=bubble_rows))
+            .mark_circle(opacity=0.75)
+            .encode(
+                x=alt.X("false_positives_per_100_steps:Q", title="False positives / 100 steps"),
+                y=alt.Y("f1:Q", title="F1"),
+                size=alt.Size("finding_count:Q", title="Findings"),
+                color=alt.Color("product:N", title="Product"),
+                tooltip=["product", "recipe", "noise", "f1", "finding_count"],
+            ),
+            use_container_width=True,
+        )
+
+    succeeded_rows = [row for row in rows if row.get("status") == "succeeded"]
+    if succeeded_rows:
+        selected_index = st.selectbox(
+            "Evaluation case",
+            list(range(len(succeeded_rows))),
+            format_func=lambda index: " / ".join(
+                str(succeeded_rows[index].get(key, ""))
+                for key in ("mission_name", "product_profile", "recipe_id", "noise_profile", "seed")
+            ),
+        )
+        artifact_dir = safe_hunting_artifact_dir(succeeded_rows[selected_index].get("artifact_dir"))
+        if artifact_dir is not None:
+            _render_hunting_artifact(artifact_dir, labels)
+
+    ui_artifact = safe_hunting_artifact_dir(st.session_state.get("hunting_ui_artifact"))
+    if ui_artifact is not None and (ui_artifact / "metrics.json").is_file():
+        st.divider()
+        st.subheader("Latest parameter experiment")
+        _render_hunting_artifact(ui_artifact, labels)
+
+    download_columns = st.columns(2)
+    with download_columns[0]:
+        render_download(HUNTING_BENCHMARK_CSV, "Benchmark CSV", "text/csv", {"missing": "Missing"})
+    with download_columns[1]:
+        render_download(HUNTING_BENCHMARK_SUMMARY, "Benchmark JSON", "application/json", {"missing": "Missing"})
+
+
 def main() -> None:
     st.set_page_config(page_title="CyberMatch", layout="wide")
     language = st.sidebar.selectbox("Language / 言語", ["日本語", "English"], index=0)
@@ -2403,6 +2896,8 @@ def main() -> None:
         render_results(text)
     elif page_key == "benchmark":
         render_benchmark(text)
+    elif page_key == "hunting":
+        render_hunting(text)
 
 
 if __name__ == "__main__":

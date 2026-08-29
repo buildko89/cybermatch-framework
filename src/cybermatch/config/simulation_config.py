@@ -205,6 +205,7 @@ class SimulationConfig:
     virtual_topology_enabled: bool = False
     observable_events_enabled: bool = False
     critical_path_events_enabled: bool = False
+    threat_hunting_enabled: bool = False
     intelligence_defender_enabled: bool = False
     selected_intelligence_policy: str = ""
     intelligence_risk_score: float = 0.0
@@ -452,6 +453,8 @@ class SimulationConfig:
     def validate(self) -> None:
         """設定値の整合性を検証する。"""
         errors = []
+        if not isinstance(self.threat_hunting_enabled, bool):
+            errors.append("threat_hunting_enabled must be a boolean")
 
         if self.n_nodes <= 0:
             errors.append("n_nodes must be > 0")

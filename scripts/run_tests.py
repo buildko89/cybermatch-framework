@@ -19,7 +19,7 @@ def main() -> int:
     group.add_argument("--full", action="store_true", help="Run compile checks and the full pytest suite.")
     args = parser.parse_args()
 
-    compile_targets = ["cybermatch.py", "run_scenarios.py", "intent_inference.py", "behavior_profile.py", "feature_space.py", "feature_export.py", "archetype_analysis.py", "strategy_layer.py", "mission_taxonomy.py", "strategy_validation.py", "decision_graph.py", "scenario_loader.py", "benchmark_loader.py", "topology_loader.py", "src/cybermatch/threat_hunting", "cybermatch_core/threat_hunting.py", "scripts/run_tests.py", "scripts/run_scenario.py", "scripts/run_threat_hunting.py"]
+    compile_targets = ["cybermatch.py", "run_scenarios.py", "intent_inference.py", "behavior_profile.py", "feature_space.py", "feature_export.py", "archetype_analysis.py", "strategy_layer.py", "mission_taxonomy.py", "strategy_validation.py", "decision_graph.py", "scenario_loader.py", "benchmark_loader.py", "topology_loader.py", "src/cybermatch/threat_hunting", "cybermatch_core/threat_hunting.py", "scripts/run_tests.py", "scripts/run_scenario.py", "scripts/run_threat_hunting.py", "scripts/run_threat_hunting_evaluation.py"]
     compile_rc = _run([sys.executable, "-m", "compileall", *compile_targets])
     if compile_rc != 0:
         return compile_rc

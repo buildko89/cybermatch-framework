@@ -35,6 +35,16 @@ def main() -> int:
         if isinstance(config, dict) and "scenarios" in config and "evaluation" not in config:
             benchmark = load_benchmark(args.scenario)
             metadata = benchmark.get("metadata", {})
+            if metadata.get("type") == "threat_hunting":
+                from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
+
+                rows = run_hunting_benchmark(benchmark_path=args.scenario)
+                print(f"benchmark name: {metadata.get('name')}")
+                print("runner: hunting_recipe_evaluation")
+                print("output dir: output/threat_hunting/cybermatch_hunting_v1")
+                print(f"rows: {len(rows)}")
+                print("success: true")
+                return 0
             if metadata.get("name") == "cybermatch_standard_v1":
                 from run_scenarios import run_phase85_standard_benchmark
 

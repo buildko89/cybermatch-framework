@@ -6,12 +6,19 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from scenario_loader import ALLOWED_MISSIONS, ScenarioValidationError, _resolve_repo_path, load_scenario
+from scenario_loader import (
+    ALLOWED_HUNTING_NOISE_PROFILES,
+    ALLOWED_MISSIONS,
+    ScenarioValidationError,
+    _resolve_repo_path,
+    load_scenario,
+)
 from topology_loader import TopologyValidationError, load_topology
 
 
 BENCHMARK_DIR = _resolve_repo_path("benchmarks")
 STANDARD_BENCHMARK_PATH = "benchmarks/cybermatch_standard_v1.json"
+HUNTING_BENCHMARK_PATH = "benchmarks/cybermatch_hunting_v1.json"
 
 
 class BenchmarkValidationError(ValueError):
@@ -45,9 +52,13 @@ def validate_benchmark(config: Dict[str, Any]) -> None:
         if not isinstance(scenario_path, str) or not scenario_path:
             raise BenchmarkValidationError("Scenario paths must be non-empty strings.")
         try:
-            load_scenario(scenario_path)
+            scenario = load_scenario(scenario_path)
         except ScenarioValidationError as exc:
             raise BenchmarkValidationError(f"Invalid benchmark scenario {scenario_path}: {exc}") from exc
+        if metadata.get("type") == "threat_hunting" and scenario["evaluation"]["runner"] != "hunting_recipe_evaluation":
+            raise BenchmarkValidationError(
+                f"Threat-hunting benchmark scenario has incompatible runner: {scenario_path}"
+            )
 
     topologies = config.get("topologies", [])
     if topologies is not None:
@@ -78,13 +89,55 @@ def validate_benchmark(config: Dict[str, Any]) -> None:
         if not product_path.is_file():
             raise BenchmarkValidationError(f"Product profile not found: {product_path_value}")
         try:
-            json.loads(product_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            raise BenchmarkValidationError(f"Product profile JSON is invalid: {product_path_value}: {exc}") from exc
+            from src.cybermatch.models.product import load_product_profile
+
+            load_product_profile(str(product_path))
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise BenchmarkValidationError(f"Product profile is invalid: {product_path_value}: {exc}") from exc
 
     seeds = config.get("seeds", [0])
     if not isinstance(seeds, list) or not all(isinstance(seed, int) for seed in seeds):
         raise BenchmarkValidationError("Benchmark seeds must be a list of integers.")
+
+    if metadata.get("type") == "threat_hunting":
+        _validate_hunting_benchmark_dimensions(config)
+
+
+def _validate_hunting_benchmark_dimensions(config: Dict[str, Any]) -> None:
+    recipes = config.get("recipes")
+    if not isinstance(recipes, list) or not recipes:
+        raise BenchmarkValidationError("Threat-hunting benchmark requires a non-empty recipes list.")
+    recipe_root = (_resolve_repo_path("recipes/threat_hunting")).resolve()
+    from src.cybermatch.threat_hunting import ThreatHuntingRecipeLoader
+
+    loader = ThreatHuntingRecipeLoader(recipe_root)
+    for recipe_path_value in recipes:
+        if not isinstance(recipe_path_value, str) or not recipe_path_value:
+            raise BenchmarkValidationError("Hunting recipe paths must be non-empty strings.")
+        recipe_path = _resolve_repo_path(recipe_path_value).resolve()
+        if not recipe_path.is_relative_to(recipe_root):
+            raise BenchmarkValidationError(
+                f"Hunting recipe must be below recipes/threat_hunting: {recipe_path_value}"
+            )
+        try:
+            loader.load(recipe_path.relative_to(recipe_root))
+        except ValueError as exc:
+            raise BenchmarkValidationError(f"Invalid hunting recipe {recipe_path_value}: {exc}") from exc
+
+    noise_profiles = config.get("noise_profiles")
+    if not isinstance(noise_profiles, list) or not noise_profiles:
+        raise BenchmarkValidationError(
+            "Threat-hunting benchmark requires a non-empty noise_profiles list."
+        )
+    if any(not isinstance(value, str) for value in noise_profiles):
+        raise BenchmarkValidationError("Hunting noise profiles must be strings.")
+    if len(set(noise_profiles)) != len(noise_profiles):
+        raise BenchmarkValidationError("Hunting noise profiles must not contain duplicates.")
+    invalid = sorted(set(noise_profiles) - ALLOWED_HUNTING_NOISE_PROFILES)
+    if invalid:
+        raise BenchmarkValidationError(f"Unsupported hunting noise profiles: {invalid}")
+    if not config.get("topologies"):
+        raise BenchmarkValidationError("Threat-hunting benchmark requires at least one topology.")
 
 
 def benchmark_counts(config: Dict[str, Any]) -> Dict[str, int]:
@@ -102,6 +155,17 @@ def evaluation_matrix_size(config: Dict[str, Any]) -> int:
     return counts["scenario_count"] * topology_count * counts["mission_count"] * counts["product_count"]
 
 
+def hunting_evaluation_matrix_size(config: Dict[str, Any]) -> int:
+    """Return the complete H3 axis product without changing Standard v1 semantics."""
+
+    return (
+        evaluation_matrix_size(config)
+        * len(config.get("recipes", []))
+        * len(config.get("noise_profiles", []))
+        * len(config.get("seeds", [0]))
+    )
+
+
 def list_available_benchmarks(benchmark_dir: str | None = None) -> List[Path]:
     base_dir = _resolve_repo_path(benchmark_dir) if benchmark_dir else BENCHMARK_DIR
     if not base_dir.exists():
@@ -111,3 +175,7 @@ def list_available_benchmarks(benchmark_dir: str | None = None) -> List[Path]:
 
 def load_standard_benchmark() -> Dict[str, Any]:
     return load_benchmark(STANDARD_BENCHMARK_PATH)
+
+
+def load_hunting_benchmark() -> Dict[str, Any]:
+    return load_benchmark(HUNTING_BENCHMARK_PATH)

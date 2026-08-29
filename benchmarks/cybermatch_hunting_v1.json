@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "name": "cybermatch_hunting_v1",
+    "version": "1.0",
+    "type": "threat_hunting",
+    "profile": "smoke"
+  },
+  "scenarios": [
+    "scenarios/threat_hunting/credential_critical_path_smoke.json"
+  ],
+  "topologies": [
+    "topologies/enterprise.json"
+  ],
+  "missions": [
+    "critical_hunter"
+  ],
+  "products": [
+    "profiles/products/sample_threat_hunting_platform.json",
+    "profiles/products/sample_behavioral_profiling.json",
+    "profiles/products/sample_ml_assisted_hunting.json"
+  ],
+  "recipes": [
+    "recipes/threat_hunting/credential_to_critical_path_v1.json",
+    "recipes/threat_hunting/critical_path_approach_v1.json"
+  ],
+  "noise_profiles": [
+    "none",
+    "moderate",
+    "adversarial"
+  ],
+  "seeds": [0]
+}
