@@ -124,6 +124,7 @@ Once running, your terminal will display a URL (usually `http://localhost:8501`)
 - **Products**: Inspect the defense product profiles to be compared.
 - **Run**: Execute the simulations based on your selected scenario and products.
 - **Results**: View detailed metrics, mission-aware effectiveness heatmaps, and download generated reports.
+- **Threat Hunting**: Review the 18-case hunting benchmark, tune auditable recipe parameters, inspect evidence timelines, and export H1/H2 artifacts without feeding truth labels back into the detector.
 
 ## Command-Line Execution (Representative Experiments)
 

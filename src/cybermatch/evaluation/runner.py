@@ -19,6 +19,7 @@ from intent_inference import MISSION_CLASSES, MissionInferenceEngine
 from mission_taxonomy import INTENT_CLASSES, MISSION_LAYER_CLASSES, TARGET_CLASSES, TARGET_STRATEGY_MAP, MissionTaxonomyAnalyzer, TaxonomyResult
 from strategy_layer import STRATEGY_CLASSES, STRATEGY_FEATURES, StrategyInferenceEngine
 from strategy_validation import StrategyValidationEngine, StrategyValidationResult
+from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
 
 
 RUN_MULTI_SEED = True

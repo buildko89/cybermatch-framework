@@ -218,6 +218,7 @@ class ThreatHuntingArtifactWriter:
         campaign_id: str,
         scenario_id: str,
         seed: int | None,
+        recipe_overrides: Mapping[str, object] | None = None,
     ) -> ThreatHuntingArtifactPaths:
         if not isinstance(recipe, ThreatHuntingRecipe):
             raise ThreatHuntingArtifactError("recipe must be a ThreatHuntingRecipe")
@@ -319,6 +320,14 @@ class ThreatHuntingArtifactWriter:
                 "finding_count": len(ordered_findings),
                 "artifacts": artifact_descriptors,
             }
+            if recipe_overrides is not None:
+                try:
+                    normalized_overrides = json.loads(canonical_json(dict(recipe_overrides)))
+                except (TypeError, ValueError) as exc:
+                    raise ThreatHuntingArtifactError(
+                        "recipe_overrides must contain JSON values"
+                    ) from exc
+                manifest["recipe_overrides"] = normalized_overrides
             artifact_hash = _sha256_bytes(canonical_json(manifest).encode("utf-8"))
             manifest["artifact_hash"] = artifact_hash
             _write_json(manifest_path, manifest)

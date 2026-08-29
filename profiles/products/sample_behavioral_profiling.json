@@ -1,0 +1,27 @@
+{
+  "name": "Sample Behavioral Profiling",
+  "category": "xdr",
+  "product_family": "behavioral_profiling",
+  "hunting_mode": "baseline_driven",
+  "detection_boost": 0.2,
+  "confidence_boost": 0.1,
+  "false_positive_penalty": 0.08,
+  "latency_penalty": 0.02,
+  "maintenance_penalty": 0.1,
+  "hunting": {
+    "telemetry_visibility": ["endpoint", "identity"],
+    "observable_event_types": [
+      "credential_use",
+      "lateral_move",
+      "critical_path_entry",
+      "critical_path_progress",
+      "critical_path_near_target",
+      "critical_asset_reach"
+    ],
+    "correlation_depth_steps": 8,
+    "baseline_quality": 0.82,
+    "enrichment_quality": 0.6,
+    "ingest_latency_steps": 1,
+    "supported_recipe_tags": ["identity", "critical-path", "aggregation", "sequence"]
+  }
+}

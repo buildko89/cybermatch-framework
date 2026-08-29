@@ -1,0 +1,27 @@
+{
+  "name": "Sample Threat Hunting Platform",
+  "category": "xdr",
+  "product_family": "threat_hunting_platform",
+  "hunting_mode": "hypothesis_driven",
+  "detection_boost": 0.2,
+  "confidence_boost": 0.1,
+  "false_positive_penalty": 0.08,
+  "latency_penalty": 0.02,
+  "maintenance_penalty": 0.1,
+  "hunting": {
+    "telemetry_visibility": ["endpoint", "network", "identity"],
+    "observable_event_types": [
+      "credential_use",
+      "lateral_move",
+      "critical_path_entry",
+      "critical_path_progress",
+      "critical_path_near_target",
+      "critical_asset_reach"
+    ],
+    "correlation_depth_steps": 8,
+    "baseline_quality": 0.7,
+    "enrichment_quality": 0.65,
+    "ingest_latency_steps": 1,
+    "supported_recipe_tags": ["identity", "critical-path", "aggregation", "sequence"]
+  }
+}
