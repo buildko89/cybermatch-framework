@@ -18,6 +18,7 @@ ALLOWED_RUNNERS = {
     "phase63_mission_aware_product",
     "hunting_recipe_evaluation",
     "hunting_closed_loop_evaluation",
+    "agentic_security_evaluation",
 }
 
 ALLOWED_MISSIONS = {
@@ -97,6 +98,15 @@ def validate_scenario(scenario: Dict[str, Any]) -> None:
     if seeds is not None:
         if not isinstance(seeds, list) or not all(isinstance(seed, int) for seed in seeds):
             raise ScenarioValidationError("evaluation.seeds must be a list of integers when provided.")
+
+    if runner == "agentic_security_evaluation":
+        try:
+            from src.cybermatch.agentic import validate_agentic_security_scenario
+
+            validate_agentic_security_scenario(scenario)
+        except ValueError as exc:
+            raise ScenarioValidationError(f"Invalid agentic security scenario: {exc}") from exc
+        return
 
     missions = scenario.get("missions")
     if not isinstance(missions, list) or not missions:
@@ -275,6 +285,23 @@ def run_scenario_from_file(path: str) -> Dict[str, Any]:
             "runner": runner,
             "output_dir": output_dir,
             "rows": len(rows),
+            "success": True,
+        }
+
+    if runner == "agentic_security_evaluation":
+        from src.cybermatch.agentic import run_agentic_security_evaluation
+
+        report = run_agentic_security_evaluation(scenario, output_dir=output_dir)
+        row_count = 0
+        if "agentic" in report:
+            row_count += len(report["agentic"]["findings"])
+        if "threat_intelligence" in report:
+            row_count += len(report["threat_intelligence"]["decisions"])
+        return {
+            "scenario_name": metadata["name"],
+            "runner": runner,
+            "output_dir": output_dir,
+            "rows": row_count,
             "success": True,
         }
 

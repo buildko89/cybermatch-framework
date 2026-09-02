@@ -16,6 +16,14 @@ FEEDBACK_ACTION_TYPES = frozenset(
         "block_edge",
         "redirect_to_decoy",
         "require_additional_auth",
+        "pause_workload",
+        "terminate_evaluation",
+        "quarantine_zone",
+        "revoke_identity",
+        "disable_shared_service",
+        "block_egress",
+        "preserve_evidence",
+        "notify_third_party",
     }
 )
 

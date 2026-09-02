@@ -127,6 +127,7 @@ streamlit run apps/streamlit_app.py
 - **脅威ハンティング**: 18ケースのベンチマーク確認、監査可能なレシピパラメータ調整、証拠タイムラインの確認、正解ラベルを検知器へ還流しないH1/H2成果物の出力。
   外部CSV/JSONLは明示mappingで取り込みでき、任意のK-Means／Isolation Forest検知ではtraining ID、feature・前処理hash、seed、threshold、model provenanceを保存します。
   `scenarios/threat_hunting/threat_hunt_*.json` のopt-in closed-loopシナリオでは、同一seedでopen/closed feedbackを比較し、attacker stealth liftとdecision-neutralization liftを分離して報告します。例: `python scripts/run_scenario.py scenarios/threat_hunting/threat_hunt_c2_jitter.json`
+- **Agentic Security**: 自律エージェントの境界逸脱を模した合成タイムラインを、監査可能なハンティングレシピと次ステップの封じ込めアクションで評価します。独立した脅威情報Integrity Gateは、正解ラベルを判定器に渡さず、情報源、ベンダー確認、コード参照、PoC再現、訂正遅延を評価します。
 
 ## コマンドラインでの実行 (Representative Experiments)
 
@@ -164,6 +165,16 @@ CyberMatch標準ベンチマークスイートの実行：
 python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
 ```
 
+### Agentic Security評価
+
+外部LLMへ接続せず、trust-boundary、open/closed封じ込め比較、独立防御層の故障、報酬ハックのエピソード間強化、脅威情報Integrity Gateを再現可能なベンチマークで評価します：
+
+```bash
+python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json
+```
+
+トポロジ、故障ドメイン、学習、イベント、アクション、指標の契約は `AGENTIC_SECURITY.md` を参照してください。
+
 ### Topology Evaluation (トポロジ評価)
 企業ネットワークのトポロジ（構成）の違いが攻撃者の選択にどのように影響するかを評価します：
 ```bash
@@ -178,6 +189,7 @@ cybermatch-framework/
   README_JP.md
   src/
     cybermatch/
+      agentic/
       attacker/
       config/
       defense/

@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "cybermatch_agentic_security_v1",
+    "version": "1.0",
+    "type": "agentic_security",
+    "profile": "smoke"
+  },
+  "scenarios": [
+    "scenarios/agentic/hugging_face_style_containment.json",
+    "scenarios/agentic/fabricated_cve_integrity.json"
+  ],
+  "seeds": [0]
+}
