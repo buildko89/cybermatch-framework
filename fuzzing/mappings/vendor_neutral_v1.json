@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "mapping_id": "vendor_neutral_v1",
+  "mapping_version": "1.0.0",
+  "event_fields": {
+    "schema_version": "schema_version",
+    "event_id": "event_id",
+    "step": "event_step",
+    "campaign_id": "campaign_id",
+    "scenario_id": "scenario_id",
+    "seed": "generation_seed",
+    "actor_id": "actor_id",
+    "coalition_id": "coalition_id",
+    "event_type": "event_type",
+    "source_node": "source_node",
+    "target_node": "target_node",
+    "source_role": "source_role",
+    "target_role": "target_role",
+    "signal_class": "signal_class"
+  },
+  "event_attributes_field": "event_attributes",
+  "finding_fields": {
+    "schema_version": "schema_version",
+    "finding_id": "finding_id",
+    "recipe_id": "detector_id",
+    "recipe_version": "detector_version",
+    "severity": "severity",
+    "score": "score",
+    "campaign_id": "campaign_id",
+    "actor_id": "actor_id",
+    "start_step": "start_step",
+    "end_step": "end_step",
+    "title": "title",
+    "reason": "reason",
+    "evidence_event_ids": "evidence_event_ids",
+    "observed_value": "observed_value",
+    "baseline_value": "baseline_value",
+    "threshold": "threshold"
+  },
+  "finding_attributes_field": "finding_attributes"
+}

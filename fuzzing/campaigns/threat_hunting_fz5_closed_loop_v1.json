@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "id": "threat_hunting_fz5_closed_loop_v1",
+  "mode": "semantic",
+  "base_inputs": [
+    "scenarios/threat_hunting/threat_hunt_c2_jitter.json",
+    "scenarios/threat_hunting/threat_hunt_dns_tunnel.json",
+    "scenarios/threat_hunting/threat_hunt_pstree_lateral.json"
+  ],
+  "target": {
+    "adapter": "threat_hunting_closed_loop",
+    "recipes": [
+      "recipes/threat_hunting/critical_path_approach_v1.json",
+      "recipes/threat_hunting/credential_to_critical_path_v1.json"
+    ]
+  },
+  "generation": {
+    "campaign_seed": 20260905,
+    "max_cases": 20,
+    "max_events_per_case": 10000,
+    "max_mutations_per_case": 4,
+    "max_runtime_seconds": 10.0
+  },
+  "mutators": [
+    {
+      "id": "feedback_timing",
+      "weight": 1.0,
+      "delays": [0, 1, 2, 3, 5]
+    },
+    {
+      "id": "topology_path",
+      "weight": 1.25,
+      "max_post_alert_blast_radius": 4,
+      "paths": [
+        {"source_node": 0, "target_node": 1, "boundary_id": "user-to-server", "prohibited": false},
+        {"source_node": 1, "target_node": 4, "boundary_id": "server-to-critical", "prohibited": false},
+        {"source_node": 2, "target_node": 4, "boundary_id": "untrusted-to-critical", "prohibited": true},
+        {"source_node": 3, "target_node": 5, "boundary_id": "partner-to-restricted", "prohibited": true}
+      ]
+    },
+    {
+      "id": "defense_failure_domain",
+      "weight": 1.0,
+      "max_count": 2,
+      "domains": ["monitoring", "edge_blocking", "redirect", "additional_auth"]
+    }
+  ],
+  "oracles": [
+    "no_unhandled_exception",
+    "deterministic_replay",
+    "ground_truth_detection",
+    "detection_latency",
+    "containment",
+    "open_closed_metamorphic"
+  ],
+  "output_dir": "output/fuzzing/threat_hunting_fz5_closed_loop_v1"
+}
