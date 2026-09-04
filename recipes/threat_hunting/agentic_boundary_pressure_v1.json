@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "id": "agentic_boundary_pressure_v1",
+  "version": "1.0",
+  "title": "Agentic workload progressed from tool probing to transitive egress",
+  "hypothesis": "A blocked autonomous workload may coordinate through unintended infrastructure and obtain a transitive path outside its boundary.",
+  "source": "observed",
+  "required_fields": [
+    "campaign_id",
+    "actor_id",
+    "event_id",
+    "event_type",
+    "step"
+  ],
+  "group_by": [
+    "campaign_id",
+    "actor_id"
+  ],
+  "operations": [
+    {
+      "operator": "sequence",
+      "items": [
+        {"event_type": "unintended_tool_probe"},
+        {"event_type": "unauthorized_agent_coordination", "within_steps": 3},
+        {"event_type": "transitive_egress", "within_steps": 3}
+      ],
+      "max_span_steps": 6,
+      "overlap": false
+    }
+  ],
+  "finding": {
+    "severity": "critical",
+    "title": "Autonomous workload crossed an intended network boundary",
+    "reason": "Observed tool probing and unauthorized coordination progressed to transitive egress.",
+    "score": 0.98
+  },
+  "metadata": {
+    "tags": ["agentic", "boundary", "egress", "sequence"]
+  }
+}

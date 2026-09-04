@@ -127,6 +127,7 @@ streamlit run apps/streamlit_app.py
 - **脅威ハンティング**: 18ケースのベンチマーク確認、監査可能なレシピパラメータ調整、証拠タイムラインの確認、正解ラベルを検知器へ還流しないH1/H2成果物の出力。
   外部CSV/JSONLは明示mappingで取り込みでき、任意のK-Means／Isolation Forest検知ではtraining ID、feature・前処理hash、seed、threshold、model provenanceを保存します。
   `scenarios/threat_hunting/threat_hunt_*.json` のopt-in closed-loopシナリオでは、同一seedでopen/closed feedbackを比較し、attacker stealth liftとdecision-neutralization liftを分離して報告します。例: `python scripts/run_scenario.py scenarios/threat_hunting/threat_hunt_c2_jitter.json`
+- **Agentic Security**: 自律エージェントの境界逸脱を模した合成タイムラインを、監査可能なハンティングレシピと次ステップの封じ込めアクションで評価します。独立した脅威情報Integrity Gateは、正解ラベルを判定器に渡さず、情報源、ベンダー確認、コード参照、PoC再現、訂正遅延を評価します。
 
 ## コマンドラインでの実行 (Representative Experiments)
 
@@ -164,6 +165,64 @@ CyberMatch標準ベンチマークスイートの実行：
 python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
 ```
 
+### Agentic Security評価
+
+外部LLMへ接続せず、trust-boundary、open/closed封じ込め比較、独立防御層の故障、報酬ハックのエピソード間強化、脅威情報Integrity Gateを再現可能なベンチマークで評価します：
+
+```bash
+python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json
+```
+
+トポロジ、故障ドメイン、学習、イベント、アクション、指標の契約は `AGENTIC_SECURITY.md` を参照してください。
+
+### Analysis-Guided Fuzzing（分析駆動ファジング）
+
+CyberMatchのmission、decision path、観測可能な`HuntEvent`、Threat Hunting評価を利用し、検知・相関ロジック向けの再現可能なセマンティックファジングケースを生成します。実exploitやweaponized payloadは生成しません。
+
+キャンペーン定義の検証：
+
+```bash
+python scripts/run_fuzzing.py --validate fuzzing/campaigns/threat_hunting_mvp_v1.json
+```
+
+20ケースのMVPキャンペーン実行：
+
+```bash
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_mvp_v1.json
+```
+
+短いsmoke実行と出力先指定：
+
+```bash
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_mvp_v1.json --max-cases 3 --output-dir output/fuzzing/mvp_smoke
+```
+
+保存ケースの再実行：
+
+```bash
+python scripts/run_fuzzing.py --replay output/fuzzing/<campaign-id>/corpus/<case-id>
+```
+
+入力はrepository-relative pathに制限され、既存出力は上書きしません。SUTには観測イベントだけを渡し、Ground Truthはoracle側へ分離します。各mutantは未変異controlと比較するため、ベースラインに既存のFalse Negative／False Positiveは新規回帰として数えません。全ケースにはseed、mutation trace、target／oracle version、SHA-256を保存します。raw packet、低レベルpayload、実exploitは生成しません。
+
+FZ5のclosed-loop／topology campaignでは、同一のpotential event sequenceをopen-loopとclosed-loopへ投入し、feedback遅延、topology path、defense failure domainを変異します：
+
+```bash
+python scripts/run_fuzzing.py --validate fuzzing/campaigns/threat_hunting_fz5_closed_loop_v1.json
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_fz5_closed_loop_v1.json
+```
+
+open-loopにはfeedbackを適用せず、closed-loopだけが観測Finding由来の将来有効なdefender actionを適用します。検知精度はopen-loop、禁止境界越え、抑止イベント数、post-alert blast radiusはclosed-loopのcontainment oracleで評価し、両モードの入力hash、件数、mutation profileが一致することをmetamorphic oracleで検証します。
+
+FZ6の外部SUT adapterは、version管理されたfield mappingを使って観測イベントをJSONL／CSVへ変換し、外部FindingをCyberMatch形式へ正規化します。ネットワークや外部プロセスを使わずに経路全体を検証するmock campaignは次のように実行します：
+
+```bash
+python scripts/run_fuzzing.py --validate fuzzing/campaigns/threat_hunting_fz6_external_mock_v1.json
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_fz6_external_mock_v1.json
+```
+
+実プロセスを接続する`command` transportは既定無効です。campaignの`allow_external_execution: true`、repository内allowlist、allowlist上の完全一致するcommand ID、絶対パスの実行ファイル、実行時の`CYBERMATCH_ALLOW_EXTERNAL_SUT=1`がすべて必要です。shellは使用せず、timeout、rate limit、応答サイズ、retry回数を制限します。認証情報やproduction endpointをallowlistへ記録しないでください。外部環境障害は`infrastructure_error`／`inconclusive`として扱い、製品の検知失敗には数えません。
+
 ### Topology Evaluation (トポロジ評価)
 企業ネットワークのトポロジ（構成）の違いが攻撃者の選択にどのように影響するかを評価します：
 ```bash
@@ -178,6 +237,7 @@ cybermatch-framework/
   README_JP.md
   src/
     cybermatch/
+      agentic/
       attacker/
       config/
       defense/

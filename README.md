@@ -127,6 +127,7 @@ Once running, your terminal will display a URL (usually `http://localhost:8501`)
 - **Threat Hunting**: Review the 18-case hunting benchmark, tune auditable recipe parameters, inspect evidence timelines, and export H1/H2 artifacts without feeding truth labels back into the detector.
   External CSV/JSONL telemetry can be mapped explicitly, and optional K-Means or Isolation Forest detectors preserve training IDs, feature/preprocessing hashes, seed, threshold, and model provenance.
   Opt-in closed-loop scenarios under `scenarios/threat_hunting/threat_hunt_*.json` compare open/closed feedback on identical seeds and report separate attacker-stealth and decision-neutralization lifts. Run one with `python scripts/run_scenario.py scenarios/threat_hunting/threat_hunt_c2_jitter.json`.
+- **Agentic Security**: Replay synthetic autonomous boundary-escape timelines through auditable hunting recipes and next-step containment actions. A separate threat-intelligence integrity gate evaluates advisory provenance, corroboration, code-reference consistency, PoC reproduction, and correction latency without exposing ground-truth labels to the gate.
 
 ## Command-Line Execution (Representative Experiments)
 
@@ -164,6 +165,16 @@ Run the standard CyberMatch benchmark suite:
 python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
 ```
 
+### Agentic Security Evaluation
+
+Run the reproducible trust-boundary, open/closed containment, layered-defense failure, reward-hacking, and threat-intelligence integrity benchmark without connecting an external LLM:
+
+```bash
+python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json
+```
+
+See `AGENTIC_SECURITY.md` for the topology, failure-domain, learning, event, action, and metric contracts.
+
 ### Topology Evaluation
 Evaluate how different enterprise network topologies impact attacker choices:
 ```bash
@@ -178,6 +189,7 @@ cybermatch-framework/
   README_JP.md
   src/
     cybermatch/
+      agentic/
       attacker/
       config/
       defense/

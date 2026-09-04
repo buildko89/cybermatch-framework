@@ -158,6 +158,14 @@ class DefenderActionEffects:
     blocked: bool = False
     redirected: bool = False
     additional_auth: bool = False
+    paused: bool = False
+    terminated: bool = False
+    quarantined: bool = False
+    identity_revoked: bool = False
+    shared_service_disabled: bool = False
+    egress_blocked: bool = False
+    evidence_preserved: bool = False
+    third_party_notification: bool = False
     confidence: float = 0.0
 
 
@@ -168,6 +176,9 @@ def summarize_feedback_effects(
     target_node: int | None,
 ) -> DefenderActionEffects:
     monitoring = blocked = redirected = additional_auth = False
+    paused = terminated = quarantined = identity_revoked = False
+    shared_service_disabled = egress_blocked = evidence_preserved = False
+    third_party_notification = False
     confidence = 0.0
     for item in feedback:
         target_match = not item.target_nodes or target_node in item.target_nodes
@@ -179,11 +190,27 @@ def summarize_feedback_effects(
         blocked = blocked or item.action_type == "block_edge"
         redirected = redirected or item.action_type == "redirect_to_decoy"
         additional_auth = additional_auth or item.action_type == "require_additional_auth"
+        paused = paused or item.action_type == "pause_workload"
+        terminated = terminated or item.action_type == "terminate_evaluation"
+        quarantined = quarantined or item.action_type == "quarantine_zone"
+        identity_revoked = identity_revoked or item.action_type == "revoke_identity"
+        shared_service_disabled = shared_service_disabled or item.action_type == "disable_shared_service"
+        egress_blocked = egress_blocked or item.action_type == "block_egress"
+        evidence_preserved = evidence_preserved or item.action_type == "preserve_evidence"
+        third_party_notification = third_party_notification or item.action_type == "notify_third_party"
     return DefenderActionEffects(
         monitoring=monitoring,
         blocked=blocked,
         redirected=redirected,
         additional_auth=additional_auth,
+        paused=paused,
+        terminated=terminated,
+        quarantined=quarantined,
+        identity_revoked=identity_revoked,
+        shared_service_disabled=shared_service_disabled,
+        egress_blocked=egress_blocked,
+        evidence_preserved=evidence_preserved,
+        third_party_notification=third_party_notification,
         confidence=confidence,
     )
 

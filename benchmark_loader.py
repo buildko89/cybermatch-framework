@@ -19,6 +19,7 @@ from topology_loader import TopologyValidationError, load_topology
 BENCHMARK_DIR = _resolve_repo_path("benchmarks")
 STANDARD_BENCHMARK_PATH = "benchmarks/cybermatch_standard_v1.json"
 HUNTING_BENCHMARK_PATH = "benchmarks/cybermatch_hunting_v1.json"
+AGENTIC_SECURITY_BENCHMARK_PATH = "benchmarks/cybermatch_agentic_security_v1.json"
 
 
 class BenchmarkValidationError(ValueError):
@@ -55,10 +56,20 @@ def validate_benchmark(config: Dict[str, Any]) -> None:
             scenario = load_scenario(scenario_path)
         except ScenarioValidationError as exc:
             raise BenchmarkValidationError(f"Invalid benchmark scenario {scenario_path}: {exc}") from exc
+        if metadata.get("type") == "agentic_security" and scenario["evaluation"]["runner"] != "agentic_security_evaluation":
+            raise BenchmarkValidationError(
+                f"Agentic-security benchmark scenario has incompatible runner: {scenario_path}"
+            )
         if metadata.get("type") == "threat_hunting" and scenario["evaluation"]["runner"] != "hunting_recipe_evaluation":
             raise BenchmarkValidationError(
                 f"Threat-hunting benchmark scenario has incompatible runner: {scenario_path}"
             )
+
+    if metadata.get("type") == "agentic_security":
+        seeds = config.get("seeds", [0])
+        if not isinstance(seeds, list) or not all(isinstance(seed, int) and not isinstance(seed, bool) for seed in seeds):
+            raise BenchmarkValidationError("Benchmark seeds must be a list of integers.")
+        return
 
     topologies = config.get("topologies", [])
     if topologies is not None:
@@ -179,3 +190,7 @@ def load_standard_benchmark() -> Dict[str, Any]:
 
 def load_hunting_benchmark() -> Dict[str, Any]:
     return load_benchmark(HUNTING_BENCHMARK_PATH)
+
+
+def load_agentic_security_benchmark() -> Dict[str, Any]:
+    return load_benchmark(AGENTIC_SECURITY_BENCHMARK_PATH)

@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "id": "threat_hunting_fz6_external_mock_v1",
+  "mode": "semantic",
+  "base_inputs": [
+    "scenarios/threat_hunting/threat_hunt_c2_jitter.json",
+    "scenarios/threat_hunting/threat_hunt_dns_tunnel.json",
+    "scenarios/threat_hunting/threat_hunt_pstree_lateral.json"
+  ],
+  "target": {
+    "adapter": "external_sut",
+    "recipes": [
+      "recipes/threat_hunting/critical_path_approach_v1.json",
+      "recipes/threat_hunting/credential_to_critical_path_v1.json"
+    ],
+    "external": {
+      "transport": "mock",
+      "mapping_path": "fuzzing/mappings/vendor_neutral_v1.json",
+      "input_format": "csv",
+      "output_format": "jsonl",
+      "sut_id": "cybermatch_external_mock",
+      "sut_version": "1.0.0",
+      "max_retries": 2,
+      "retry_backoff_ms": 0,
+      "timeout_seconds": 10.0,
+      "rate_limit_per_second": 10000.0
+    }
+  },
+  "generation": {
+    "campaign_seed": 20260906,
+    "max_cases": 20,
+    "max_events_per_case": 10000,
+    "max_mutations_per_case": 4,
+    "max_runtime_seconds": 10.0
+  },
+  "mutators": [
+    {
+      "id": "shift_step",
+      "weight": 1.0,
+      "range": [-3, 3]
+    },
+    {
+      "id": "drop_event",
+      "weight": 0.75,
+      "max_count": 2
+    },
+    {
+      "id": "duplicate_semantic_event",
+      "weight": 0.5,
+      "max_count": 2
+    },
+    {
+      "id": "insert_benign_noise",
+      "weight": 1.0,
+      "max_count": 5,
+      "event_types": ["authentication", "dns_query", "process_start", "scan"]
+    },
+    {
+      "id": "boundary_numeric_attribute",
+      "weight": 1.25,
+      "values": [0, 1, 31, 32, 33, 255, 256, 257, 767, 768, 769]
+    }
+  ],
+  "oracles": [
+    "external_execution_health",
+    "no_unhandled_exception",
+    "deterministic_replay",
+    "ground_truth_detection",
+    "detection_latency"
+  ],
+  "output_dir": "output/fuzzing/threat_hunting_fz6_external_mock_v1"
+}

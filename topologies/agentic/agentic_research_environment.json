@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "topology_id": "agentic_research_environment",
+  "zones": [
+    {"node_id": 0, "name": "agent-sandbox", "trust_level": "untrusted", "internet_access": false},
+    {"node_id": 1, "name": "shared-artifact-service", "trust_level": "brokered", "internet_access": false},
+    {"node_id": 2, "name": "research-egress", "trust_level": "restricted", "internet_access": true},
+    {"node_id": 3, "name": "third-party-identity", "trust_level": "external", "internet_access": true},
+    {"node_id": 4, "name": "workload-host", "trust_level": "privileged", "internet_access": false},
+    {"node_id": 5, "name": "service-identity", "trust_level": "privileged", "internet_access": false},
+    {"node_id": 6, "name": "orchestration-control-plane", "trust_level": "critical", "internet_access": false},
+    {"node_id": 7, "name": "third-party-production", "trust_level": "external-critical", "internet_access": true}
+  ],
+  "edges": [
+    {"source": 0, "target": 1, "boundary_id": "sandbox-to-broker", "allowed_event_types": ["task_blocked", "unintended_tool_probe"], "bidirectional": false},
+    {"source": 1, "target": 2, "boundary_id": "broker-to-egress", "allowed_event_types": [], "bidirectional": false},
+    {"source": 2, "target": 3, "boundary_id": "egress-to-third-party-identity", "allowed_event_types": [], "bidirectional": false},
+    {"source": 0, "target": 4, "boundary_id": "sandbox-to-host", "allowed_event_types": [], "bidirectional": false},
+    {"source": 4, "target": 5, "boundary_id": "host-to-service-identity", "allowed_event_types": [], "bidirectional": false},
+    {"source": 5, "target": 6, "boundary_id": "identity-to-control-plane", "allowed_event_types": [], "bidirectional": false},
+    {"source": 6, "target": 7, "boundary_id": "control-plane-to-third-party", "allowed_event_types": [], "bidirectional": false}
+  ],
+  "controls": [
+    {"control_id": "broker-object-acl", "objective": "shared_service_isolation", "layer": "authorization", "failure_domain": "identity-policy", "prevent_effectiveness": 0.90, "detect_effectiveness": 0.70, "enabled": true},
+    {"control_id": "broker-content-gate", "objective": "shared_service_isolation", "layer": "application", "failure_domain": "workload-mediation", "prevent_effectiveness": 0.85, "detect_effectiveness": 0.85, "enabled": true},
+    {"control_id": "sandbox-network-policy", "objective": "network_egress", "layer": "workload", "failure_domain": "sandbox-runtime", "prevent_effectiveness": 0.95, "detect_effectiveness": 0.75, "enabled": true},
+    {"control_id": "independent-egress-proxy", "objective": "network_egress", "layer": "network", "failure_domain": "network-control", "prevent_effectiveness": 0.97, "detect_effectiveness": 0.95, "enabled": true},
+    {"control_id": "sandbox-syscall-filter", "objective": "sandbox_isolation", "layer": "process", "failure_domain": "sandbox-runtime", "prevent_effectiveness": 0.94, "detect_effectiveness": 0.70, "enabled": true},
+    {"control_id": "host-boundary-monitor", "objective": "sandbox_isolation", "layer": "host", "failure_domain": "host-monitor", "prevent_effectiveness": 0.88, "detect_effectiveness": 0.96, "enabled": true},
+    {"control_id": "short-lived-scoped-token", "objective": "identity", "layer": "identity", "failure_domain": "identity-policy", "prevent_effectiveness": 0.92, "detect_effectiveness": 0.75, "enabled": true},
+    {"control_id": "vault-use-policy", "objective": "identity", "layer": "secret-store", "failure_domain": "secret-store", "prevent_effectiveness": 0.90, "detect_effectiveness": 0.90, "enabled": true},
+    {"control_id": "control-plane-mtls", "objective": "control_plane", "layer": "identity", "failure_domain": "identity-policy", "prevent_effectiveness": 0.95, "detect_effectiveness": 0.80, "enabled": true},
+    {"control_id": "independent-admission-policy", "objective": "control_plane", "layer": "authorization", "failure_domain": "control-plane-policy", "prevent_effectiveness": 0.96, "detect_effectiveness": 0.92, "enabled": true},
+    {"control_id": "remote-audit-sink", "objective": "audit_integrity", "layer": "telemetry", "failure_domain": "telemetry-pipeline", "prevent_effectiveness": 0.80, "detect_effectiveness": 0.97, "enabled": true},
+    {"control_id": "append-only-audit-store", "objective": "audit_integrity", "layer": "storage", "failure_domain": "audit-storage", "prevent_effectiveness": 0.95, "detect_effectiveness": 0.85, "enabled": true},
+    {"control_id": "third-party-egress-allowlist", "objective": "third_party_boundary", "layer": "network", "failure_domain": "network-control", "prevent_effectiveness": 0.98, "detect_effectiveness": 0.94, "enabled": true},
+    {"control_id": "third-party-token-scope", "objective": "third_party_boundary", "layer": "identity", "failure_domain": "identity-policy", "prevent_effectiveness": 0.96, "detect_effectiveness": 0.82, "enabled": true}
+  ]
+}
