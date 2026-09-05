@@ -26,6 +26,9 @@ Core capabilities:
 - **Product interface, product profiles, and mission-aware product evaluation**
 - **Scenario import, catalog, topology, and standard benchmark foundations**
 - **Attacker decision model foundation from intent through decision graph**
+- **Auditable threat hunting with external telemetry and model plugins**
+- **Agentic security evaluation with containment and threat-intelligence integrity checks**
+- **Analysis-guided semantic fuzzing with deterministic replay and external SUT adapters**
 
 ## Core Concepts
 
@@ -175,6 +178,54 @@ python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json
 
 See `AGENTIC_SECURITY.md` for the topology, failure-domain, learning, event, action, and metric contracts.
 
+### Analysis-Guided Fuzzing
+
+CyberMatch uses missions, decision paths, observable `HuntEvent` telemetry, and threat-hunting evaluations to generate reproducible semantic fuzzing cases for detection and correlation logic. It does not generate real exploits or weaponized payloads.
+
+Validate a campaign definition without executing it:
+
+```bash
+python scripts/run_fuzzing.py --validate fuzzing/campaigns/threat_hunting_mvp_v1.json
+```
+
+Run the 20-case MVP campaign:
+
+```bash
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_mvp_v1.json
+```
+
+Run a short smoke campaign with an explicit output directory:
+
+```bash
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_mvp_v1.json --max-cases 3 --output-dir output/fuzzing/mvp_smoke
+```
+
+Replay a saved corpus case:
+
+```bash
+python scripts/run_fuzzing.py --replay output/fuzzing/<campaign-id>/corpus/<case-id>
+```
+
+Inputs are restricted to repository-relative paths, and existing output directories are never overwritten. Only observable events are passed to the system under test (SUT); ground truth remains isolated in the oracle. Each mutant is compared with an unmodified control, so pre-existing false negatives or false positives are not reported as new regressions. Every case records its seed, mutation trace, target and oracle versions, and SHA-256 hashes. The framework does not generate raw packets, low-level payloads, or real exploits.
+
+The FZ5 closed-loop/topology campaign sends the same potential event sequence to open-loop and closed-loop targets while mutating feedback delay, topology paths, and defense failure domains:
+
+```bash
+python scripts/run_fuzzing.py --validate fuzzing/campaigns/threat_hunting_fz5_closed_loop_v1.json
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_fz5_closed_loop_v1.json
+```
+
+Feedback is not applied to the open-loop target. Only the closed-loop target applies future-effective defender actions derived from observed findings. Detection accuracy is evaluated on the open-loop target; forbidden boundary crossings, prevented event count, and post-alert blast radius are evaluated by closed-loop containment oracles. A metamorphic oracle verifies that both modes use matching input hashes, event counts, and mutation profiles.
+
+The FZ6 external SUT adapter uses a versioned field mapping to serialize observable events as JSONL or CSV and normalize external findings into the CyberMatch format. The mock campaign exercises the complete adapter path without network access or external processes:
+
+```bash
+python scripts/run_fuzzing.py --validate fuzzing/campaigns/threat_hunting_fz6_external_mock_v1.json
+python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_fz6_external_mock_v1.json
+```
+
+The `command` transport for real processes is disabled by default. Enabling it requires all of the following: `allow_external_execution: true` in the campaign, a repository-local allowlist, an exact allowlisted command ID, an absolute executable path, and `CYBERMATCH_ALLOW_EXTERNAL_SUT=1` at runtime. It never invokes a shell and enforces timeout, rate, response-size, and retry limits. Do not store credentials or production endpoints in an allowlist. External environment failures are classified as `infrastructure_error` or `inconclusive`, not as product detection failures.
+
 ### Topology Evaluation
 Evaluate how different enterprise network topologies impact attacker choices:
 ```bash
@@ -194,18 +245,28 @@ cybermatch-framework/
       config/
       defense/
       evaluation/
+      fuzzing/
       models/
       simulation/
+      threat_hunting/
       visualization/
+  cybermatch_core/     # Stable import facade
   cybermatch.py        # Alias for backwards compatibility
   run_scenarios.py     # Alias for backwards compatibility
   strategy_layer.py    # Alias for backwards compatibility
   scenario_loader.py
   benchmark_loader.py
   benchmarks/
+  fuzzing/
+    allowlists/
+    campaigns/
+    corpus/
+    mappings/
   topology_loader.py
   topologies/
   scenarios/
+  recipes/
+    threat_hunting/
   profiles/
     products/
   apps/
