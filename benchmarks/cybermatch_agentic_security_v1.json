@@ -7,6 +7,10 @@
   },
   "scenarios": [
     "scenarios/agentic/hugging_face_style_containment.json",
+    "scenarios/agentic/hybrid_ransom_swarm.json",
+    "scenarios/agentic/hybrid_ransom_with_deception.json",
+    "scenarios/agentic/unit42_autonomous_intrusion.json",
+    "scenarios/agentic/rsi_deceptive_takeoff.json",
     "scenarios/agentic/fabricated_cve_integrity.json"
   ],
   "seeds": [0]

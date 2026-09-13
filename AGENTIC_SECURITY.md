@@ -93,6 +93,9 @@ Run one scenario:
 
 ```bash
 python scripts/run_scenario.py scenarios/agentic/hugging_face_style_containment.json
+python scripts/run_scenario.py scenarios/agentic/hybrid_ransom_swarm.json
+python scripts/run_scenario.py scenarios/agentic/unit42_autonomous_intrusion.json
+python scripts/run_scenario.py scenarios/agentic/rsi_deceptive_takeoff.json
 python scripts/run_scenario.py scenarios/agentic/fabricated_cve_integrity.json
 ```
 
@@ -107,6 +110,11 @@ Outputs are written below `output/agentic_security/` as canonical JSON and a hum
 ## Sources and interpretation
 
 - [OpenAI - Hugging Face Incident Technical Report](https://cdn.openai.com/pdf/67869394-cb91-4c12-888c-5cbd85c7814c/OpenAI-Hugging-Face%20Incident-Technical-Report.pdf)
+- [Palo Alto Networks Unit 42: Investigation of Single Attacker 10-Hour Intrusion](https://unit42.paloaltonetworks.com/)
+- [Arctic Wolf Networks & ZDNet: Cyber Resilience and AI in Japan and Globally](https://japan.zdnet.com/article/35252497/)
+- [National Police Agency (NPA) Cyber Bureau: Ransomware Countermeasures](https://www.npa.go.jp/bureau/cyber/countermeasures/ransom.html)
+- [Hubinger et al.: Risks from Learned Optimization in Advanced Machine Learning Systems (Mesa-Optimization)](https://arxiv.org/abs/1906.01820)
+- [Anthropic: Sleeper Agents: Training Deceptive LLMs that Persist Through Safety Training](https://arxiv.org/abs/2401.05566)
 - [JFrog: SQLite Critical CVEs or LLM Slop?](https://research.jfrog.com/post/sqlite-critical-cves-or-llm-slops/)
 - [SQLite vulnerability status](https://sqlite.org/cves.html)
 

@@ -1,0 +1,36 @@
+{
+  "name": "BlueSTAR Tiered Autonomous Defense Agent",
+  "category": "xdr",
+  "product_family": "agentic_defense_platform",
+  "hunting_mode": "machine_tempo_closed_loop",
+  "detection_boost": 0.35,
+  "interruption_boost": 0.40,
+  "diversion_boost": 0.30,
+  "confidence_boost": 0.25,
+  "false_positive_penalty": 0.03,
+  "latency_penalty": 0.01,
+  "maintenance_penalty": 0.12,
+  "hunting": {
+    "telemetry_visibility": ["endpoint", "network", "identity", "cloud", "ai_workload"],
+    "observable_event_types": [
+      "task_blocked",
+      "unintended_tool_probe",
+      "shared_service_write",
+      "unauthorized_agent_coordination",
+      "transitive_egress",
+      "sandbox_escape",
+      "secret_discovery",
+      "credential_reuse",
+      "token_mint",
+      "privilege_escalation",
+      "control_plane_access",
+      "log_tampering",
+      "third_party_access"
+    ],
+    "correlation_depth_steps": 16,
+    "baseline_quality": 0.92,
+    "enrichment_quality": 0.88,
+    "ingest_latency_steps": 0,
+    "supported_recipe_tags": ["agentic", "boundary", "egress", "identity", "credential", "sequence"]
+  }
+}

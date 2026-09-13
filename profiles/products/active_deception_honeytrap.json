@@ -1,0 +1,28 @@
+{
+  "name": "Active Deception Honeytrap & Cognitive Neutralizer",
+  "category": "deception",
+  "product_family": "active_deception_platform",
+  "hunting_mode": "hallucination_lure",
+  "detection_boost": 0.25,
+  "interruption_boost": 0.20,
+  "diversion_boost": 0.50,
+  "confidence_boost": 0.15,
+  "false_positive_penalty": 0.04,
+  "latency_penalty": 0.05,
+  "maintenance_penalty": 0.18,
+  "hunting": {
+    "telemetry_visibility": ["endpoint", "network", "identity", "shared_service"],
+    "observable_event_types": [
+      "unintended_tool_probe",
+      "shared_service_write",
+      "unauthorized_agent_coordination",
+      "secret_discovery",
+      "credential_reuse"
+    ],
+    "correlation_depth_steps": 10,
+    "baseline_quality": 0.90,
+    "enrichment_quality": 0.95,
+    "ingest_latency_steps": 0,
+    "supported_recipe_tags": ["agentic", "deception", "honeypot", "identity"]
+  }
+}
