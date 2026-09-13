@@ -49,7 +49,7 @@ jobs:
         run: cybermatch-validate-assets --root .
 
       - name: Run Agentic Resilience v2 evidence protocol
-        run: cybermatch-agentic-benchmark --output-dir output/agentic-resilience-ci
+        run: python -m scripts.run_agentic_resilience --output-dir output/agentic-resilience-ci
 
       - name: Build wheel and source distribution
         run: python -m build --no-isolation
