@@ -1,5 +1,8 @@
 # CyberMatch Framework
 
+アーキテクチャと互換性方針は [ARCHITECTURE.md](ARCHITECTURE.md)、
+[PUBLIC_API.md](PUBLIC_API.md)、[DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md) を参照してください。
+
 **CyberMatch v1.0.1**
 
 CyberMatchは、攻撃者の意思決定プロセスを再現し、防御戦略やセキュリティ製品の比較評価を可能にするサイバー意思決定シミュレータです。
@@ -90,7 +93,7 @@ CyberMatchは、Pythonベースのシミュレーションエンジンと、結�
 
 ### 1. 動作環境のセットアップ
 
-依存パッケージをインストールします（Python 3.12 互換環境を推奨）：
+Python 3.12環境へローカルアプリケーション一式をインストールします：
 
 ```bash
 python -m venv .venv
@@ -99,10 +102,17 @@ python -m venv .venv
 # Linux / macOSの場合
 source .venv/bin/activate
 
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.lock
+python -m pip install --no-deps -e .
 ```
 
-環境が正しく構築できたか確認するために、スモークテストを実行してください：
+標準インストール（`python -m pip install -e .`）にはシミュレーションcoreのみが含まれます。
+`hunting` extraは任意のscikit-learnモデル、`ui`はStreamlit、`dev`はテスト・build・lock生成ツールを追加します。
+厳密に固定されたruntime環境は`python -m pip install -r requirements.txt`で導入できます。
+依存とlockの運用規則は[DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md)を参照してください。
+
+環境が正しく構築できたか確認するために、60秒のtimeoutを持つfast laneを実行してください。
+core import、Agentic Security、Threat Hunting、fuzzingの契約を検証します：
 
 ```bash
 python scripts/run_tests.py --smoke
@@ -175,6 +185,16 @@ python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json
 
 トポロジ、故障ドメイン、学習、イベント、アクション、指標の契約は `AGENTIC_SECURITY.md` を参照してください。
 
+5つのpaired seed、6防御モード、信頼区間、paired effect size、感度分析、
+評価独立性検査、hash検証可能なEvidence Bundleを含むv2旗艦protocolを実行します：
+
+```bash
+cybermatch-agentic-benchmark --output-dir output/agentic-resilience-v2
+```
+
+scenario仮説と反証条件は`protocols/agentic/flagship_v2.json`でversion管理します。
+結果はsynthetic evidenceであり、製品認証を意味しません。
+
 ### Analysis-Guided Fuzzing（分析駆動ファジング）
 
 CyberMatchのmission、decision path、観測可能な`HuntEvent`、Threat Hunting評価を利用し、検知・相関ロジック向けの再現可能なセマンティックファジングケースを生成します。実exploitやweaponized payloadは生成しません。
@@ -203,7 +223,7 @@ python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_mvp_v1.json --max
 python scripts/run_fuzzing.py --replay output/fuzzing/<campaign-id>/corpus/<case-id>
 ```
 
-入力はrepository-relative pathに制限され、既存出力は上書きしません。SUTには観測イベントだけを渡し、Ground Truthはoracle側へ分離します。各mutantは未変異controlと比較するため、ベースラインに既存のFalse Negative／False Positiveは新規回帰として数えません。全ケースにはseed、mutation trace、target／oracle version、SHA-256を保存します。raw packet、低レベルpayload、実exploitは生成しません。
+入力はrepository-relative pathに制限され、既存出力は上書きしません。SUTには観測イベントだけを渡し、Ground Truthはoracle側へ分離します。各mutantは未変異controlと比較するため、ベースラインに既存のFalse Negative／False Positiveは新規回帰として数えません。全ケースにはseed、mutation trace、target／oracle version、SHA-256を保存します。最小反例とportableなreplay commandは共通`evidence_bundle.json`から参照できます。raw packet、低レベルpayload、実exploitは生成しません。
 
 FZ5のclosed-loop／topology campaignでは、同一のpotential event sequenceをopen-loopとclosed-loopへ投入し、feedback遅延、topology path、defense failure domainを変異します：
 

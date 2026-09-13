@@ -13,11 +13,13 @@ from src.cybermatch.fuzzing import (
     FuzzTargetSpec,
     MutationRecord,
     MutatorSpec,
+    OracleResult,
     load_fuzz_campaign,
     minimize_events,
     replay_case,
     run_campaign,
 )
+from src.cybermatch.contracts import EvidenceBundle
 from src.cybermatch.fuzzing.mutators import events_hash
 from src.cybermatch.threat_hunting import GroundTruthLabel, HuntEvent, SCHEMA_VERSION
 
@@ -94,6 +96,12 @@ def _spec() -> FuzzCampaignSpec:
 
 def test_campaign_writes_hash_verified_artifacts_and_replays(tmp_path, monkeypatch):
     monkeypatch.setattr("src.cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (_case(),))
+    monkeypatch.setattr(
+        "src.cybermatch.fuzzing.runner.evaluate_oracles",
+        lambda *args, **kwargs: (
+            OracleResult("forced_failure", "fail", "high", "forced-fingerprint", {}),
+        ),
+    )
     output = tmp_path / "campaign"
 
     result = run_campaign(_spec(), output_dir=output)
@@ -103,6 +111,12 @@ def test_campaign_writes_hash_verified_artifacts_and_replays(tmp_path, monkeypat
     assert result["attempted_cases"] == 1
     assert loaded["artifact_hash"] == result["artifact_hash"]
     assert replay["saved_result_match"] is True
+    evidence = EvidenceBundle.from_dict(
+        json.loads((output / "evidence_bundle.json").read_text(encoding="utf-8"))
+    )
+    assert evidence.run.metrics.values["minimized_case_count"] == 1
+    commands = json.loads((output / "replay_commands.json").read_text(encoding="utf-8"))
+    assert commands["commands"][0]["command"].startswith("cybermatch-fuzz --replay ")
 
 
 def test_campaign_loader_detects_tampering(tmp_path, monkeypatch):

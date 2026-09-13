@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cybermatch-framework"
+version = "1.0.1"
+description = "A reproducible cyber decision and resilience evaluation framework"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "LicenseRef-PolyForm-Noncommercial-1.0.0"
+license-files = ["LICENSE"]
+authors = [
+  { name = "CyberMatch contributors" },
+]
+dependencies = [
+  "cvxpy>=1.4,<2",
+  "jsonschema>=4.21,<5",
+  "matplotlib>=3.8,<4",
+  "numpy>=1.26,<3",
+]
+
+[project.optional-dependencies]
+hunting = [
+  "scikit-learn>=1.4,<2",
+]
+ui = [
+  "streamlit>=1.32,<2",
+]
+dev = [
+  "build>=1.2,<2",
+  "pip-tools>=7.4,<8",
+  "pytest>=8,<9",
+]
+all = [
+  "scikit-learn>=1.4,<2",
+  "streamlit>=1.32,<2",
+]
+
+[project.scripts]
+cybermatch-scenario = "scripts.run_scenario:main"
+cybermatch-hunt = "src.cybermatch.threat_hunting.cli:main"
+cybermatch-fuzz = "src.cybermatch.fuzzing.cli:main"
+cybermatch-validate-assets = "scripts.validate_assets:main"
+cybermatch-agentic-benchmark = "scripts.run_agentic_resilience:main"
+
+[tool.setuptools]
+include-package-data = true
+py-modules = [
+  "archetype_analysis",
+  "behavior_profile",
+  "benchmark_loader",
+  "cybermatch",
+  "decision_graph",
+  "feature_export",
+  "feature_space",
+  "intent_inference",
+  "mission_taxonomy",
+  "run_scenarios",
+  "scenario_loader",
+  "strategy_layer",
+  "strategy_validation",
+  "topology_loader",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src.cybermatch*", "cybermatch_core*", "scripts*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"src.cybermatch.schemas" = ["*.json"]

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "assets": [
+    {"name": "scenario", "schema": "scenario.schema.json", "glob": "scenarios/**/*.json"},
+    {"name": "topology", "schema": "topology.schema.json", "glob": "topologies/**/*.json"},
+    {"name": "product", "schema": "product.schema.json", "glob": "profiles/products/*.json"},
+    {"name": "benchmark", "schema": "benchmark.schema.json", "glob": "benchmarks/*.json"},
+    {"name": "recipe", "schema": "recipe.schema.json", "glob": "recipes/**/*.json"},
+    {"name": "fuzz_campaign", "schema": "fuzz-campaign.schema.json", "glob": "fuzzing/campaigns/*.json"},
+    {"name": "external_mapping", "schema": "external-mapping.schema.json", "glob": "fuzzing/mappings/*.json"},
+    {"name": "agentic_protocol", "schema": "agentic-protocol.schema.json", "glob": "protocols/agentic/*.json"}
+  ]
+}

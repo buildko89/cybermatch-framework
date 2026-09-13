@@ -56,7 +56,7 @@ def validate_benchmark(config: Dict[str, Any]) -> None:
             scenario = load_scenario(scenario_path)
         except ScenarioValidationError as exc:
             raise BenchmarkValidationError(f"Invalid benchmark scenario {scenario_path}: {exc}") from exc
-        if metadata.get("type") == "agentic_security" and scenario["evaluation"]["runner"] != "agentic_security_evaluation":
+        if metadata.get("type") in {"agentic_security", "agentic_resilience"} and scenario["evaluation"]["runner"] != "agentic_security_evaluation":
             raise BenchmarkValidationError(
                 f"Agentic-security benchmark scenario has incompatible runner: {scenario_path}"
             )
@@ -65,10 +65,23 @@ def validate_benchmark(config: Dict[str, Any]) -> None:
                 f"Threat-hunting benchmark scenario has incompatible runner: {scenario_path}"
             )
 
-    if metadata.get("type") == "agentic_security":
+    if metadata.get("type") in {"agentic_security", "agentic_resilience"}:
         seeds = config.get("seeds", [0])
         if not isinstance(seeds, list) or not all(isinstance(seed, int) and not isinstance(seed, bool) for seed in seeds):
             raise BenchmarkValidationError("Benchmark seeds must be a list of integers.")
+        if len(seeds) != len(set(seeds)):
+            raise BenchmarkValidationError("Benchmark seeds must not contain duplicates.")
+        if metadata.get("type") == "agentic_resilience":
+            modes = config.get("defense_modes")
+            from src.cybermatch.agentic.mode_runner import DEFENSE_MODES
+
+            if modes != list(DEFENSE_MODES):
+                raise BenchmarkValidationError(
+                    "Agentic-resilience benchmark must declare all standard defense modes."
+                )
+            for name in ("protocol_catalog", "parameters", "sensitivity_axes"):
+                if name not in config:
+                    raise BenchmarkValidationError(f"Agentic-resilience benchmark requires {name}.")
         return
 
     topologies = config.get("topologies", [])

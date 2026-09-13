@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
 from src.cybermatch.threat_hunting import HuntEvent, canonical_json
+from src.cybermatch.contracts import EVIDENCE_BUNDLE_FILENAME, write_evidence_bundle
 
 from .models import FuzzCase, OracleResult, TargetResult
 from .specs import FuzzCampaignSpec
@@ -22,6 +23,7 @@ CAMPAIGN_MANIFEST_FILENAME = "fuzz_campaign_manifest.json"
 CAMPAIGN_SUMMARY_FILENAME = "campaign_summary.json"
 CAMPAIGN_CSV_FILENAME = "campaign_summary.csv"
 CAMPAIGN_REPORT_FILENAME = "FUZZING_REPORT.md"
+REPLAY_COMMANDS_FILENAME = "replay_commands.json"
 
 
 class FuzzArtifactError(ValueError):
@@ -213,6 +215,41 @@ class FuzzArtifactWriter:
             (self.output_dir / CAMPAIGN_REPORT_FILENAME).write_text(
                 _report(summary), encoding="utf-8", newline="\n"
             )
+            spec_payload = spec.to_dict()
+            replay_commands = [
+                {
+                    "case_id": case.case_id,
+                    "minimized_input": f"corpus/{case.case_id}/minimized/hunt_events.jsonl",
+                    "command": f"cybermatch-fuzz --replay corpus/{case.case_id}",
+                    "working_directory": ".",
+                }
+                for case, _, _, _, minimized, _, _ in corpus
+                if minimized is not None
+            ]
+            _write_json(self.output_dir / REPLAY_COMMANDS_FILENAME, {"commands": replay_commands})
+            evidence_paths = [
+                path
+                for path in sorted(self.output_dir.rglob("*"))
+                if path.is_file()
+                and path.name not in {CAMPAIGN_MANIFEST_FILENAME, EVIDENCE_BUNDLE_FILENAME}
+            ]
+            write_evidence_bundle(
+                self.output_dir,
+                repository_root=Path(__file__).resolve().parents[3],
+                run_id=f"fuzz-{spec.campaign_id}-{spec.campaign_seed}",
+                runner="analysis_guided_fuzzing",
+                scenario_id=spec.campaign_id,
+                seed=spec.campaign_seed,
+                input_payloads={"campaign_spec": spec_payload},
+                metrics={
+                    "attempted_cases": len(rows),
+                    "interesting_cases": summary["interesting_cases"],
+                    "unique_failure_fingerprints": len(failure_fingerprints),
+                    "minimized_case_count": len(replay_commands),
+                    "replay_command_index": REPLAY_COMMANDS_FILENAME,
+                },
+                artifact_paths=evidence_paths,
+            )
             descriptors: dict[str, dict[str, object]] = {}
             for path in sorted(self.output_dir.rglob("*")):
                 if not path.is_file() or path.name == CAMPAIGN_MANIFEST_FILENAME:
@@ -222,7 +259,6 @@ class FuzzArtifactWriter:
                     "sha256": _sha256_file(path),
                     "size_bytes": path.stat().st_size,
                 }
-            spec_payload = spec.to_dict()
             manifest: dict[str, object] = {
                 "schema_version": spec.schema_version,
                 "artifact_format_version": FUZZING_ARTIFACT_FORMAT_VERSION,
@@ -339,6 +375,7 @@ __all__ = [
     "CAMPAIGN_REPORT_FILENAME",
     "CAMPAIGN_SUMMARY_FILENAME",
     "FUZZING_ARTIFACT_FORMAT_VERSION",
+    "REPLAY_COMMANDS_FILENAME",
     "FuzzArtifactError",
     "FuzzArtifactExistsError",
     "FuzzArtifactWriter",

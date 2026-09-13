@@ -19,6 +19,10 @@ from intent_inference import MISSION_CLASSES, MissionInferenceEngine
 from mission_taxonomy import INTENT_CLASSES, MISSION_LAYER_CLASSES, TARGET_CLASSES, TARGET_STRATEGY_MAP, MissionTaxonomyAnalyzer, TaxonomyResult
 from strategy_layer import STRATEGY_CLASSES, STRATEGY_FEATURES, StrategyInferenceEngine
 from strategy_validation import StrategyValidationEngine, StrategyValidationResult
+from src.cybermatch.evaluation.artifact_io import write_rows as _write_rows
+from src.cybermatch.evaluation.statistics import mean_or_none as _mean_or_none
+from src.cybermatch.evaluation.statistics import std_or_none as _std_or_none
+from src.cybermatch.evaluation.statistics import to_float as _to_float
 from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
 
 
@@ -4470,24 +4474,6 @@ def _build_multiseed_stats_row(scenario_name: str, rows: List[Dict[str, object]]
     return {column: result.get(column) for column in MULTI_SEED_STATS_COLUMNS}
 
 
-def _to_float(value: object) -> float:
-    if value is None or value == "":
-        return 0.0
-    return float(value)
-
-
-def _mean_or_none(values: List[float]) -> Optional[float]:
-    if not values:
-        return None
-    return float(np.mean(values))
-
-
-def _std_or_none(values: List[float]) -> Optional[float]:
-    if not values:
-        return None
-    return float(np.std(values))
-
-
 def write_multiseed_summaries(
     run_rows: List[Dict[str, object]],
     stats_rows: List[Dict[str, object]],
@@ -4607,15 +4593,6 @@ def _write_best_policy(policy_rows: List[Dict[str, object]], json_path: str) -> 
     }
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=4, ensure_ascii=False)
-
-
-def _write_rows(rows: List[Dict[str, object]], columns: List[str], csv_path: str, json_path: str) -> None:
-    with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=columns)
-        writer.writeheader()
-        writer.writerows(rows)
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(rows, f, indent=4, ensure_ascii=False)
 
 
 def plot_multiseed_summary(stats_rows: List[Dict[str, object]], output_dir: str) -> None:

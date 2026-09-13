@@ -21,6 +21,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.cybermatch.application.process_control import launch_logged_process, terminate_process
+from src.cybermatch.application.artifacts import discover_files
+
 PRODUCT_PROFILE_DIR = ROOT / "profiles" / "products"
 SCENARIO_DIR = ROOT / "scenarios"
 SCENARIO_CATALOG_DIR = SCENARIO_DIR / "catalog"
@@ -882,13 +885,11 @@ def list_hunting_benchmark_files() -> List[Path]:
 
 
 def list_hunting_recipe_files() -> List[Path]:
-    return sorted(HUNTING_RECIPE_DIR.glob("*.json")) if HUNTING_RECIPE_DIR.exists() else []
+    return discover_files(HUNTING_RECIPE_DIR, "*.json")
 
 
 def list_hunting_history_files() -> List[Path]:
-    if not HUNTING_BENCHMARK_OUTPUT_DIR.exists():
-        return []
-    return sorted(HUNTING_BENCHMARK_OUTPUT_DIR.glob("runs/*/*/histories/*.npz"))
+    return discover_files(HUNTING_BENCHMARK_OUTPUT_DIR, "runs/*/*/histories/*.npz")
 
 
 def build_hunting_summary_cards(
@@ -1502,15 +1503,7 @@ def build_phase63_command(
 
 
 def start_runner(command: List[str], log_path: Path, success_key: str) -> None:
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    with log_path.open("w", encoding="utf-8") as log_file:
-        process = subprocess.Popen(
-            command,
-            cwd=str(ROOT),
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
+    process = launch_logged_process(command, cwd=ROOT, log_path=log_path)
     st.session_state["runner_process"] = process
     st.session_state["runner_log_path"] = str(log_path)
     st.session_state["runner_success_key"] = success_key
@@ -1521,12 +1514,7 @@ def stop_runner() -> bool:
     process = get_runner_process()
     if process is None or process.poll() is not None:
         return False
-    process.terminate()
-    try:
-        process.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait(timeout=5)
+    terminate_process(process)
     st.session_state["runner_stopped"] = True
     return True
 

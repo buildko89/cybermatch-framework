@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybermatch.local/schemas/product-1.0.json",
+  "title": "CyberMatch Product Profile",
+  "type": "object",
+  "required": ["name", "category", "detection_boost", "confidence_boost", "false_positive_penalty", "latency_penalty", "maintenance_penalty"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "category": {"type": "string", "minLength": 1},
+    "product_family": {"type": "string", "minLength": 1},
+    "hunting_mode": {"type": "string", "minLength": 1},
+    "detection_boost": {"type": "number", "minimum": 0, "maximum": 1},
+    "interruption_boost": {"type": "number", "minimum": 0, "maximum": 1},
+    "diversion_boost": {"type": "number", "minimum": 0, "maximum": 1},
+    "confidence_boost": {"type": "number", "minimum": 0, "maximum": 1},
+    "false_positive_penalty": {"type": "number", "minimum": 0, "maximum": 1},
+    "latency_penalty": {"type": "number", "minimum": 0, "maximum": 1},
+    "maintenance_penalty": {"type": "number", "minimum": 0, "maximum": 1},
+    "hunting": {"type": "object"}
+  }
+}

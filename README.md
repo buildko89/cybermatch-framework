@@ -1,5 +1,8 @@
 # CyberMatch Framework
 
+Architecture and stability references: [ARCHITECTURE.md](ARCHITECTURE.md),
+[PUBLIC_API.md](PUBLIC_API.md), and [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md).
+
 **CyberMatch v1.0.1**
 
 CyberMatch is a cyber decision-making simulator that reproduces attacker decision processes and enables comparative evaluation of defense strategies and security products.
@@ -93,7 +96,7 @@ CyberMatch consists of a Python-based simulation engine and a visual Streamlit G
 
 ### 1. Environment Setup
 
-Install dependencies (Python 3.12 compatible environment recommended):
+Install the full local application in a Python 3.12 environment:
 
 ```bash
 python -m venv .venv
@@ -102,10 +105,19 @@ python -m venv .venv
 # On Linux / macOS
 source .venv/bin/activate
 
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.lock
+python -m pip install --no-deps -e .
 ```
 
-Run the smoke test to ensure your environment is set up correctly:
+The default install (`python -m pip install -e .`) contains only the simulation
+core. The `hunting` extra adds optional scikit-learn models, `ui` adds the
+Streamlit dashboard, and `dev` adds test/build/lock tooling. Exact runtime
+versions are available through `python -m pip install -r requirements.txt`.
+See [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md) for dependency and lock rules.
+
+Run the curated fast lane to ensure your environment is set up correctly. It
+has a 60-second timeout and covers core imports, Agentic Security, Threat
+Hunting, and fuzzing contracts:
 
 ```bash
 python scripts/run_tests.py --smoke
@@ -178,6 +190,18 @@ python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json
 
 See `AGENTIC_SECURITY.md` for the topology, failure-domain, learning, event, action, and metric contracts.
 
+Run the v2 flagship protocol with five paired seeds, six defense modes,
+confidence intervals, paired effect sizes, sensitivity analysis, independence
+checks, and a hash-verified Evidence Bundle:
+
+```bash
+cybermatch-agentic-benchmark --output-dir output/agentic-resilience-v2
+```
+
+The scenario hypotheses and falsification criteria are versioned in
+`protocols/agentic/flagship_v2.json`. Results are synthetic evidence and must
+not be interpreted as product certification.
+
 ### Analysis-Guided Fuzzing
 
 CyberMatch uses missions, decision paths, observable `HuntEvent` telemetry, and threat-hunting evaluations to generate reproducible semantic fuzzing cases for detection and correlation logic. It does not generate real exploits or weaponized payloads.
@@ -206,7 +230,7 @@ Replay a saved corpus case:
 python scripts/run_fuzzing.py --replay output/fuzzing/<campaign-id>/corpus/<case-id>
 ```
 
-Inputs are restricted to repository-relative paths, and existing output directories are never overwritten. Only observable events are passed to the system under test (SUT); ground truth remains isolated in the oracle. Each mutant is compared with an unmodified control, so pre-existing false negatives or false positives are not reported as new regressions. Every case records its seed, mutation trace, target and oracle versions, and SHA-256 hashes. The framework does not generate raw packets, low-level payloads, or real exploits.
+Inputs are restricted to repository-relative paths, and existing output directories are never overwritten. Only observable events are passed to the system under test (SUT); ground truth remains isolated in the oracle. Each mutant is compared with an unmodified control, so pre-existing false negatives or false positives are not reported as new regressions. Every case records its seed, mutation trace, target and oracle versions, and SHA-256 hashes. Minimized counterexamples and portable replay commands are referenced by a common `evidence_bundle.json`. The framework does not generate raw packets, low-level payloads, or real exploits.
 
 The FZ5 closed-loop/topology campaign sends the same potential event sequence to open-loop and closed-loop targets while mutating feedback delay, topology paths, and defense failure domains:
 

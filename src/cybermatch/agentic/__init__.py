@@ -39,6 +39,14 @@ from .topology import (
     TrustBoundaryTopology,
     TrustZone,
 )
+from .independence import (
+    EvaluationIndependenceError,
+    audit_detector_inputs,
+    audit_finding_causality,
+)
+from .mode_runner import DEFENSE_MODES, evaluate_defense_mode
+from .protocol import AGENTIC_RESILIENCE_PROTOCOL_VERSION, COMMON_METRICS, run_agentic_resilience_protocol
+from .statistics import distribution, paired_effect
 
 __all__ = [
     "ADVISORY_STATUSES",
@@ -55,6 +63,8 @@ __all__ = [
     "AgenticThreatModel",
     "AgenticThreatProfile",
     "DefenseControl",
+    "DEFENSE_MODES",
+    "EvaluationIndependenceError",
     "IntegrityDecision",
     "IntegrityGateConfig",
     "LayeredDefenseFailureModel",
@@ -68,6 +78,14 @@ __all__ = [
     "TrustZone",
     "evaluate_learning_comparison",
     "evaluate_integrity_outcomes",
+    "evaluate_defense_mode",
+    "audit_detector_inputs",
+    "audit_finding_causality",
+    "AGENTIC_RESILIENCE_PROTOCOL_VERSION",
+    "COMMON_METRICS",
+    "distribution",
+    "paired_effect",
+    "run_agentic_resilience_protocol",
     "run_agentic_security_benchmark",
     "run_agentic_security_evaluation",
     "validate_agentic_security_scenario",

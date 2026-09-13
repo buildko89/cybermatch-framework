@@ -22,6 +22,7 @@ from src.cybermatch.config.simulation_config import SimulationConfig
 from src.cybermatch.attacker.attacker_model import AttackerModel
 from src.cybermatch.defense.ilp_mpc_strategy import OptimizationEngine
 from src.cybermatch.visualization.visualizer import Visualizer
+from src.cybermatch.simulation.probability import normalize_probability_vector
 class CyberDefenseSimulator:
     """シミュレーション実行を管理するメインクラス"""
     def __init__(self, config: SimulationConfig):
@@ -1679,11 +1680,7 @@ class CyberDefenseSimulator:
         return selected, "oracle_mission_default"
 
     def _normalize_mission_belief(self, belief: np.ndarray) -> np.ndarray:
-        clipped = np.clip(np.asarray(belief, dtype=float), 0.0, None)
-        total = float(np.sum(clipped))
-        if total <= 0.0:
-            return np.full(4, 0.25, dtype=float)
-        return clipped / total
+        return normalize_probability_vector(belief, size=4)
 
     def _sync_mission_prediction_metrics(self) -> None:
         self.mission_belief = self._normalize_mission_belief(self.mission_belief)
@@ -1766,11 +1763,7 @@ class CyberDefenseSimulator:
         self.mission_aware_policy_initialized = True
 
     def _normalize_state_belief(self, belief: np.ndarray) -> np.ndarray:
-        clipped = np.clip(np.asarray(belief, dtype=float), 0.0, None)
-        total = float(np.sum(clipped))
-        if total <= 0.0:
-            return np.full(5, 0.20, dtype=float)
-        return clipped / total
+        return normalize_probability_vector(belief, size=5)
 
     def _sync_state_prediction_metrics(self) -> None:
         self.state_belief = self._normalize_state_belief(self.state_belief)

@@ -8,11 +8,12 @@ ground truth is reserved for evaluator code added in a later phase.
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Mapping, TypeAlias
+
+from src.cybermatch.contracts import canonical_json
 
 
 SCHEMA_VERSION = "1.0"
@@ -72,12 +73,6 @@ def _freeze_attributes(attributes: Mapping[str, JsonScalar] | None) -> Mapping[s
             raise ValueError(f"attribute {key!r} must be finite")
         frozen[key] = value
     return MappingProxyType(frozen)
-
-
-def canonical_json(payload: Mapping[str, object]) -> str:
-    """Return a stable JSON representation suitable for hashes and manifests."""
-
-    return json.dumps(payload, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":"))
 
 
 def stable_identifier(namespace: str, payload: Mapping[str, object], length: int = 24) -> str:

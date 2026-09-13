@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybermatch.local/schemas/external-mapping-1.0.json",
+  "title": "CyberMatch External Field Mapping",
+  "type": "object",
+  "required": ["schema_version", "mapping_id", "mapping_version", "event_fields", "event_attributes_field", "finding_fields", "finding_attributes_field"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "mapping_id": {"type": "string", "minLength": 1},
+    "mapping_version": {"type": "string", "minLength": 1},
+    "event_fields": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+    "event_attributes_field": {"type": "string", "minLength": 1},
+    "finding_fields": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+    "finding_attributes_field": {"type": "string", "minLength": 1}
+  }
+}

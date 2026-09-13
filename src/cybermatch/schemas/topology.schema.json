@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybermatch.local/schemas/topology-1.0.json",
+  "title": "CyberMatch Topology",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["metadata", "characteristics"],
+      "additionalProperties": false,
+      "properties": {
+        "metadata": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string", "minLength": 1}, "description": {"type": "string"}}, "additionalProperties": false},
+        "characteristics": {"type": "object", "required": ["critical_assets", "identity_centralization", "lateral_movement_complexity", "deception_surface", "operational_sensitivity"]}
+      }
+    },
+    {
+      "type": "object",
+      "required": ["schema_version", "topology_id", "zones", "edges", "controls"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": "1.0"},
+        "topology_id": {"type": "string", "minLength": 1},
+        "zones": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "edges": {"type": "array", "items": {"type": "object"}},
+        "controls": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+      }
+    }
+  ]
+}

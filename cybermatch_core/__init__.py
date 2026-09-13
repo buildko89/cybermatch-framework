@@ -1,7 +1,10 @@
-"""Stable import facade for CyberMatch v1.0 refactoring work.
+"""Stable public facade for the CyberMatch 1.x API."""
 
-Phase8.6 introduces this package as a compatibility layer. The existing
-top-level modules remain authoritative; these modules provide clearer import
-paths without changing behavior.
-"""
+from importlib.metadata import PackageNotFoundError, version
 
+try:
+    __version__ = version("cybermatch-framework")
+except PackageNotFoundError:  # Source checkout without an editable install.
+    __version__ = "1.0.1"
+
+__all__ = ["__version__"]

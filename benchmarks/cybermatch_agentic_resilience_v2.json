@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "name": "cybermatch_agentic_resilience_v2",
+    "version": "2.0",
+    "type": "agentic_resilience",
+    "profile": "flagship"
+  },
+  "scenarios": [
+    "scenarios/agentic/hugging_face_style_containment.json",
+    "scenarios/agentic/hybrid_ransom_swarm.json",
+    "scenarios/agentic/hybrid_ransom_with_deception.json",
+    "scenarios/agentic/unit42_autonomous_intrusion.json",
+    "scenarios/agentic/rsi_deceptive_takeoff.json",
+    "scenarios/agentic/fabricated_cve_integrity.json"
+  ],
+  "seeds": [0, 1, 2, 3, 4],
+  "defense_modes": [
+    "no_defense",
+    "static_defense",
+    "hunting_only",
+    "containment_only",
+    "closed_loop",
+    "active_deception"
+  ],
+  "protocol_catalog": "protocols/agentic/flagship_v2.json",
+  "parameters": {
+    "observation_probability": 0.9,
+    "attack_capability": 0.9,
+    "static_control_scale": 1.0,
+    "containment_threshold": 0.8
+  },
+  "sensitivity_axes": {
+    "observation_probability": [0.6, 0.8, 1.0],
+    "containment_threshold": [0.5, 0.8, 0.95],
+    "static_control_scale": [0.5, 0.75, 1.0],
+    "attack_capability": [0.5, 0.75, 1.0]
+  }
+}
