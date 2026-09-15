@@ -3,6 +3,7 @@ from __future__ import annotations
 from apps.streamlit_app import (
     TEXT,
     build_decision_recommendations,
+    build_evidence_class_summary,
     build_hunting_bubble_rows,
     build_hunting_event_summary,
     build_hunting_evidence_timeline,
@@ -13,6 +14,20 @@ from apps.streamlit_app import (
     build_user_run_summary,
     localize_report_markdown,
 )
+
+
+def test_evidence_class_summary_keeps_replay_and_external_sut_distinct():
+    rows = build_evidence_class_summary(
+        {
+            "evidence_class": "replay-backed",
+            "source": {"path": "replays/sample.jsonl", "sha256": "a" * 64},
+            "mapping": {"id": "ocsf_v1", "standard": "ocsf"},
+            "sut": {"adapter_id": "reference"},
+        }
+    )
+    assert rows[0]["evidence_class"] == "replay-backed"
+    assert rows[0]["mapping_standard"] == "ocsf"
+    assert build_evidence_class_summary({"source": []}) == []
 
 
 def test_decision_recommendations_selects_winner_and_primary_driver():

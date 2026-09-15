@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "conclusion",
+    "claims",
+    "limitations",
+    "limitation_codes",
+    "recommended_human_decision",
+    "bundle_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.1"},
+    "conclusion": {"type": "string", "minLength": 1},
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "metric", "evidence_path", "confidence"],
+        "properties": {
+          "text": {"type": "string", "minLength": 1},
+          "metric": {"type": "string", "minLength": 1},
+          "evidence_path": {"type": "string", "minLength": 1},
+          "confidence": {"enum": ["measured", "inferred"]}
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "limitation_codes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "replay_not_live_production",
+          "external_validity_limited",
+          "model_generated_explanation"
+        ]
+      },
+      "contains": {"const": "replay_not_live_production"}
+    },
+    "recommended_human_decision": {"type": "string", "minLength": 1},
+    "bundle_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

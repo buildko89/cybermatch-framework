@@ -3,6 +3,8 @@
 アーキテクチャと互換性方針は [ARCHITECTURE.md](ARCHITECTURE.md)、
 [PUBLIC_API.md](PUBLIC_API.md)、[DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md) を参照してください。
 
+外部評価者が環境構築からEvidence Bundle検証、HITL、任意のLLM比較まで実行する手順は[CyberMatch Framework 外部評価実行手順書](CYBERMATCH_EVALUATION_EXECUTION_GUIDE.md)を参照してください。
+
 **CyberMatch v1.0.1**
 
 CyberMatchは、攻撃者の意思決定プロセスを再現し、防御戦略やセキュリティ製品の比較評価を可能にするサイバー意思決定シミュレータです。
@@ -242,6 +244,87 @@ python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_fz6_external_mock
 ```
 
 実プロセスを接続する`command` transportは既定無効です。campaignの`allow_external_execution: true`、repository内allowlist、allowlist上の完全一致するcommand ID、絶対パスの実行ファイル、実行時の`CYBERMATCH_ALLOW_EXTERNAL_SUT=1`がすべて必要です。shellは使用せず、timeout、rate limit、応答サイズ、retry回数を制限します。認証情報やproduction endpointをallowlistへ記録しないでください。外部環境障害は`infrastructure_error`／`inconclusive`として扱い、製品の検知失敗には数えません。
+
+### 外部妥当性replay
+
+Phase 3では、transport非依存の外部SUT contractと、CyberMatch JSONL、OpenTelemetry logs、OCSF、ECS向けのversioned telemetry mappingを追加しています。同梱の匿名化OCSF replayは、合成評価と同じThreat Hunting recipe／evaluatorで実行できます。
+
+```powershell
+python scripts/run_external_replay.py `
+  --source replays/anonymized/ocsf_boundary_escape_v1.jsonl `
+  --mapping mappings/telemetry/ocsf_security_finding_v1.json `
+  --recipe recipes/threat_hunting/agentic_boundary_pressure_v1.json `
+  --ground-truth replays/anonymized/ocsf_boundary_escape_v1.ground_truth.json `
+  --synthetic-reference replays/synthetic_reference/agentic_boundary_pressure_v1.json `
+  --output output/phase3_external_validity `
+  --campaign-id phase3-anonymized-replay `
+  --scenario-id agentic-boundary-pressure-external
+```
+
+出力には入力、mapping、recipe、evaluatorのprovenance／hash、合成データとのdomain gap、検証可能なEvidence Bundleが含まれます。結果は`synthetic-only`、`replay-backed`、`external-sut-backed`のいずれかを明示し、同梱reference adapterで`external-sut-backed`を名乗ることは禁止しています。
+
+Human-in-the-Loop pilot UIは次のコマンドで起動します。
+
+```powershell
+streamlit run apps/pilot_web.py
+```
+
+実行には人間による明示承認が必要です。LLM境界へ渡すのはhash検証済みで機密情報を除いたResult Viewだけであり、指標計算と証跡検証はCyberMatchが決定論的に行います。
+
+UIは既定で決定論的なoffline説明を使います。承認済みOrca Router設定を運用時に明示的に有効化する場合だけ、repository相対の設定pathを`CYBERMATCH_PILOT_LLM_CONFIG`へ指定し、API keyは`ORCAROUTER_API_KEY`だけで渡してからUIを起動します。
+
+```powershell
+$env:CYBERMATCH_PILOT_LLM_CONFIG = "configs/pilot/orcarouter.example.json"
+$env:ORCAROUTER_API_KEY = Read-Host -MaskInput "Orca Router API key"
+streamlit run apps/pilot_web.py
+```
+
+provider、回答schema、groundingのいずれかが失敗した場合は決定論的説明へ自動縮退し、機密を含まない`failure_class`をversioned LLM auditへ記録します。HTTP retryは設定回数内に制限され、408、429、5xxだけが対象です。
+
+`allowed_resolved_models`は必須のfail-closed allowlistです。live pilot前に、人間が確認した無料model catalog snapshotから更新します。Orcaが`orcarouter/free`をlist外のmodelへ解決した場合、CyberMatchは回答を拒否して決定論的fallbackを表示します。
+
+#### LOCAL-1: Qwen2.5モデル導入
+
+LOCAL-1では固定した`Qwen2.5-1.5B-Instruct Q4_K_M` GGUFだけを使用します。Llama系モデルはこのstageの対象外です。モデルはGit管理外のlocal assetとして、`models/local_llm/qwen2.5-1.5b-instruct-q4_k_m.gguf`へ導入します。
+
+既存のlocal copyからnetworkを使わず導入する場合：
+
+```powershell
+python scripts/setup_qwen25.py `
+  --source D:\path\to\qwen2.5-1.5b-instruct-q4_k_m.gguf `
+  --smoke-test
+```
+
+固定モデルを明示的にdownloadする場合：
+
+```powershell
+python scripts/setup_qwen25.py --download --smoke-test
+```
+
+導入済みモデルはいつでも再検証できます。
+
+```powershell
+python scripts/setup_qwen25.py --smoke-test
+```
+
+setup commandは任意URLを受け付けません。正確なbyte sizeとSHA-256を照合してからatomicに配置します。任意のsmoke testには`llama-cpp-python`が必要で、`pip install -e ".[local-llm]"`で導入できます。
+
+#### OR-4 shadow評価
+
+Orca credentialはGit対象外のrepository-local `.env`だけで管理します。Orca比較の明示review準備ができた時点で`.env.example`を`.env`へcopyし、`ORCAROUTER_API_KEY`を設定します。既存process environmentの値が優先されます。
+
+既存`pilot_result.json`に対して内部比較を3回実行します。
+
+```powershell
+python scripts/run_pilot_shadow.py `
+  --pilot-result output/pilot/<run-id>/pilot_result.json `
+  --output output/pilot/shadow/<run-id> `
+  --runs 3
+```
+
+runnerは決定論的templateと導入済みQwen2.5を常に評価します。Orcaは`.env`のkeyと承認済み運用configが両方存在する場合だけ含め、それ以外は`not_run`として記録します。生成回答は`pending_blind_review`状態の内部shadow artifactへ保存し、pilot UIには表示しません。
+
+人間reviewerによる役割分離、blind採点、mapping開示、集計、OR-4 gate判定は[OR-4 Blind Human Review実施手順書](OR4_BLIND_HUMAN_REVIEW_PROCEDURE_20260915.md)に従います。
 
 ### Topology Evaluation (トポロジ評価)
 企業ネットワークのトポロジ（構成）の違いが攻撃者の選択にどのように影響するかを評価します：

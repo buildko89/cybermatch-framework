@@ -28,9 +28,10 @@ def test_registry_schemas_are_valid_and_all_registered_assets_pass():
         "product": 10,
         "recipe": 4,
         "scenario": 21,
+        "telemetry_mapping": 4,
         "topology": 7,
     }
-    assert summary.total == 53
+    assert summary.total == 57
 
 
 def test_schema_rejects_unknown_scenario_envelope_field():
@@ -57,4 +58,4 @@ def test_asset_validation_cli_reports_machine_readable_summary(capsys):
     assert validate_assets_main(["--root", str(REPOSITORY_ROOT)]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output["schema_version"] == "1.0"
-    assert output["total"] == 53
+    assert output["total"] == 57

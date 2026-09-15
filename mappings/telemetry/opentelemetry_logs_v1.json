@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "mapping_id": "opentelemetry_logs_v1",
+  "mapping_version": "1.0.0",
+  "standard": "opentelemetry",
+  "field_map": {"event_id": "event.id", "actor_id": "enduser.id", "event_type": "event.name", "source_node": "source.node.id", "target_node": "destination.node.id"},
+  "attribute_map": {"severity_text": "severity.text", "trace_id": "trace.id"},
+  "defaults": {"signal_class": "telemetry"},
+  "timezone": "UTC",
+  "timestamp_field": "timestamp",
+  "timestamp_format": null,
+  "step_seconds": 1.0,
+  "reject_unknown_fields": false
+}

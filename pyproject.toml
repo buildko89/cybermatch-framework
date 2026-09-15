@@ -27,6 +27,9 @@ hunting = [
 ui = [
   "streamlit>=1.32,<2",
 ]
+local-llm = [
+  "llama-cpp-python>=0.3.35,<0.4",
+]
 dev = [
   "build>=1.2,<2",
   "pip-tools>=7.4,<8",
@@ -43,6 +46,7 @@ cybermatch-hunt = "src.cybermatch.threat_hunting.cli:main"
 cybermatch-fuzz = "src.cybermatch.fuzzing.cli:main"
 cybermatch-validate-assets = "scripts.validate_assets:main"
 cybermatch-agentic-benchmark = "scripts.run_agentic_resilience:main"
+cybermatch-external-replay = "scripts.run_external_replay:main"
 
 [tool.setuptools]
 include-package-data = true

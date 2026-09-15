@@ -14,6 +14,13 @@ def test_stable_facade_exposes_version_and_contracts() -> None:
     assert "EvaluationRun" in contracts.__all__
 
 
+def test_external_sut_contract_is_exposed_from_stable_facade() -> None:
+    from cybermatch_core import external_sut
+
+    assert external_sut.EXTERNAL_SUT_CONTRACT_VERSION == "1.0"
+    assert "run_external_replay_evaluation" in external_sut.__all__
+
+
 def test_public_api_policy_documents_compatibility_window() -> None:
     policy = (REPOSITORY_ROOT / "PUBLIC_API.md").read_text(encoding="utf-8")
     assert "cybermatch_core" in policy

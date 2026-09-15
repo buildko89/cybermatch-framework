@@ -250,6 +250,85 @@ python scripts/run_fuzzing.py fuzzing/campaigns/threat_hunting_fz6_external_mock
 
 The `command` transport for real processes is disabled by default. Enabling it requires all of the following: `allow_external_execution: true` in the campaign, a repository-local allowlist, an exact allowlisted command ID, an absolute executable path, and `CYBERMATCH_ALLOW_EXTERNAL_SUT=1` at runtime. It never invokes a shell and enforces timeout, rate, response-size, and retry limits. Do not store credentials or production endpoints in an allowlist. External environment failures are classified as `infrastructure_error` or `inconclusive`, not as product detection failures.
 
+### External validity replay
+
+Phase 3 adds a transport-neutral external SUT contract and versioned telemetry mappings for CyberMatch JSONL, OpenTelemetry logs, OCSF, and ECS. Run the bundled anonymized OCSF replay through the same threat-hunting recipe and evaluator used for synthetic evidence:
+
+```powershell
+python scripts/run_external_replay.py `
+  --source replays/anonymized/ocsf_boundary_escape_v1.jsonl `
+  --mapping mappings/telemetry/ocsf_security_finding_v1.json `
+  --recipe recipes/threat_hunting/agentic_boundary_pressure_v1.json `
+  --ground-truth replays/anonymized/ocsf_boundary_escape_v1.ground_truth.json `
+  --synthetic-reference replays/synthetic_reference/agentic_boundary_pressure_v1.json `
+  --output output/phase3_external_validity `
+  --campaign-id phase3-anonymized-replay `
+  --scenario-id agentic-boundary-pressure-external
+```
+
+The output records the source, mapping, recipe, and evaluator provenance and hashes, a synthetic-to-replay domain-gap comparison, and a verified Evidence Bundle. Results are explicitly classified as `synthetic-only`, `replay-backed`, or `external-sut-backed`; the bundled reference adapter cannot claim `external-sut-backed` evidence.
+
+Run the Human-in-the-Loop pilot UI:
+
+```powershell
+streamlit run apps/pilot_web.py
+```
+
+The pilot requires explicit human approval before execution. Its LLM boundary consumes only a hash-verified, sanitized Result View; metrics and evidence validity remain deterministic CyberMatch responsibilities.
+
+The UI uses the deterministic offline explanation by default. To opt into the approved Orca Router configuration operationally, set `CYBERMATCH_PILOT_LLM_CONFIG` to the repository-relative config path and provide the API key only through `ORCAROUTER_API_KEY` before starting the UI:
+
+```powershell
+$env:CYBERMATCH_PILOT_LLM_CONFIG = "configs/pilot/orcarouter.example.json"
+$env:ORCAROUTER_API_KEY = Read-Host -MaskInput "Orca Router API key"
+streamlit run apps/pilot_web.py
+```
+
+Provider, answer-schema, or grounding failure automatically falls back to the deterministic explanation and records a non-sensitive `failure_class` in the versioned LLM audit. HTTP retries are bounded by configuration and limited to 408, 429, and 5xx responses.
+
+The `allowed_resolved_models` list is mandatory and fail-closed. Refresh it from a human-reviewed free-model catalog snapshot before a live pilot. If Orca resolves `orcarouter/free` to a model outside that list, CyberMatch rejects the answer and displays the deterministic fallback.
+
+#### LOCAL-1: Qwen2.5 model setup
+
+LOCAL-1 uses only the pinned `Qwen2.5-1.5B-Instruct Q4_K_M` GGUF. Llama-family models are not part of this stage. Model files are local assets excluded from Git and are installed at `models/local_llm/qwen2.5-1.5b-instruct-q4_k_m.gguf`.
+
+Install from an existing local copy without network access:
+
+```powershell
+python scripts/setup_qwen25.py `
+  --source D:\path\to\qwen2.5-1.5b-instruct-q4_k_m.gguf `
+  --smoke-test
+```
+
+Or explicitly download the pinned model:
+
+```powershell
+python scripts/setup_qwen25.py --download --smoke-test
+```
+
+Verify an existing installation at any time:
+
+```powershell
+python scripts/setup_qwen25.py --smoke-test
+```
+
+The setup command accepts no arbitrary download URL. It checks the exact byte size and SHA-256 before atomically placing the model. The optional smoke test requires `llama-cpp-python`, installable with `pip install -e ".[local-llm]"`.
+
+#### OR-4 shadow evaluation
+
+Orca credentials are managed only in the repository-local `.env`, which is excluded from Git. Copy `.env.example` to `.env` and populate `ORCAROUTER_API_KEY` only when the Orca comparison is ready for explicit review. Existing process environment values take precedence.
+
+Run three internal comparisons against an existing `pilot_result.json`:
+
+```powershell
+python scripts/run_pilot_shadow.py `
+  --pilot-result output/pilot/<run-id>/pilot_result.json `
+  --output output/pilot/shadow/<run-id> `
+  --runs 3
+```
+
+The runner always evaluates the deterministic template and installed Qwen2.5 model. Orca is included only when both the `.env` key and approved operational config are present; otherwise it is recorded as `not_run`. Generated answers stay in the internal shadow artifact with `pending_blind_review` status and are not displayed in the pilot UI.
+
 ### Topology Evaluation
 Evaluate how different enterprise network topologies impact attacker choices:
 ```bash

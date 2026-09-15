@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "mapping_id": "cybermatch_jsonl_v1",
+  "mapping_version": "1.0.0",
+  "standard": "cybermatch",
+  "field_map": {"event_id": "event_id", "step": "step", "actor_id": "actor_id", "event_type": "event_type", "source_node": "source_node", "target_node": "target_node", "signal_class": "signal_class"},
+  "attribute_map": {},
+  "defaults": {},
+  "timezone": "UTC",
+  "timestamp_field": null,
+  "timestamp_format": null,
+  "step_seconds": 1.0,
+  "reject_unknown_fields": false
+}

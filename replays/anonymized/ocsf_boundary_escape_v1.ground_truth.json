@@ -1,0 +1,13 @@
+[
+  {
+    "label_id": "truth-boundary-escape-1",
+    "campaign_id": "phase3-anonymized-replay",
+    "label_type": "attacker_success",
+    "start_step": 0,
+    "end_step": 2,
+    "actor_id": "agent-7",
+    "target_node": 4,
+    "severity": "critical",
+    "attributes": {"event_ids": "ocsf-001,ocsf-002,ocsf-003"}
+  }
+]

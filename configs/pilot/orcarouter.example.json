@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "backend": "orcarouter",
+  "orcarouter": {
+    "base_url": "https://api.orcarouter.ai/v1",
+    "api_key_env": "ORCAROUTER_API_KEY",
+    "partner_tag": "cybermatch-framework",
+    "task": "cybermatch_result_explanation_v1",
+    "model": "orcarouter/free",
+    "allowed_models": ["orcarouter/free"],
+    "allowed_resolved_models": ["deepseek/deepseek-v4-flash-free"],
+    "fallback_models": [],
+    "free_only": true,
+    "temperature": 0.1,
+    "timeout_seconds": 45,
+    "max_retries": 1,
+    "max_response_bytes": 262144,
+    "include_cost": true,
+    "usage_log_path": "output/pilot/_audit/llm_usage.jsonl"
+  }
+}

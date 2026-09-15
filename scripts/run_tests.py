@@ -15,6 +15,7 @@ FAST_TEST_PATTERNS: Sequence[str] = (
     "tests/test_public_api.py",
     "tests/test_schema_registry.py",
     "tests/test_test_runner.py",
+    "tests/test_pilot_*.py",
     "tests/test_agentic_security_*.py",
     "tests/test_agentic_resilience_*.py",
     "tests/test_architecture_seams.py",
@@ -58,7 +59,7 @@ def main() -> int:
     args = parser.parse_args()
 
     repository_root = Path(__file__).resolve().parents[1]
-    compile_targets = ["cybermatch.py", "run_scenarios.py", "intent_inference.py", "behavior_profile.py", "feature_space.py", "feature_export.py", "archetype_analysis.py", "strategy_layer.py", "mission_taxonomy.py", "strategy_validation.py", "decision_graph.py", "scenario_loader.py", "benchmark_loader.py", "topology_loader.py", "src/cybermatch/application", "src/cybermatch/contracts", "src/cybermatch/evaluation", "src/cybermatch/simulation", "src/cybermatch/threat_hunting", "src/cybermatch/agentic", "cybermatch_core/threat_hunting.py", "cybermatch_core/agentic_security.py", "scripts/run_tests.py", "scripts/run_scenario.py", "scripts/run_agentic_resilience.py", "scripts/run_threat_hunting.py", "scripts/run_threat_hunting_evaluation.py", "scripts/validate_assets.py"]
+    compile_targets = ["cybermatch.py", "run_scenarios.py", "intent_inference.py", "behavior_profile.py", "feature_space.py", "feature_export.py", "archetype_analysis.py", "strategy_layer.py", "mission_taxonomy.py", "strategy_validation.py", "decision_graph.py", "scenario_loader.py", "benchmark_loader.py", "topology_loader.py", "src/cybermatch/application", "src/cybermatch/contracts", "src/cybermatch/evaluation", "src/cybermatch/simulation", "src/cybermatch/threat_hunting", "src/cybermatch/agentic", "src/cybermatch/pilot", "src/cybermatch/external_sut.py", "cybermatch_core/threat_hunting.py", "cybermatch_core/agentic_security.py", "cybermatch_core/external_sut.py", "scripts/run_tests.py", "scripts/run_scenario.py", "scripts/run_agentic_resilience.py", "scripts/run_threat_hunting.py", "scripts/run_threat_hunting_evaluation.py", "scripts/run_external_replay.py", "scripts/run_pilot_shadow.py", "scripts/setup_qwen25.py", "scripts/validate_assets.py", "apps/pilot_web.py"]
     run_id = uuid.uuid4().hex[:12]
     run_root = repository_root / "output" / "pytest_tmp" / run_id
     run_root.mkdir(parents=True, exist_ok=False)

@@ -1015,6 +1015,27 @@ def build_hunting_model_summary(model_manifest: Any) -> List[Dict[str, Any]]:
     ]
 
 
+def build_evidence_class_summary(replay_manifest: Any) -> List[Dict[str, Any]]:
+    """Expose provenance without implying that replay data is live-SUT evidence."""
+    if not isinstance(replay_manifest, dict):
+        return []
+    source = replay_manifest.get("source", {})
+    mapping = replay_manifest.get("mapping", {})
+    sut = replay_manifest.get("sut", {})
+    if not all(isinstance(value, dict) for value in (source, mapping, sut)):
+        return []
+    return [
+        {
+            "evidence_class": str(replay_manifest.get("evidence_class", "unknown")),
+            "source": str(source.get("path", "")),
+            "source_sha256": str(source.get("sha256", "")),
+            "mapping": str(mapping.get("id", "")),
+            "mapping_standard": str(mapping.get("standard", "")),
+            "sut_adapter": str(sut.get("adapter_id", "")),
+        }
+    ]
+
+
 def safe_hunting_artifact_dir(path_value: Any) -> Optional[Path]:
     if not isinstance(path_value, str) or not path_value:
         return None
@@ -2610,11 +2631,20 @@ def _render_hunting_artifact(artifact_dir: Path, labels: Dict[str, str]) -> None
     model_reference = artifacts.manifest.get("model_manifest")
     model_path = None
     model_payload = None
+    replay_manifest_path = artifact_dir.parent / "replay_manifest.json"
+    replay_manifest = read_json(replay_manifest_path) if replay_manifest_path.is_file() else None
     if isinstance(model_reference, dict) and model_reference.get("path") == "models/model_manifest.json":
         model_path = artifact_dir / "models" / "model_manifest.json"
         model_payload = read_json(model_path)
 
     st.subheader(labels["data_summary"])
+    provenance_rows = build_evidence_class_summary(replay_manifest)
+    if provenance_rows:
+        st.info(
+            "Evidence classification is explicit: synthetic-only, replay-backed, and "
+            "external-sut-backed results are not interchangeable."
+        )
+        st.dataframe(provenance_rows, use_container_width=True, hide_index=True)
     event_cards = st.columns(4)
     event_cards[0].metric("Events", len(events))
     event_cards[1].metric("Event types", len({event["event_type"] for event in events}))

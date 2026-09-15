@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "mapping_id": "ecs_event_v1",
+  "mapping_version": "1.0.0",
+  "standard": "ecs",
+  "field_map": {"event_id": "event.id", "actor_id": "user.id", "event_type": "event.action", "source_node": "source.as.number", "target_node": "destination.as.number"},
+  "attribute_map": {"event_category": "event.category", "event_kind": "event.kind"},
+  "defaults": {"signal_class": "telemetry"},
+  "timezone": "UTC",
+  "timestamp_field": "@timestamp",
+  "timestamp_format": null,
+  "step_seconds": 1.0,
+  "reject_unknown_fields": false
+}

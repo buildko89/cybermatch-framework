@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "reference_id": "synthetic_agentic_boundary_pressure_v1",
+  "evidence_class": "synthetic-only",
+  "protocol_id": "cybermatch_external_replay_v1",
+  "metrics": {
+    "event_count": 5,
+    "finding_count": 1,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_positives_per_100_steps": 0.0
+  },
+  "event_type_distribution": {
+    "routine_health_check": 0.4,
+    "transitive_egress": 0.2,
+    "unauthorized_agent_coordination": 0.2,
+    "unintended_tool_probe": 0.2
+  }
+}

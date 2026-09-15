@@ -8,6 +8,7 @@
     {"name": "recipe", "schema": "recipe.schema.json", "glob": "recipes/**/*.json"},
     {"name": "fuzz_campaign", "schema": "fuzz-campaign.schema.json", "glob": "fuzzing/campaigns/*.json"},
     {"name": "external_mapping", "schema": "external-mapping.schema.json", "glob": "fuzzing/mappings/*.json"},
+    {"name": "telemetry_mapping", "schema": "telemetry-mapping.schema.json", "glob": "mappings/telemetry/*.json"},
     {"name": "agentic_protocol", "schema": "agentic-protocol.schema.json", "glob": "protocols/agentic/*.json"}
   ]
 }

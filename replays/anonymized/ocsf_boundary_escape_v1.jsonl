@@ -1,0 +1,4 @@
+{"activity_name":"unintended_tool_probe","actor_user_name":"agent-7","class_uid":6003,"dst_endpoint_uid":2,"metadata_uid":"ocsf-001","severity_id":2,"src_endpoint_uid":1,"time":"2026-09-12T00:00:00Z"}
+{"activity_name":"unauthorized_agent_coordination","actor_user_name":"agent-7","class_uid":6003,"dst_endpoint_uid":3,"metadata_uid":"ocsf-002","severity_id":3,"src_endpoint_uid":2,"time":"2026-09-12T00:00:01Z"}
+{"activity_name":"transitive_egress","actor_user_name":"agent-7","class_uid":6003,"dst_endpoint_uid":4,"metadata_uid":"ocsf-003","severity_id":5,"src_endpoint_uid":3,"time":"2026-09-12T00:00:02Z"}
+{"activity_name":"routine_health_check","actor_user_name":"service-2","class_uid":6003,"dst_endpoint_uid":1,"metadata_uid":"ocsf-004","severity_id":1,"src_endpoint_uid":0,"time":"2026-09-12T00:00:03Z"}

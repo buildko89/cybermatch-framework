@@ -67,6 +67,8 @@ class ExternalFieldMapping:
 
     mapping_id: str
     field_map: Mapping[str, str]
+    mapping_version: str = "1.0.0"
+    standard: str = "custom"
     attribute_map: Mapping[str, str] = field(default_factory=dict)
     defaults: Mapping[str, JsonScalar] = field(default_factory=dict)
     timezone: str = "UTC"
@@ -79,6 +81,12 @@ class ExternalFieldMapping:
     def __post_init__(self) -> None:
         if not isinstance(self.mapping_id, str) or not self.mapping_id.strip():
             raise ExternalMappingError("mapping_id must be a non-empty string")
+        if not isinstance(self.mapping_version, str) or not self.mapping_version.strip():
+            raise ExternalMappingError("mapping_version must be a non-empty string")
+        if self.standard not in {"custom", "cybermatch", "opentelemetry", "ocsf", "ecs"}:
+            raise ExternalMappingError(
+                "standard must be custom, cybermatch, opentelemetry, ocsf, or ecs"
+            )
         if self.schema_version != SCHEMA_VERSION:
             raise ExternalMappingError(f"schema_version must be {SCHEMA_VERSION!r}")
         fields = _string_mapping(self.field_map, "field_map")
@@ -136,6 +144,8 @@ class ExternalFieldMapping:
         return {
             "schema_version": self.schema_version,
             "mapping_id": self.mapping_id,
+            "mapping_version": self.mapping_version,
+            "standard": self.standard,
             "field_map": dict(self.field_map),
             "attribute_map": dict(self.attribute_map),
             "defaults": dict(self.defaults),

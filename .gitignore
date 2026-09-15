@@ -20,5 +20,12 @@ smoke_fix*.py
 review/
 .claude/
 
+# LOCAL-1 model assets are installed locally and never committed.
+/models/local_llm/*.gguf
+/models/local_llm/*.part
+
+# Pilot secrets are loaded only from the repository-local environment file.
+/.env
+
 docs/
 report/

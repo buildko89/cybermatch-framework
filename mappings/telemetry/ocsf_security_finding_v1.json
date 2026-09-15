@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "mapping_id": "ocsf_security_finding_v1",
+  "mapping_version": "1.0.0",
+  "standard": "ocsf",
+  "field_map": {"event_id": "metadata_uid", "actor_id": "actor_user_name", "event_type": "activity_name", "source_node": "src_endpoint_uid", "target_node": "dst_endpoint_uid"},
+  "attribute_map": {"class_uid": "class_uid", "severity_id": "severity_id"},
+  "defaults": {"signal_class": "telemetry"},
+  "timezone": "UTC",
+  "timestamp_field": "time",
+  "timestamp_format": null,
+  "step_seconds": 1.0,
+  "reject_unknown_fields": false
+}

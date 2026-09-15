@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cybermatch.local/schemas/telemetry-mapping-1.0.json",
+  "title": "CyberMatch External Telemetry Mapping",
+  "type": "object",
+  "required": ["schema_version", "mapping_id", "mapping_version", "standard", "field_map", "attribute_map", "defaults", "timezone", "timestamp_field", "timestamp_format", "step_seconds", "reject_unknown_fields"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "mapping_id": {"type": "string", "minLength": 1},
+    "mapping_version": {"type": "string", "minLength": 1},
+    "standard": {"enum": ["custom", "cybermatch", "opentelemetry", "ocsf", "ecs"]},
+    "field_map": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "minLength": 1}},
+    "attribute_map": {"type": "object", "additionalProperties": {"type": "string", "minLength": 1}},
+    "defaults": {"type": "object", "additionalProperties": {"type": ["string", "number", "integer", "boolean", "null"]}},
+    "timezone": {"type": "string", "minLength": 1},
+    "timestamp_field": {"type": ["string", "null"]},
+    "timestamp_format": {"type": ["string", "null"]},
+    "step_seconds": {"type": "number", "exclusiveMinimum": 0},
+    "reject_unknown_fields": {"type": "boolean"}
+  }
+}

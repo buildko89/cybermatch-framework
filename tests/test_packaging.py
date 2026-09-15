@@ -16,7 +16,17 @@ def test_dependency_contract_has_minimal_core_and_explicit_extras():
         "matplotlib>=3.8,<4",
         "numpy>=1.26,<3",
     }
-    assert set(project["optional-dependencies"]) == {"all", "dev", "hunting", "ui"}
+    assert set(project["optional-dependencies"]) == {
+        "all",
+        "dev",
+        "hunting",
+        "local-llm",
+        "ui",
+    }
+    assert project["optional-dependencies"]["local-llm"] == [
+        "llama-cpp-python>=0.3.35,<0.4"
+    ]
+    assert "llama-cpp-python>=0.3.35,<0.4" not in project["optional-dependencies"]["all"]
     assert project["requires-python"] == ">=3.12"
     assert {
         "cybermatch-agentic-benchmark",
