@@ -20,7 +20,7 @@ def test_unknown_lane_is_rejected() -> None:
         evaluate._resolve_lanes(["does-not-exist"])
 
 
-def test_every_lane_writes_below_its_own_output_directory() -> None:
+def test_every_lane_writes_below_its_own_lane_directory() -> None:
     for lane in evaluate.LANES.values():
         out = f"output/evaluations/test-run/{lane.lane_id}"
         commands = lane.build_commands(out, evaluate.DEFAULT_SEEDS)

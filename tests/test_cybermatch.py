@@ -553,10 +553,21 @@ def test_cns_objective_score_range():
     assert 0.0 <= metrics["cns_objective_score"] <= 1.0
 
 
+def _read_local_artifact(path: str) -> str:
+    """Read a local research artifact that Git does not track (docs/ root, output/).
+
+    Clean checkouts and CI do not have these files, so the check is skipped
+    there instead of failing.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        pytest.skip(f"untracked local research artifact not present: {path}")
+
+
 def test_phase2_attacker_model_roadmap_exists():
-    path = "docs/PHASE2_ATTACKER_MODEL_ROADMAP.md"
-    with open(path, encoding="utf-8") as f:
-        content = f.read()
+    content = _read_local_artifact("docs/PHASE2_ATTACKER_MODEL_ROADMAP.md")
 
     assert "# CyberMatch Phase2 Attacker Model Roadmap" in content
     assert "Human Frustration Model" in content
@@ -564,9 +575,7 @@ def test_phase2_attacker_model_roadmap_exists():
 
 
 def test_phase2_final_report_exists():
-    path = "docs/CYBERMATCH_PHASE2_FINAL_REPORT.md"
-    with open(path, encoding="utf-8") as f:
-        content = f.read()
+    content = _read_local_artifact("docs/CYBERMATCH_PHASE2_FINAL_REPORT.md")
 
     assert "# CyberMatch Phase2 Final Report" in content
     assert "Decision Neutralization" in content
@@ -583,15 +592,12 @@ def test_phase2_artifacts_exists():
     ]
 
     for path in required_paths:
-        with open(path, encoding="utf-8") as f:
-            content = f.read()
+        content = _read_local_artifact(path)
         assert "Phase2" in content or "Reproducibility" in content
 
 
 def test_phase2_summary_json_exists():
-    path = "output/phase2_final_summary.json"
-    with open(path, encoding="utf-8") as f:
-        payload = json.load(f)
+    payload = json.loads(_read_local_artifact("output/phase2_final_summary.json"))
 
     assert payload["phase"] == "Phase2"
     assert payload["phase1_best_policy"] == "phase2_ai_balanced"

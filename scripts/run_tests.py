@@ -16,6 +16,7 @@ FAST_TEST_PATTERNS: Sequence[str] = (
     "tests/test_schema_registry.py",
     "tests/test_test_runner.py",
     "tests/test_evaluate_menu.py",
+    "tests/test_evaluation_provenance.py",
     "tests/test_pilot_*.py",
     "tests/test_agentic_security_*.py",
     "tests/test_agentic_resilience_*.py",
@@ -56,6 +57,11 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--smoke", action="store_true", help="Run the curated fast lane (60-second SLO).")
     group.add_argument("--phase", choices=["phase1", "phase2", "phase3", "phase4", "phase5", "phase8", "phase83", "phase84", "phase85", "phase90", "phase91", "phase92", "phase93", "phase94", "phase95", "phase96", "phase97", "phase98", "phase99", "threat_hunting", "agentic_security"], help="Run one phase marker.")
+    group.add_argument(
+        "--fast",
+        action="store_true",
+        help="Run every test except those marked slow (long end-to-end evaluations).",
+    )
     group.add_argument("--full", action="store_true", help="Run compile checks and the full pytest suite.")
     args = parser.parse_args()
 
@@ -76,7 +82,7 @@ def main() -> int:
     if compile_rc != 0:
         return compile_rc
 
-    profile_name = "smoke" if args.smoke else args.phase or "full"
+    profile_name = "smoke" if args.smoke else "fast" if args.fast else args.phase or "full"
     junit_path = repository_root / "output" / "test-results" / f"{profile_name}-{run_id}.xml"
     junit_path.parent.mkdir(parents=True, exist_ok=True)
     pytest_base = [
@@ -98,6 +104,8 @@ def main() -> int:
             timeout=SMOKE_TIMEOUT_SECONDS,
             cwd=repository_root,
         )
+    if args.fast:
+        return _run([*pytest_base, "-m", "not slow", "-q"], env=run_env, cwd=repository_root)
     if args.phase:
         return _run([*pytest_base, "-m", args.phase, "-q"], env=run_env, cwd=repository_root)
     return _run([*pytest_base, "-q"], env=run_env, cwd=repository_root)
