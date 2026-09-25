@@ -3,7 +3,7 @@
 Each selected lane writes to ``output/evaluations/<run-id>/<lane>/`` so runs
 never collide with earlier results. After all lanes finish, an
 ``EVALUATION_SUMMARY.md`` lists the status, elapsed time, the report to read
-first, and the verified Evidence Bundle hash for every lane.
+first, and the verified Evidence Bundle hashes for every lane.
 
 Examples::
 
@@ -11,6 +11,7 @@ Examples::
     python scripts/evaluate.py quickstart
     python scripts/evaluate.py product hunting
     python scripts/evaluate.py all --run-id review-20260925
+    python scripts/evaluate.py product --seeds 0      # fastest, no confidence intervals
 """
 
 from __future__ import annotations
@@ -33,7 +34,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 DEFAULT_OUTPUT_ROOT = "output/evaluations"
+DEFAULT_SEEDS = "0,1,2,3,4"
+QUICKSTART_SEEDS = "0"
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{3,64}$")
+SEEDS_PATTERN = re.compile(r"^\d+(,\d+)*$")
+DEMOS = ("demo_vendor_comparison", "demo_deception_value", "demo_ot_factory_defense")
 
 
 @dataclass(frozen=True)
@@ -44,10 +49,11 @@ class Lane:
     title: str
     question: str
     minutes: str
-    build_commands: Callable[[str], List[List[str]]]
+    build_commands: Callable[[str, str], List[List[str]]]
     reports: Sequence[str]
-    evidence_bundle: str | None = None
+    evidence_bundles: Sequence[str] = ()
     uses_output_dir: bool = True
+    uses_seeds: bool = False
 
 
 @dataclass
@@ -57,7 +63,7 @@ class LaneResult:
     seconds: float
     output_dir: str | None
     commands: List[str] = field(default_factory=list)
-    evidence_bundle_hash: str | None = None
+    evidence_bundle_hashes: Dict[str, str] = field(default_factory=dict)
     message: str = ""
 
 
@@ -65,28 +71,27 @@ def _py(*args: str) -> List[str]:
     return [sys.executable, *args]
 
 
-def _check_commands(_: str) -> List[List[str]]:
+def _check_commands(_: str, __: str) -> List[List[str]]:
     return [
         _py("scripts/run_tests.py", "--smoke"),
         _py("scripts/validate_assets.py", "--root", "."),
     ]
 
 
-def _product_commands(out: str) -> List[List[str]]:
-    demos = ("demo_vendor_comparison", "demo_deception_value", "demo_ot_factory_defense")
+def _product_commands(out: str, seeds: str) -> List[List[str]]:
     return [
-        _py("scripts/run_scenario.py", f"scenarios/demos/{demo}.json", "--output-dir", f"{out}/{demo}")
-        for demo in demos
+        _py("scripts/run_scenario.py", f"scenarios/demos/{demo}.json", "--output-dir", f"{out}/{demo}", "--seeds", seeds)
+        for demo in DEMOS
     ]
 
 
-def _standard_commands(out: str) -> List[List[str]]:
+def _standard_commands(out: str, seeds: str) -> List[List[str]]:
     # run_scenario.py generates a fresh Phase6.3 baseline inside the output
     # directory, so the result never depends on output/phase63_mission_products.
-    return [_py("scripts/run_scenario.py", "benchmarks/cybermatch_standard_v1.json", "--output-dir", out)]
+    return [_py("scripts/run_scenario.py", "benchmarks/cybermatch_standard_v1.json", "--output-dir", out, "--seeds", seeds)]
 
 
-def _hunting_commands(out: str) -> List[List[str]]:
+def _hunting_commands(out: str, _: str) -> List[List[str]]:
     return [
         _py("scripts/run_scenario.py", "benchmarks/cybermatch_hunting_v1.json", "--output-dir", f"{out}/benchmark"),
         _py(
@@ -98,19 +103,19 @@ def _hunting_commands(out: str) -> List[List[str]]:
     ]
 
 
-def _agentic_commands(out: str) -> List[List[str]]:
+def _agentic_commands(out: str, _: str) -> List[List[str]]:
     return [_py("scripts/run_scenario.py", "benchmarks/cybermatch_agentic_security_v1.json", "--output-dir", out)]
 
 
-def _resilience_commands(out: str) -> List[List[str]]:
+def _resilience_commands(out: str, _: str) -> List[List[str]]:
     return [_py("scripts/run_agentic_resilience.py", "--output-dir", out)]
 
 
-def _fuzzing_commands(out: str) -> List[List[str]]:
+def _fuzzing_commands(out: str, _: str) -> List[List[str]]:
     return [_py("scripts/run_fuzzing.py", "fuzzing/campaigns/threat_hunting_mvp_v1.json", "--output-dir", out)]
 
 
-def _replay_commands(out: str) -> List[List[str]]:
+def _replay_commands(out: str, _: str) -> List[List[str]]:
     return [
         _py(
             "scripts/run_external_replay.py",
@@ -135,7 +140,7 @@ LANES: Dict[str, Lane] = {
             "check",
             "環境確認",
             "インストールは正しいか、同梱JSON資産はスキーマに適合しているか",
-            "~1",
+            "~0.5",
             _check_commands,
             reports=("output/test-results/smoke-*.xml",),
             uses_output_dir=False,
@@ -144,36 +149,40 @@ LANES: Dict[str, Lane] = {
             "replay",
             "外部妥当性リプレイ",
             "記録済みテレメトリ(OCSF)に対して検知レシピは正解ラベルをどこまで再現するか",
-            "<1",
+            "<0.5",
             _replay_commands,
             reports=("PHASE3_EXTERNAL_VALIDITY_REPORT.md", "phase3_external_validity_summary.json"),
-            evidence_bundle=".",
+            evidence_bundles=(".",),
         ),
         Lane(
             "product",
             "製品×攻撃目的の比較デモ",
-            "攻撃者のmissionが変わると、有効な製品プロファイルはどう変わるか",
-            "~1",
+            "攻撃者のmissionが変わると、有効な製品プロファイルはどう変わるか。seedを変えても結論は変わらないか",
+            "~3 (5 seed) / ~0.7 (1 seed)",
             _product_commands,
-            reports=(
-                "demo_vendor_comparison/PHASE63_MISSION_PRODUCT_REPORT.md",
-                "demo_deception_value/PHASE63_MISSION_PRODUCT_REPORT.md",
-                "demo_ot_factory_defense/PHASE63_MISSION_PRODUCT_REPORT.md",
+            reports=tuple(
+                f"{demo}/{name}" for demo in DEMOS for name in ("PHASE63_MISSION_PRODUCT_REPORT.md", "SEED_ROBUSTNESS_REPORT.md")
             ),
+            uses_seeds=True,
         ),
         Lane(
             "standard",
             "標準ベンチマーク",
             "業種シナリオ×トポロジ×mission×製品の総当たりで、どの防御が安定して効くか",
-            "~1",
+            "~3 (5 seed) / ~1 (1 seed)",
             _standard_commands,
-            reports=("PHASE85_STANDARD_BENCHMARK_REPORT.md", "baseline_provenance.json"),
+            reports=(
+                "PHASE85_STANDARD_BENCHMARK_REPORT.md",
+                "SEED_ROBUSTNESS_REPORT.md",
+                "baseline_provenance.json",
+            ),
+            uses_seeds=True,
         ),
         Lane(
             "hunting",
             "脅威ハンティング",
             "ハンティングレシピは攻撃をどれだけ早く・少ない誤検知で捉え、閉ループ対処は攻撃を止めるか",
-            "<1",
+            "<0.5",
             _hunting_commands,
             reports=(
                 "benchmark/hunting_benchmark_summary.csv",
@@ -184,7 +193,7 @@ LANES: Dict[str, Lane] = {
             "agentic",
             "Agentic Security",
             "自律エージェントの境界逸脱・脅威情報汚染・共通原因故障・報酬ハックを封じ込められるか",
-            "<1",
+            "<0.5",
             _agentic_commands,
             reports=(
                 "agentic_security_benchmark_summary.json",
@@ -195,19 +204,19 @@ LANES: Dict[str, Lane] = {
             "resilience",
             "Agentic Resilience v2 (統計付き)",
             "6種の防御モードの差は、5 seed の信頼区間・効果量で見ても有意か",
-            "<1",
+            "<0.5",
             _resilience_commands,
             reports=("agentic_resilience_summary.json", "AGENTIC_RESILIENCE_REPORT.md"),
-            evidence_bundle=".",
+            evidence_bundles=(".",),
         ),
         Lane(
             "fuzzing",
             "分析駆動ファジング",
             "意味的に変異させたイベント列で、検知ロジックに回帰(見逃し・誤検知)が生じるか",
-            "<1",
+            "<0.5",
             _fuzzing_commands,
             reports=("FUZZING_REPORT.md", "campaign_summary.csv"),
-            evidence_bundle=".",
+            evidence_bundles=(".",),
         ),
     )
 }
@@ -228,6 +237,9 @@ def _print_menu() -> None:
     print("プリセット:")
     for name, lanes in PRESETS.items():
         print(f"  {name:<11} = {' + '.join(lanes)}")
+    print()
+    print(f"seed: product / standard は既定で {DEFAULT_SEEDS}(95%信頼区間付き)。quickstart のみ既定 {QUICKSTART_SEEDS}。")
+    print("      --seeds 0 で高速化、--seeds 0,1,2,3,4 で信頼区間付き。")
     print()
     print("例: python scripts/evaluate.py quickstart")
     print("    python scripts/evaluate.py product hunting --run-id my-review-001")
@@ -257,10 +269,10 @@ def _verify_bundle(directory: Path) -> str:
     return load_evidence_bundle(directory).bundle_hash
 
 
-def _run_lane(lane: Lane, run_root: Path, env: Dict[str, str], dry_run: bool) -> LaneResult:
+def _run_lane(lane: Lane, run_root: Path, env: Dict[str, str], seeds: str, dry_run: bool) -> LaneResult:
     lane_dir = run_root / lane.lane_id
     out_arg = lane_dir.relative_to(ROOT).as_posix()
-    commands = lane.build_commands(out_arg)
+    commands = lane.build_commands(out_arg, seeds)
     result = LaneResult(
         lane=lane,
         status="planned" if dry_run else "succeeded",
@@ -295,12 +307,14 @@ def _run_lane(lane: Lane, run_root: Path, env: Dict[str, str], dry_run: bool) ->
             break
     result.seconds = time.monotonic() - started
 
-    if result.status == "succeeded" and lane.evidence_bundle is not None:
-        try:
-            result.evidence_bundle_hash = _verify_bundle(lane_dir / lane.evidence_bundle)
-        except Exception as exc:  # verification failure must be visible, not fatal to other lanes
-            result.status = "failed"
-            result.message = f"Evidence Bundle verification failed: {exc}"
+    if result.status == "succeeded":
+        for relative in lane.evidence_bundles:
+            try:
+                result.evidence_bundle_hashes[relative] = _verify_bundle(lane_dir / relative)
+            except Exception as exc:  # verification failure must be visible, not fatal to other lanes
+                result.status = "failed"
+                result.message = f"Evidence Bundle verification failed ({relative}): {exc}"
+                break
     return result
 
 
@@ -310,7 +324,7 @@ def _report_paths(result: LaneResult) -> List[str]:
     return [f"{result.output_dir}/{report}" for report in result.lane.reports]
 
 
-def _write_summary(run_root: Path, run_id: str, results: List[LaneResult]) -> Path:
+def _write_summary(run_root: Path, run_id: str, results: List[LaneResult], seeds: str = DEFAULT_SEEDS) -> Path:
     rows = []
     for result in results:
         rows.append(
@@ -322,13 +336,13 @@ def _write_summary(run_root: Path, run_id: str, results: List[LaneResult]) -> Pa
                 "seconds": round(result.seconds, 1),
                 "output_dir": result.output_dir,
                 "read_first": _report_paths(result),
-                "evidence_bundle_hash": result.evidence_bundle_hash,
+                "evidence_bundle_hashes": result.evidence_bundle_hashes,
                 "commands": result.commands,
                 "message": result.message,
             }
         )
     (run_root / "evaluation_summary.json").write_text(
-        json.dumps({"run_id": run_id, "lanes": rows}, ensure_ascii=False, indent=2) + "\n",
+        json.dumps({"run_id": run_id, "seeds": seeds, "lanes": rows}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -337,13 +351,17 @@ def _write_summary(run_root: Path, run_id: str, results: List[LaneResult]) -> Pa
         "",
         f"- 実行日時: {datetime.now().astimezone().isoformat(timespec='seconds')}",
         f"- Python: {sys.version.split()[0]}",
+        f"- seed(product / standard): `{seeds}`",
         "",
-        "| レーン | 評価内容 | 結果 | 所要(秒) | まず読むファイル | Evidence Bundle hash |",
+        "| レーン | 評価内容 | 結果 | 所要(秒) | まず読むファイル | Evidence Bundle |",
         "|---|---|---|---:|---|---|",
     ]
     for row in rows:
         reads = "<br>".join(f"`{path}`" for path in row["read_first"])
-        bundle = f"`{row['evidence_bundle_hash'][:16]}…`" if row["evidence_bundle_hash"] else "-"
+        hashes = row["evidence_bundle_hashes"]
+        bundle = "<br>".join(
+            f"`{digest[:12]}…`" if name == "." else f"{name}: `{digest[:12]}…`" for name, digest in hashes.items()
+        ) or "-"
         status = {"succeeded": "OK", "failed": "**NG**"}.get(row["status"], row["status"])
         lines.append(f"| `{row['lane']}` | {row['title']} | {status} | {row['seconds']} | {reads} | {bundle} |")
     lines += ["", "## 各レーンが答える問い", ""]
@@ -365,6 +383,7 @@ def _write_summary(run_root: Path, run_id: str, results: List[LaneResult]) -> Pa
         "## 解釈上の注意",
         "",
         "- 結果は同梱の合成シナリオ・記録済みデータ・固定seedに対する比較評価であり、実製品の認証や本番環境での有効性を示すものではない。",
+        "- Evidence Bundle は各出力フォルダーの `evidence_bundle.json`。`load_evidence_bundle()` で改ざん・欠落を再検証できる。",
         "- 読み方は `docs/02_evaluation_menu.md` を参照。",
         "",
     ]
@@ -381,6 +400,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--list", action="store_true", help="Show the evaluation menu and exit.")
     parser.add_argument("--run-id", help="Unique run ID (default: timestamp).")
     parser.add_argument("--output-root", default=DEFAULT_OUTPUT_ROOT, help="Repository-relative output root.")
+    parser.add_argument(
+        "--seeds",
+        help=(
+            f"Comma-separated seeds for the product and standard lanes (default: {DEFAULT_SEEDS}; "
+            f"{QUICKSTART_SEEDS} when only the quickstart preset is selected)."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print the commands without running them.")
     args = parser.parse_args(argv)
 
@@ -389,6 +415,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     lanes = _resolve_lanes(args.lanes)
+    if args.seeds is None:
+        args.seeds = QUICKSTART_SEEDS if list(args.lanes) == ["quickstart"] else DEFAULT_SEEDS
+    if not SEEDS_PATTERN.fullmatch(args.seeds):
+        parser.error("--seeds must be comma-separated non-negative integers, e.g. 0,1,2,3,4")
     run_id = args.run_id or datetime.now().strftime("%Y%m%d-%H%M%S")
     if not RUN_ID_PATTERN.fullmatch(run_id):
         parser.error("--run-id must be 3-64 characters of letters, digits, '_' or '-'")
@@ -408,7 +438,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     results: List[LaneResult] = []
     for lane in lanes:
         print(f"=== {lane.lane_id}: {lane.title}", flush=True)
-        result = _run_lane(lane, run_root, env, args.dry_run)
+        result = _run_lane(lane, run_root, env, args.seeds, args.dry_run)
         results.append(result)
         if args.dry_run:
             for command in result.commands:
@@ -420,7 +450,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.dry_run:
         return 0
-    summary_path = _write_summary(run_root, run_id, results)
+    summary_path = _write_summary(run_root, run_id, results, args.seeds)
     print()
     print(f"summary: {summary_path.relative_to(ROOT).as_posix()}")
     return 0 if all(result.status == "succeeded" for result in results) else 1

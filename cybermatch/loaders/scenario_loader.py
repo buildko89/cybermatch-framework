@@ -258,10 +258,15 @@ def load_scenario_catalog(catalog_dir: str | None = None) -> List[Dict[str, Any]
     return scenarios
 
 
-def run_scenario_from_file(path: str, output_dir: str | None = None) -> Dict[str, Any]:
+def run_scenario_from_file(
+    path: str,
+    output_dir: str | None = None,
+    seeds: List[int] | None = None,
+) -> Dict[str, Any]:
     """Run a validated scenario with an existing Phase6 product evaluation runner.
 
-    ``output_dir`` overrides ``evaluation.output_dir`` from the scenario file.
+    ``output_dir`` and ``seeds`` override ``evaluation.output_dir`` and
+    ``evaluation.seeds`` from the scenario file.
     """
 
     scenario = load_scenario(path)
@@ -269,7 +274,7 @@ def run_scenario_from_file(path: str, output_dir: str | None = None) -> Dict[str
     evaluation = scenario["evaluation"]
     runner = evaluation["runner"]
     output_dir = output_dir or evaluation.get("output_dir")
-    seeds = evaluation.get("seeds")
+    seeds = seeds if seeds is not None else evaluation.get("seeds")
     runner_kwargs: Dict[str, Any] = {}
     if output_dir:
         runner_kwargs["output_dir"] = output_dir

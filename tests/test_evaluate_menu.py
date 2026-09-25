@@ -23,19 +23,19 @@ def test_unknown_lane_is_rejected() -> None:
 def test_every_lane_writes_below_its_own_output_directory() -> None:
     for lane in evaluate.LANES.values():
         out = f"output/evaluations/test-run/{lane.lane_id}"
-        commands = lane.build_commands(out)
+        commands = lane.build_commands(out, evaluate.DEFAULT_SEEDS)
         assert commands, lane.lane_id
         for command in commands:
             script = command[1]
             if script.startswith("scripts/"):
                 assert (REPOSITORY_ROOT / script).is_file(), script
-            if lane.uses_output_dir and script != "-c":
+            if lane.uses_output_dir:
                 assert any(part.startswith(out) for part in command), command
 
 
 def test_referenced_input_assets_exist() -> None:
     for lane in evaluate.LANES.values():
-        for command in lane.build_commands("output/evaluations/test-run/x"):
+        for command in lane.build_commands("output/evaluations/test-run/x", evaluate.DEFAULT_SEEDS):
             for part in command[2:]:
                 if part.endswith((".json", ".jsonl")) and not part.startswith("output/"):
                     assert (REPOSITORY_ROOT / part).is_file(), part
@@ -62,11 +62,30 @@ def test_summary_lists_status_and_reports(tmp_path) -> None:
         seconds=1.23,
         output_dir="output/evaluations/r1/replay",
         commands=["python scripts/run_external_replay.py"],
-        evidence_bundle_hash="a" * 64,
+        evidence_bundle_hashes={".": "a" * 64},
     )
     summary_path = evaluate._write_summary(tmp_path, "r1", [result])
     text = summary_path.read_text(encoding="utf-8")
     assert "`replay`" in text
     assert "output/evaluations/r1/replay/PHASE3_EXTERNAL_VALIDITY_REPORT.md" in text
     data = json.loads((tmp_path / "evaluation_summary.json").read_text(encoding="utf-8"))
-    assert data["lanes"][0]["evidence_bundle_hash"] == "a" * 64
+    assert data["lanes"][0]["evidence_bundle_hashes"] == {".": "a" * 64}
+
+
+def test_invalid_seeds_are_rejected() -> None:
+    with pytest.raises(SystemExit):
+        evaluate.main(["product", "--seeds", "0;1", "--dry-run"])
+
+
+def test_seeded_lanes_forward_seeds() -> None:
+    for lane in evaluate.LANES.values():
+        commands = lane.build_commands("output/evaluations/test-run/x", "3,4")
+        if lane.uses_seeds:
+            assert all(command[-2:] == ["--seeds", "3,4"] for command in commands), lane.lane_id
+
+
+def test_quickstart_defaults_to_one_seed_and_all_to_five(capsys) -> None:
+    evaluate.main(["quickstart", "--dry-run", "--run-id", "pytest-qs-seeds"])
+    assert "--seeds 0\n" in capsys.readouterr().out
+    evaluate.main(["all", "--dry-run", "--run-id", "pytest-all-seeds"])
+    assert "--seeds 0,1,2,3,4" in capsys.readouterr().out

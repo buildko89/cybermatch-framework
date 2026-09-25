@@ -18463,12 +18463,7 @@ def run_phase63_mission_aware_product_evaluation(
         output_dir=os.path.join(output_dir, "runs"),
         config_path=config_path,
     )
-    rows = [_build_phase63_mission_product_row(row) for row in stats_rows]
-    _add_phase63_product_deltas(rows)
-    _add_phase63_mission_effectiveness(rows)
-    topology = _phase63_apply_topology(rows, topology_preset)
-    _add_phase63_best_worst(rows)
-    rows.sort(key=lambda row: (str(row.get("profile_id")), str(row.get("mission_name")), str(row.get("strategy_profile"))))
+    rows, topology = _phase63_rows_from_stats(stats_rows, topology_preset)
     analysis = _analyze_phase63_mission_product_rows(rows)
     os.makedirs(output_dir, exist_ok=True)
     _write_phase63_mission_product_summary(rows, analysis, output_dir)
@@ -18485,6 +18480,10 @@ def run_phase63_mission_aware_product_evaluation(
     _plot_phase63_mission_variance(rows, os.path.join(output_dir, "mission_variance.png"))
     _plot_phase63_vs_phase62(rows, os.path.join(output_dir, "phase63_vs_phase62.png"))
     _write_phase63_mission_product_report(rows, analysis, output_dir)
+    if len(seeds or MULTI_SEED_VALUES) >= 2:
+        from cybermatch.evaluation.seed_robustness import write_phase63_seed_robustness
+
+        write_phase63_seed_robustness(output_dir, topology_preset)
     return rows
 
 
@@ -18497,6 +18496,24 @@ def _phase63_mission_from_scenario(mission_scenario: str, fallback: object = "")
         if mission in text:
             return mission
     return fallback_value or "unknown"
+
+
+def _phase63_rows_from_stats(
+    stats_rows: List[Dict[str, object]],
+    topology_preset: Optional[str],
+) -> Tuple[List[Dict[str, object]], Optional[Dict[str, object]]]:
+    """Derive Phase6.3 product x mission rows from multi-seed statistics rows.
+
+    ``stats_rows`` carry ``<metric>_mean`` columns; a single seed's run rows can
+    be passed by copying each metric into its ``_mean`` column.
+    """
+    rows = [_build_phase63_mission_product_row(row) for row in stats_rows]
+    _add_phase63_product_deltas(rows)
+    _add_phase63_mission_effectiveness(rows)
+    topology = _phase63_apply_topology(rows, topology_preset)
+    _add_phase63_best_worst(rows)
+    rows.sort(key=lambda row: (str(row.get("profile_id")), str(row.get("mission_name")), str(row.get("strategy_profile"))))
+    return rows, topology
 
 
 def _build_phase63_mission_product_row(row: Dict[str, object]) -> Dict[str, object]:
