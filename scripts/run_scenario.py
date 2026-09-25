@@ -109,6 +109,30 @@ def _run_benchmark(
     return runner_name, target, len(rows), seed_values, [] if generated else [baseline_path]
 
 
+def _write_bundle(
+    target: str,
+    *,
+    runner: str,
+    scenario_id: str,
+    seeds: list[int],
+    inputs: list[str],
+    rows: int,
+    preexisting: bool,
+) -> str:
+    from cybermatch.contracts import write_directory_evidence_bundle
+
+    bundle = write_directory_evidence_bundle(
+        target,
+        repository_root=ROOT,
+        runner=runner,
+        scenario_id=scenario_id,
+        seeds=seeds,
+        input_paths=inputs,
+        metrics={"row_count": rows, "output_dir_preexisting": preexisting},
+    )
+    return bundle.bundle_hash
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run a CyberMatch JSON scenario.")
     parser.add_argument("scenario", nargs="?", help="Path to a CyberMatch scenario JSON file.")
@@ -133,6 +157,11 @@ def main() -> int:
             "Default: generate a fresh baseline inside the output directory."
         ),
     )
+    parser.add_argument(
+        "--no-evidence",
+        action="store_true",
+        help="Do not write evidence_bundle.json for the output directory.",
+    )
     args = parser.parse_args()
 
     if args.list:
@@ -150,18 +179,36 @@ def main() -> int:
         is_benchmark = isinstance(config, dict) and "scenarios" in config and "evaluation" not in config
         if is_benchmark:
             name = config.get("metadata", {}).get("name")
-            runner, output_dir, row_count, _, _ = _run_benchmark(
+            default_target = args.output_dir
+            preexisting = bool(default_target) and Path(default_target).exists()
+            runner, output_dir, row_count, seeds, extra_inputs = _run_benchmark(
                 args.scenario, args.output_dir, args.seeds, args.baseline
             )
             label = "benchmark name"
         else:
             if args.baseline:
                 parser.error("--baseline applies only to the standard and product benchmarks")
+            evaluation = config.get("evaluation", {}) if isinstance(config, dict) else {}
+            target_hint = args.output_dir or evaluation.get("output_dir")
+            preexisting = bool(target_hint) and Path(target_hint).exists()
             result = run_scenario_from_file(args.scenario, output_dir=args.output_dir, seeds=args.seeds)
             name, runner, output_dir, row_count = (
                 result["scenario_name"], result["runner"], result["output_dir"], result["rows"]
             )
+            seeds = args.seeds or [int(seed) for seed in evaluation.get("seeds") or [0]]
+            extra_inputs = []
             label = "scenario name"
+        bundle_hash = None
+        if not args.no_evidence and output_dir and Path(output_dir).is_dir():
+            bundle_hash = _write_bundle(
+                output_dir,
+                runner=runner,
+                scenario_id=str(name),
+                seeds=seeds,
+                inputs=[args.scenario, *extra_inputs],
+                rows=row_count,
+                preexisting=preexisting,
+            )
     except ScenarioValidationError as exc:
         print(f"failure: {exc}", file=sys.stderr)
         return 2
@@ -176,6 +223,8 @@ def main() -> int:
     print(f"runner: {runner}")
     print(f"output dir: {output_dir}")
     print(f"rows: {row_count}")
+    if bundle_hash:
+        print(f"evidence bundle: {bundle_hash}")
     print("success: true")
     return 0
 

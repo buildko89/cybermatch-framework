@@ -163,6 +163,7 @@ LANES: Dict[str, Lane] = {
             reports=tuple(
                 f"{demo}/{name}" for demo in DEMOS for name in ("PHASE63_MISSION_PRODUCT_REPORT.md", "SEED_ROBUSTNESS_REPORT.md")
             ),
+            evidence_bundles=DEMOS,
             uses_seeds=True,
         ),
         Lane(
@@ -176,6 +177,7 @@ LANES: Dict[str, Lane] = {
                 "SEED_ROBUSTNESS_REPORT.md",
                 "baseline_provenance.json",
             ),
+            evidence_bundles=(".",),
             uses_seeds=True,
         ),
         Lane(
@@ -188,6 +190,7 @@ LANES: Dict[str, Lane] = {
                 "benchmark/hunting_benchmark_summary.csv",
                 "closed_loop_c2_jitter/THREAT_HUNTING_CLOSED_LOOP_REPORT.md",
             ),
+            evidence_bundles=("benchmark", "closed_loop_c2_jitter"),
         ),
         Lane(
             "agentic",
@@ -199,6 +202,7 @@ LANES: Dict[str, Lane] = {
                 "agentic_security_benchmark_summary.json",
                 "runs/hugging_face_style_agentic_containment/AGENTIC_SECURITY_REPORT.md",
             ),
+            evidence_bundles=(".",),
         ),
         Lane(
             "resilience",

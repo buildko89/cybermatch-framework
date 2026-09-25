@@ -1,7 +1,9 @@
 import json
+from pathlib import Path
 
 import pytest
 
+from cybermatch.contracts import collect_input_payloads, load_evidence_bundle, write_directory_evidence_bundle
 from cybermatch.evaluation import benchmark_suites
 from cybermatch.evaluation.seed_robustness import (
     SEED_ROBUSTNESS_REPORT,
@@ -10,6 +12,8 @@ from cybermatch.evaluation.seed_robustness import (
     write_seed_robustness,
 )
 
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _run_row(seed: int, profile: str, category: str, success: float, detection: float) -> dict:
@@ -81,3 +85,34 @@ def test_explicit_baseline_must_exist_and_is_recorded(tmp_path) -> None:
     provenance = json.loads((tmp_path / "out" / benchmark_suites.BASELINE_PROVENANCE_FILENAME).read_text(encoding="utf-8"))
     assert provenance["explicit_baseline"] is True
     assert len(provenance["baseline_summary_sha256"]) == 64
+
+
+def test_input_payloads_follow_referenced_repository_assets() -> None:
+    payloads = collect_input_payloads(["scenarios/demos/demo_vendor_comparison.json"], repository_root=REPOSITORY_ROOT)
+    assert "scenarios/demos/demo_vendor_comparison.json" in payloads
+    assert "profiles/products/sample_ids.json" in payloads
+    assert "topologies/enterprise.json" in payloads
+
+
+def test_directory_bundle_hashes_every_file_and_detects_tampering(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("CYBERMATCH_CODE_REVISION", "test-revision")
+    (tmp_path / "report.md").write_text("# report\n", encoding="utf-8")
+    (tmp_path / "runs").mkdir()
+    (tmp_path / "runs" / "rows.json").write_text("[]", encoding="utf-8")
+
+    bundle = write_directory_evidence_bundle(
+        tmp_path,
+        repository_root=REPOSITORY_ROOT,
+        runner="phase63_mission_aware_product",
+        scenario_id="demo",
+        seeds=[0, 1],
+        input_paths=["scenarios/demos/demo_vendor_comparison.json"],
+        metrics={"row_count": 2},
+    )
+
+    assert bundle.run.manifest.seed == -1
+    assert {artifact.path for artifact in bundle.run.artifacts} == {"report.md", "runs/rows.json"}
+    assert load_evidence_bundle(tmp_path).bundle_hash == bundle.bundle_hash
+    (tmp_path / "report.md").write_text("# changed\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="mismatch"):
+        load_evidence_bundle(tmp_path)

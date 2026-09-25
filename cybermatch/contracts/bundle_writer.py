@@ -112,6 +112,84 @@ def write_evidence_bundle(
     return bundle
 
 
+def collect_input_payloads(
+    input_paths: Sequence[str | Path],
+    *,
+    repository_root: str | Path,
+) -> dict[str, Mapping[str, object]]:
+    """Load JSON inputs and every repository JSON asset they reference.
+
+    References are string values naming an existing ``.json`` file relative to
+    the repository root, plus ``{"preset": <name>}`` topology presets. Keys are
+    repository-relative POSIX paths (or the file name for external inputs).
+    """
+    repository = Path(repository_root).resolve()
+    payloads: dict[str, Mapping[str, object]] = {}
+    pending = [Path(value) for value in input_paths]
+    while pending:
+        path = pending.pop()
+        resolved = path if path.is_absolute() else (repository / path)
+        resolved = resolved.resolve()
+        key = resolved.relative_to(repository).as_posix() if resolved.is_relative_to(repository) else resolved.name
+        if key in payloads or not resolved.is_file():
+            continue
+        payload = json.loads(resolved.read_text(encoding="utf-8"))
+        payloads[key] = payload if isinstance(payload, Mapping) else {"items": payload}
+        stack: list[object] = [payload]
+        while stack:
+            value = stack.pop()
+            if isinstance(value, Mapping):
+                preset = value.get("preset")
+                if isinstance(preset, str) and (repository / "topologies" / f"{preset}.json").is_file():
+                    pending.append(Path("topologies") / f"{preset}.json")
+                stack.extend(value.values())
+            elif isinstance(value, list):
+                stack.extend(value)
+            elif isinstance(value, str) and value.endswith(".json") and not Path(value).is_absolute():
+                if (repository / value).is_file():
+                    pending.append(Path(value))
+    return payloads
+
+
+def write_directory_evidence_bundle(
+    output_root: str | Path,
+    *,
+    repository_root: str | Path,
+    runner: str,
+    scenario_id: str,
+    seeds: Sequence[int],
+    input_paths: Sequence[str | Path],
+    metrics: Mapping[str, MetricScalar],
+) -> EvidenceBundle:
+    """Bundle every file already written below ``output_root``.
+
+    Used for workflows whose runners predate the common contract. Multi-seed
+    runs record ``seed=-1`` (as the Agentic Resilience protocol does) and list
+    the seeds in the metrics.
+    """
+    root = Path(output_root).resolve()
+    artifact_paths = sorted(
+        path for path in root.rglob("*") if path.is_file() and path.name != EVIDENCE_BUNDLE_FILENAME
+    )
+    seed_values = [int(seed) for seed in seeds]
+    return write_evidence_bundle(
+        root,
+        repository_root=repository_root,
+        run_id=root.name,
+        runner=runner,
+        scenario_id=scenario_id,
+        seed=seed_values[0] if len(seed_values) == 1 else -1,
+        input_payloads=collect_input_payloads(input_paths, repository_root=repository_root),
+        metrics={
+            **dict(metrics),
+            "seed_count": len(seed_values),
+            "seeds": ",".join(str(seed) for seed in seed_values),
+            "artifact_count": len(artifact_paths),
+        },
+        artifact_paths=artifact_paths,
+    )
+
+
 def load_evidence_bundle(output_root: str | Path) -> EvidenceBundle:
     """Load a bundle and verify every referenced artifact's size and digest."""
     root = Path(output_root).resolve()
@@ -132,9 +210,11 @@ def load_evidence_bundle(output_root: str | Path) -> EvidenceBundle:
 
 __all__ = [
     "EVIDENCE_BUNDLE_FILENAME",
+    "collect_input_payloads",
     "reproducible_timestamp",
     "load_evidence_bundle",
     "sha256_file",
     "source_revision",
+    "write_directory_evidence_bundle",
     "write_evidence_bundle",
 ]

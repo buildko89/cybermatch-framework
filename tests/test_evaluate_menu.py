@@ -77,11 +77,13 @@ def test_invalid_seeds_are_rejected() -> None:
         evaluate.main(["product", "--seeds", "0;1", "--dry-run"])
 
 
-def test_seeded_lanes_forward_seeds() -> None:
+def test_seeded_lanes_forward_seeds_and_every_result_lane_is_bundled() -> None:
     for lane in evaluate.LANES.values():
         commands = lane.build_commands("output/evaluations/test-run/x", "3,4")
         if lane.uses_seeds:
             assert all(command[-2:] == ["--seeds", "3,4"] for command in commands), lane.lane_id
+        if lane.uses_output_dir:
+            assert lane.evidence_bundles, lane.lane_id
 
 
 def test_quickstart_defaults_to_one_seed_and_all_to_five(capsys) -> None:

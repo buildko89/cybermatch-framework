@@ -19,10 +19,12 @@ from .schema_registry import (
 )
 from .bundle_writer import (
     EVIDENCE_BUNDLE_FILENAME,
+    collect_input_payloads,
     load_evidence_bundle,
     reproducible_timestamp,
     sha256_file,
     source_revision,
+    write_directory_evidence_bundle,
     write_evidence_bundle,
 )
 
@@ -43,8 +45,10 @@ __all__ = [
     "SchemaRegistry",
     "canonical_json",
     "canonical_sha256",
+    "collect_input_payloads",
     "reproducible_timestamp",
     "sha256_file",
     "source_revision",
+    "write_directory_evidence_bundle",
     "write_evidence_bundle",
 ]
