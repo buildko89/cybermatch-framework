@@ -8,24 +8,36 @@ python scripts/evaluate.py --list                # メニューを表示
 python scripts/evaluate.py product hunting       # レーンを選んで実行
 python scripts/evaluate.py all --run-id review-001
 python scripts/evaluate.py all --dry-run         # 実行せずにコマンドだけ表示
+python scripts/evaluate.py product --seeds 0     # seed 1つで高速に(信頼区間なし)
 ```
 
 ## 1. レーン早見表
 
 | レーン | 評価内容 | 答える問い | 所要 | Evidence Bundle |
 |---|---|---|---:|:---:|
-| `check` | 環境確認 | インストールと同梱資産は正しいか | 約30秒 | - |
+| `check` | 環境確認 | インストールと同梱資産は正しいか | 約20秒 | - |
 | `replay` | 外部妥当性リプレイ | 記録済みログに対し、検知レシピは正解をどこまで再現するか | 数秒 | ✅ |
-| `product` | 製品×攻撃目的の比較デモ | 攻撃者の目的が変わると、有効な製品はどう変わるか | 約40秒 | - |
-| `standard` | 標準ベンチマーク | 業種×環境×目的×製品の総当たりで、どの防御が安定して効くか | 約40秒 | - |
-| `hunting` | 脅威ハンティング | レシピは攻撃を早く・少ない誤検知で捉えるか。閉ループ対処は攻撃を止めるか | 約20秒 | - |
-| `agentic` | Agentic Security | 自律エージェントの境界逸脱などを封じ込められるか | 数秒 | - |
+| `product` | 製品×攻撃目的の比較デモ | 攻撃者の目的が変わると、有効な製品はどう変わるか。seed を変えても結論は変わらないか | 約3分(5 seed)/約40秒(1 seed) | ✅ |
+| `standard` | 標準ベンチマーク | 業種×環境×目的×製品の総当たりで、どの防御が安定して効くか | 約3分(5 seed)/約40秒(1 seed) | ✅ |
+| `hunting` | 脅威ハンティング | レシピは攻撃を早く・少ない誤検知で捉えるか。閉ループ対処は攻撃を止めるか | 約20秒 | ✅ |
+| `agentic` | Agentic Security | 自律エージェントの境界逸脱などを封じ込められるか | 数秒 | ✅ |
 | `resilience` | Agentic Resilience v2 | 防御モード間の差は、信頼区間・効果量で見ても意味があるか | 数秒 | ✅ |
 | `fuzzing` | 分析駆動ファジング | イベント列を意味的に変異させると、検知ロジックに回帰が生じるか | 数秒 | ✅ |
 
-プリセット: `quickstart` = `check` + `replay` + `product` / `all` = 全レーン
+プリセット: `quickstart` = `check` + `replay` + `product`(約1分半) / `all` = 全レーン(約7分)
 
 所要時間は Windows 11・Python 3.12 での実測値です。
+
+### seed の数と信頼区間
+
+`product` と `standard` は、既定で **5つの seed(0〜4)** で実行し、seed ごとのばらつきから**95%信頼区間**と**1位になった割合**を `SEED_ROBUSTNESS_REPORT.md` に出力します。
+
+| 指定 | seed | 用途 |
+|---|---|---|
+| `evaluate.py all` など(既定) | `0,1,2,3,4` | 結論が偶然でないかを確認したい正式な評価 |
+| `evaluate.py quickstart`(既定) | `0` | 初回の動作確認。信頼区間は出ない |
+| `--seeds 0` | `0` | とにかく速く結果を見たいとき |
+| `--seeds 0,1,2,...,9` | 任意 | 差が小さい候補を見分けたいとき(seed を増やすほど区間が狭くなる) |
 
 ### どのレーンを選ぶか
 
@@ -53,11 +65,12 @@ flowchart LR
     R[output/evaluations/&lt;run-id&gt;/] --> S[EVALUATION_SUMMARY.md<br/>evaluation_summary.json]
     R --> L[logs/]
     R --> X[&lt;lane&gt;/ ... 各レーンの成果物]
-    X --> B[evidence_bundle.json<br/>※replay / resilience / fuzzing]
+    X --> B[evidence_bundle.json<br/>※check 以外の全レーン]
 ```
 
 - `EVALUATION_SUMMARY.md` には、レーンごとの **結果(OK/NG)・所要時間・まず読むファイル・Evidence Bundle ハッシュ・再現用コマンド** が載ります。
-- Evidence Bundle を出すレーンは、実行後に自動でハッシュ検証まで行います。改ざん・欠落があれば `NG` になります。
+- `check` 以外の全レーンが Evidence Bundle を出力し、実行後に自動でハッシュ検証まで行います。改ざん・欠落があれば `NG` になります。
+- Evidence Bundle には、出力フォルダー内の全ファイルのハッシュに加え、入力 JSON(シナリオ・ベンチマークと、そこから参照される製品・トポロジ・レシピ)のハッシュ、コード revision、依存 lock のハッシュ、seed が記録されます。
 - 同じ `--run-id` は再利用できません(結果の上書き防止)。
 
 ---
@@ -72,7 +85,14 @@ flowchart LR
 | 合格条件 | 両コマンドの終了コードが 0 |
 | 出力 | `output/test-results/smoke-*.xml`(JUnit形式) |
 
-より広いテストは `python scripts/run_tests.py --full`、機能単位は `--phase threat_hunting` などで実行できます。
+テストの実行区分は次のとおりです。
+
+| コマンド | 対象 | 所要 | CI での実行 |
+|---|---|---:|---|
+| `python scripts/run_tests.py --smoke` | 厳選した高速テスト(約360件) | 約20秒 | push ごと |
+| `python scripts/run_tests.py --fast` | `slow` 以外の全テスト(約600件) | 約1分半 | push ごと |
+| `python scripts/run_tests.py --full` | 全テスト(長いシミュレーションを含む約680件) | 約18分 | 毎晩・手動 |
+| `python scripts/run_tests.py --phase threat_hunting` | 機能単位(マーカー指定) | - | - |
 
 ### 3.2 `replay` — 外部妥当性リプレイ
 
@@ -121,6 +141,7 @@ flowchart LR
 |---|---|
 | `<demo>/PHASE63_MISSION_PRODUCT_REPORT.md` | 評価条件 → 結論(目的別の有力候補) → 製品×目的の比較表 → 読み方 → 注意事項 |
 | `<demo>/mission_product_heatmap.png` | 製品×目的の比較スコアのヒートマップ |
+| `<demo>/SEED_ROBUSTNESS_REPORT.md` | 目的ごとの有力候補が seed を変えても1位のままか(1位の割合)、各スコアの95%信頼区間 |
 | `<demo>/run_manifest.json` | 実行条件(seed・製品・トポロジ)の記録 |
 
 **比較スコア**は、そのモデル条件下で攻撃者の目的達成をどれだけ妨げたかを示す相対値です。製品の絶対的な優劣ではありません。
@@ -141,11 +162,20 @@ GUIでの実演方法は [scenarios/demos/README.md](../scenarios/demos/README.m
 |---|---|
 | `PHASE85_STANDARD_BENCHMARK_REPORT.md` | 総合的に高い候補、最も安定した候補、条件差が最も大きい候補、目的別の有力候補 |
 | `standard_benchmark_summary.csv` | 製品ごとの横断比較スコア・安定性・条件差 |
+| `SEED_ROBUSTNESS_REPORT.md` | 横断比較スコアの95%信頼区間と、seed ごとに1位になった割合 |
+| `baseline_provenance.json` | 使った基準値のパスと SHA-256 |
 
-> **仕組みと注意:** 標準ベンチマークは、全製品×全目的のシミュレーション結果(Phase6.3)を基準値とし、
-> 業種・トポロジの特性に応じた補正係数を掛けて算出します。基準値は `output/phase63_mission_products/` から読み込まれるため、
-> `evaluate.py` はこのレーンの最初に**基準値を全条件で再生成**し、直前に実行したデモの内容に結果が左右されないようにしています。
-> 個別コマンドで実行する場合は、同じ手順(下記)を踏んでください。
+```mermaid
+flowchart LR
+    B["baseline/<br/>全製品×全目的の Phase6.3 シミュレーション<br/>(seed ごと)"] --> S["標準ベンチマーク<br/>業種・トポロジの補正係数を適用"]
+    S --> R[PHASE85_STANDARD_BENCHMARK_REPORT.md]
+    B -->|seed ごとに再集計| SR[SEED_ROBUSTNESS_REPORT.md]
+    B --> P[baseline_provenance.json]
+```
+
+> **仕組み:** 標準ベンチマークは、全製品×全目的のシミュレーション結果(Phase6.3)を基準値とし、業種・トポロジの特性に応じた補正係数を掛けて算出します。
+> `scripts/run_scenario.py`(と `evaluate.py`)は、この基準値を**毎回、出力フォルダーの `baseline/` に新しく生成**するため、過去に実行した別の評価の結果に左右されません。
+> 既存の基準値を使い回したい場合は `--baseline <mission_product_summary.json>` で明示的に指定します(使ったファイルは `baseline_provenance.json` に記録されます)。
 
 ### 3.5 `hunting` — 脅威ハンティング
 
@@ -237,15 +267,24 @@ flowchart LR
 
 ## 4. 個別コマンドでの実行
 
-`evaluate.py` を使わずに、各レーンを直接実行することもできます。`--output-dir` を指定しないと既定の出力先に書き込み、
-**既に存在する場合はエラーで停止**します(上書き防止)。
+`evaluate.py` を使わずに、各レーンを直接実行することもできます。`--output-dir` を指定しないと既定の出力先に書き込みます。
+ベンチマーク系(`hunting` / `agentic` / `resilience` / `fuzzing` / `replay`)は、出力先が**既に存在する場合はエラーで停止**します(上書き防止)。
+
+`scripts/run_scenario.py`(`product` / `standard` / `hunting` / `agentic` の実体)の主なオプション:
+
+| オプション | 内容 |
+|---|---|
+| `--output-dir <dir>` | 出力先を指定(シナリオ・ベンチマークの既定値を上書き) |
+| `--seeds 0,1,2,3,4` | seed を指定。2つ以上で `SEED_ROBUSTNESS_REPORT.md` を出力 |
+| `--baseline <mission_product_summary.json>` | 標準/製品ベンチマークで既存の基準値を使う(既定は出力先に新規生成) |
+| `--no-evidence` | `evidence_bundle.json` を作らない |
 
 | レーン | コマンド |
 |---|---|
 | `check` | `python scripts/run_tests.py --smoke` / `python scripts/validate_assets.py --root .` |
 | `replay` | `python scripts/run_external_replay.py --source ... --output <dir>`(引数は[03 手順書 5.3](03_external_evaluation_guide.md#53-評価を実行する)) |
-| `product` | `python scripts/run_scenario.py scenarios/demos/demo_vendor_comparison.json --output-dir <dir>` |
-| `standard` | ① `python -c "from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation as r; r(seeds=[0])"` ② `python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json --output-dir <dir>` |
+| `product` | `python scripts/run_scenario.py scenarios/demos/demo_vendor_comparison.json --output-dir <dir> --seeds 0,1,2,3,4` |
+| `standard` | `python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json --output-dir <dir> --seeds 0,1,2,3,4` |
 | `hunting` | `python scripts/run_scenario.py benchmarks/cybermatch_hunting_v1.json --output-dir <dir>` |
 | `agentic` | `python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json --output-dir <dir>` |
 | `resilience` | `python scripts/run_agentic_resilience.py --output-dir <dir>` |
@@ -276,12 +315,14 @@ python scripts/run_phase63.py `
 ### 研究フェーズ別の再現スクリプト(上級者向け)
 
 開発初期の研究成果(Phase1〜4)を再現するスクリプトです。評価メニューには含めていません。
+シミュレーション設定は既定で組み込み値を使います。`--config <JSON>` で明示的に指定でき、指定したファイルが無い場合はエラーになります
+(2.0 より前は、カレントディレクトリに `config.json` があると暗黙に読み込んでいました)。
 
 | スクリプト | 内容 | 既定の出力先 |
 |---|---|---|
 | `scripts/run_phase1.py` | 防御の無力化 (Defense Neutralization) | `output/phase1_publication` |
 | `scripts/run_phase2.py` | 意思決定の無力化 (Decision Neutralization) | `output/phase2_publication` |
-| `scripts/run_phase3.py`(= `run_phase3a.py`) | 適応的攻撃者の検証 | `output/phase3_publication` |
+| `scripts/run_phase3.py` | 適応的攻撃者の検証(2.0 で重複していた `run_phase3a.py` は削除) | `output/phase3_publication` |
 | `scripts/run_phase3b.py` | 合理的攻撃者(期待効用)の検証 | `output/phase3_expected_utility` |
 | `scripts/run_phase4.py --quick` | インテリジェンス主導の能動防御(代表例) | `output/phase4_publication` |
 | `scripts/run_all.py` | Phase1〜4 を一括実行(長時間) | 上記すべて |
@@ -316,4 +357,4 @@ python scripts/run_phase63.py `
 | HITL pilot UI (`apps/pilot_web.py`) | 人間の承認・判断が必要なため | [03 手順書 6章](03_external_evaluation_guide.md#6-経路b-human-in-the-loop-pilot-uiで実行する) |
 | 独自テレメトリ評価 | データ承認・マッピング準備が必要なため | [03 手順書 7章](03_external_evaluation_guide.md#7-経路c-独自csvjsonlを評価する) |
 | LLM shadow 比較 | モデル導入・APIキー・人手レビューが必要なため | [03 手順書 8章](03_external_evaluation_guide.md#8-経路d-説明候補をor-4-shadow評価する) |
-| トポロジ評価 (`run_phase84_topology_evaluation`) | `standard` と同じ基準値に依存するため | `python -c "from cybermatch.evaluation.runner import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"` |
+| トポロジ評価 (`run_phase84_topology_evaluation`) | `standard` と同じ基準値に依存するため | `python -c "from cybermatch.evaluation.runner import run_phase84_topology_evaluation as r; r(output_dir='output/topology-001', baseline_summary_path='output/evaluations/<run-id>/standard/baseline/mission_product_summary.json')"`(基準値を省略すると共有フォルダー `output/phase63_mission_products/` を使い、その旨が `baseline_provenance.json` に記録されます) |

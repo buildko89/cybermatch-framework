@@ -8,7 +8,7 @@ CyberMatch Framework のドキュメントは、**「何をしたいか」から
 ```mermaid
 flowchart LR
     Start([はじめに]) --> Q{目的は?}
-    Q -->|まず動かしたい| A[01 クイックスタート]
+    Q -->|まず動かしたい| I[00 インストール手順] --> A[01 クイックスタート]
     Q -->|評価項目を選びたい| B[02 評価メニュー]
     Q -->|自組織データ・外部評価| C[03 外部評価実行手順書]
     Q -->|仕組み・連携を知りたい| D[05 アーキテクチャ<br/>06 公開API]
@@ -20,7 +20,7 @@ flowchart LR
 
 | 読者 | 最初に読む | 次に読む |
 |---|---|---|
-| 初めて触る人・デモ担当 | [01 クイックスタート](01_quickstart.md) | [02 評価メニュー](02_evaluation_menu.md) |
+| 初めて触る人・デモ担当 | [00 インストール手順](00_installation.md) → [01 クイックスタート](01_quickstart.md) | [02 評価メニュー](02_evaluation_menu.md) |
 | 防御製品・防御策を比較評価したい人 | [02 評価メニュー](02_evaluation_menu.md) | [../scenarios/demos/README.md](../scenarios/demos/README.md) |
 | 外部評価者・共同研究者 | [03 外部評価実行手順書](03_external_evaluation_guide.md) | [08 用語集](08_glossary.md) |
 | AIエージェントの安全性を評価したい人 | [04 Agentic Security](04_agentic_security.md) | [02 評価メニュー](02_evaluation_menu.md) の `agentic` / `resilience` |
@@ -31,6 +31,7 @@ flowchart LR
 
 | # | 文書 | 内容 | 想定読者 |
 |---|---|---|---|
+| 00 | [インストール手順](00_installation.md) | 前提条件、用途別のインストール方式、動作確認、1.x からの更新、トラブル対応 | 全員 |
 | 01 | [クイックスタート](01_quickstart.md) | 環境構築から最初の評価・結果確認まで(約15分) | 全員 |
 | 02 | [評価メニュー](02_evaluation_menu.md) | 8つの評価レーンの「問い・コマンド・出力・読み方」、入力資産の一覧 | 評価者 |
 | 03 | [外部評価実行手順書](03_external_evaluation_guide.md) | 同梱replay、HITL pilot、独自telemetry、LLM shadow比較の詳細手順 | 外部評価者 |

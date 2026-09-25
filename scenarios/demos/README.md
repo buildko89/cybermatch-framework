@@ -18,11 +18,15 @@ flowchart LR
     D --> E[結果ページで説明<br/>結論→理由→比較→前提]
 ```
 
-GUIを使わずに3デモをまとめて実行し、結果を別フォルダーに保存するだけなら、リポジトリルートで次を実行する(約40秒)。
+GUIを使わずに3デモをまとめて実行し、結果を別フォルダーに保存するだけなら、リポジトリルートで次を実行する。
+既定では seed を5つ使い、各デモに `SEED_ROBUSTNESS_REPORT.md`(seed を変えても結論が変わらないか、95%信頼区間)も出力する(約3分)。
 
 ```powershell
-python scripts/evaluate.py product
+python scripts/evaluate.py product             # 5 seed、約3分
+python scripts/evaluate.py product --seeds 0   # 1 seed、約40秒
 ```
+
+デモの説明で「この結論は偶然ではない」と示したい場合は、`SEED_ROBUSTNESS_REPORT.md` の「1位の割合」が100%であることを確認して伝える。
 
 ## 起動前の準備
 
@@ -153,7 +157,7 @@ output/phase63_mission_products/
 
 同じ出力先で次の評価を実行すると、既存の集計ファイルは更新される。デモ結果を保存する場合は、`--output-dir` で出力先を分けるか、実行後に出力ディレクトリを別の場所へコピーするか、ダウンロード機能でCSV、JSON、Markdown、manifestを保存する。
 
-> **注意:** `output/phase63_mission_products/` の集計は、標準ベンチマークとトポロジ評価の基準値としても読み込まれる。デモを実行した直後に標準ベンチマークを個別実行すると、デモで選んだ製品・missionだけで集計されてしまう。標準ベンチマークは `python scripts/evaluate.py standard` で実行すること(基準値を全条件で再生成してから集計する)。
+> **補足:** `output/phase63_mission_products/` の集計は、GUI から実行するトポロジ評価などの基準値として読み込まれることがある。CLI の標準ベンチマーク(`python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json` や `python scripts/evaluate.py standard`)は、出力先に基準値を毎回新しく作るため、この共有フォルダーの内容には影響されない。
 
 ## トラブルシュート
 

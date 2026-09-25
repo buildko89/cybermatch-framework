@@ -17,7 +17,7 @@ flowchart TD
 ```
 
 - `cybermatch_core` パッケージが **2.x 系の安定ファサード**です。実装はすべて `cybermatch` 配下にあります。
-- 2.0.0 でリポジトリ直下の Python モジュールを廃止し、直下は設定ファイルとドキュメントだけになりました。旧名からの移行表は [06 公開API方針 3章](06_public_api.md#3-1x-からの移行200-の破壊的変更) を参照してください。
+- 2.0.0 で実装パッケージ名を `src.cybermatch` から `cybermatch` に変更し、リポジトリ直下の Python モジュールも廃止しました。直下はパッケージ・設定ファイル・ドキュメントだけです。旧名からの移行表は [06 公開API方針 3章](06_public_api.md#3-1x-からの移行200-の破壊的変更) を参照してください。
 
 ## 2. ディレクトリと責務
 
@@ -32,7 +32,8 @@ cybermatch-framework/
 │   ├── models/ config/     製品プロファイル、シミュレーション設定
 │   ├── decision_model/     攻撃者の意思決定モデル(意図推定・行動プロファイル・特徴空間・類型・分類体系・戦略検証・意思決定グラフ)
 │   ├── loaders/            シナリオ・ベンチマーク・トポロジ JSON のローダー
-│   ├── evaluation/         Phase 別評価ランナー、統計・成果物 I/O ヘルパー
+│   ├── evaluation/         Phase 別評価ランナー(runner.py)、Phase8.x ベンチマーク(benchmark_suites.py)、
+│   │                       seed 頑健性(seed_robustness.py)、統計・成果物 I/O ヘルパー
 │   ├── threat_hunting/     防御側ハンティング(レシピ・評価器・外部テレメトリ・閉ループ)
 │   ├── agentic/            Agentic Security(封じ込め・学習・完全性ゲート・統計プロトコル)
 │   ├── fuzzing/            分析駆動ファジング(変異・オラクル・ターゲット・外部SUT)
@@ -40,7 +41,7 @@ cybermatch-framework/
 │   ├── application/        GUI から使うプロセス制御・結果探索
 │   ├── visualization/      グラフ描画
 │   └── external_sut.py     外部SUT契約とリプレイ評価
-├── apps/                   Streamlit GUI(streamlit_app.py)、HITL pilot UI(pilot_web.py)
+├── apps/                   Streamlit GUI(streamlit_app.py + 画面文言 streamlit_text.py)、HITL pilot UI(pilot_web.py)
 ├── scripts/                CLI エントリポイント(evaluate.py が評価メニューの入口)
 ├── scenarios/ benchmarks/ topologies/ profiles/ recipes/
 │   mappings/ replays/ fuzzing/ protocols/ configs/   … 評価条件(JSON 資産)
@@ -54,16 +55,16 @@ cybermatch-framework/
 
 | ファイル | 役割 | 直下に置く理由 |
 |---|---|---|
-| `pyproject.toml` | パッケージ定義・依存範囲・CLI エントリポイント | Python パッケージングの規格上、直下が必須 |
+| `pyproject.toml` | パッケージ定義・依存範囲・CLI エントリポイント・pytest 設定(`[tool.pytest.ini_options]`) | Python パッケージングの規格上、直下が必須 |
 | `requirements.lock` | 実行時依存の固定版 | Evidence Bundle が依存 lock のハッシュを記録する際にこの位置を参照 |
 | `requirements-dev.lock` | 開発・テスト用依存の固定版 | CI のインストールとキャッシュキーがこの位置を参照 |
 | `requirements.txt` | `-r requirements.lock` だけを含む互換入口 | 旧来の `pip install -r requirements.txt` 手順との互換 |
-| `pytest.ini` | テストマーカーと探索除外の設定 | pytest がルートディレクトリの設定として読み込む |
 | `.env.example` | pilot 用環境変数のひな形(実際の `.env` は Git 管理外) | pilot のローダーが直下の `.env` を読む |
 | `.gitignore` / `.gitmodules` | Git の設定 | Git の規約 |
 | `LICENSE` / `README.md` / `README_JP.md` | ライセンス・概要 | GitHub が直下を表示 |
 
 `__pycache__/`、`build/`、`dist/`、`*.egg-info/`、`.venv*/`、`output/` はローカルで生成されるもので、Git 管理外です。不要になったら削除して構いません。
+ただし `build/` に古いビルドが残っていると wheel に混入することがあるため、**ビルド前には `build/` を削除**してください。
 
 ## 3. Phase 1 で設けた境界(構造分離の第一段階)
 
@@ -73,10 +74,13 @@ cybermatch-framework/
 | `cybermatch.evaluation.statistics` / `artifact_io` | 巨大な評価ランナーから切り出した、純粋関数/副作用を限定したヘルパー |
 | `cybermatch.simulation.probability` | シミュレータから最初に切り出した純粋な状態演算 |
 | `cybermatch.application.process_control` / `artifacts` | Streamlit 層がプロセスのライフサイクル管理と結果探索を委譲する先 |
+| `cybermatch.evaluation.benchmark_suites` | 2.0 で `runner.py` から切り出した Phase8.x(シナリオカタログ・ベンチマーク・トポロジ・標準ベンチマーク)。`runner` からも遅延再エクスポート |
+| `cybermatch.evaluation.seed_robustness` | seed ごとのスコアの分布・信頼区間・1位の割合 |
 | `scripts/validate_assets.py` | 登録済みの全 JSON 資産を検証する CI・運用者向けの入口 |
 
 以降の分割は、これらテスト済みの継ぎ目 (seam) の内側で進めます。
-`runner.py`(約2.1万行)や `simulator.py`(約5千行)の全面書き換えは、振る舞いの変更と構造の変更が混ざるため Phase 1 の対象外としています。
+`runner.py`(2.0 時点で約2.0万行)や `simulator.py`(約5千行)の全面書き換えは、振る舞いの変更と構造の変更が混ざるため行いません。
+2.0 では、依存関係を AST で確認したうえで Phase8.x(約950行)を `benchmark_suites.py` へ、GUI の画面文言(約650行)を `apps/streamlit_text.py` へ切り出しました。次の候補は、Phase ごとにまとまった評価ランナー群(Phase2〜Phase9)です。
 
 ## 4. 版管理されたデータの流れ
 
@@ -102,7 +106,12 @@ flowchart LR
 python -c "from cybermatch_core.contracts import load_evidence_bundle; print(load_evidence_bundle('output/evaluations/<run-id>/replay').bundle_hash)"
 ```
 
-`scripts/evaluate.py` は、Evidence Bundle を出すレーン(`replay` / `resilience` / `fuzzing`)でこの検証を自動実行します。
+2.0 からは、全8レーンのうち出力を持つ7レーンすべてが Evidence Bundle を出力し、`scripts/evaluate.py` が実行後に自動で検証します。
+
+| 出力元 | Bundle の作り方 |
+|---|---|
+| `replay` / `resilience` / `fuzzing` | 各ランナーが固有の指標とともに出力 |
+| `product` / `standard` / `hunting` / `agentic`(`scripts/run_scenario.py` 経由) | 実行後に出力フォルダー内の全ファイルをハッシュ化(`write_directory_evidence_bundle`)。入力には、シナリオ/ベンチマーク JSON と、そこから参照される製品・トポロジ・レシピ等の JSON をすべて含む。複数 seed の場合は `seed=-1` とし、seed 一覧を指標に記録 |
 
 ## 5. Phase 2: フラッグシップ・プロトコル
 
@@ -132,7 +141,6 @@ Bundle には、コード revision、依存 lock のハッシュ、入力ハッ�
 
 | 制約 | 状況 |
 |---|---|
-| 共通 Evidence Bundle への移行 | 既存ワークフローのすべてがまだ出力しているわけではない(`product` / `standard` / `hunting` / `agentic` は未対応)。契約と移行境界は用意済みで、段階的に適用する |
-| `src` 名前空間 | 実装パッケージ名は `cybermatch` のまま。`cybermatch` への改名は今後のメジャーバージョンで扱う |
-| 標準ベンチマークの基準値 | `output/phase63_mission_products/` の既存結果を読み込む。`evaluate.py` は毎回再生成して回避([02 評価メニュー 3.4](02_evaluation_menu.md#34-standard--標準ベンチマーク)) |
-| OS 検証 | Ubuntu での動作は push 後の GitHub Actions で検証。ローカル検証は Windows |
+| 共通 Evidence Bundle | `run_scenario.py` 経由の実行は出力フォルダー単位で Bundle 化される。GUI から直接ランナーを呼んだ場合は Bundle を作らない |
+| 標準ベンチマークの基準値 | CLI(`run_scenario.py`)は毎回出力先の中に基準値を生成し、`baseline_provenance.json` に記録する。ライブラリ関数を引数なしで呼んだ場合と GUI は、従来どおり共有フォルダー `output/phase63_mission_products/` を読む(その旨も provenance に記録される) |
+| OS 検証 | push ごとに Ubuntu / Windows で smoke と slow 以外の全テスト、毎晩 Ubuntu で全テストと全評価レーンを実行 |

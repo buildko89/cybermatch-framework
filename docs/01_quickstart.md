@@ -5,7 +5,7 @@
 
 ```mermaid
 flowchart LR
-    A[1. 環境構築<br/>約5分] --> B[2. 評価を実行<br/>evaluate.py quickstart<br/>約2分]
+    A[1. 環境構築<br/>約5分] --> B[2. 評価を実行<br/>evaluate.py quickstart<br/>約1分半]
     B --> C[3. サマリーを読む<br/>EVALUATION_SUMMARY.md]
     C --> D[4. GUIで見る<br/>任意]
     D --> E[次: 02 評価メニュー]
@@ -22,6 +22,8 @@ flowchart LR
 | ライセンス | PolyForm Noncommercial 1.0.0。**非商用目的のみ**。[LICENSE](../LICENSE) を確認 |
 
 ## 1. 環境構築
+
+> 前提条件の確認、用途別のインストール方式(GUI のみ・core のみ等)、1.x からの更新、トラブル対応は [00 インストール手順](00_installation.md) にまとめています。ここでは推奨手順だけを示します。
 
 リポジトリのルートで実行します。
 
@@ -60,15 +62,15 @@ python scripts/evaluate.py --list
 python scripts/evaluate.py quickstart
 ```
 
-`quickstart` は次の3レーンを順に実行します(合計 約1〜2分)。
+`quickstart` は次の3レーンを順に実行します(合計 約1分半)。
 
 | レーン | 何を確かめるか | 所要 |
 |---|---|---:|
-| `check` | インストールが正しいか(smokeテスト約350件)、同梱JSON資産がスキーマに適合するか | 約30秒 |
+| `check` | インストールが正しいか(smokeテスト約360件)、同梱JSON資産がスキーマに適合するか | 約20秒 |
 | `replay` | 匿名化済みOCSFログに対し、検知レシピが正解ラベルをどこまで再現するか。Evidence Bundle のハッシュ検証まで実施 | 数秒 |
 | `product` | 攻撃者の目的(mission)が変わると、有効な防御製品プロファイルがどう変わるか(デモ3種) | 約40秒 |
 
-全レーンを実行したい場合は `python scripts/evaluate.py all`(約2〜3分)です。
+`quickstart` は速さを優先して seed を1つだけ使います。結論が偶然でないか(seed を変えても変わらないか)まで確かめる正式な評価は、全レーンを5つの seed で実行する `python scripts/evaluate.py all`(約7分)を使ってください。
 
 ## 3. 結果を読む
 
@@ -89,10 +91,15 @@ output/evaluations/<run-id>/
 │   ├── PHASE3_EXTERNAL_VALIDITY_REPORT.md
 │   └── evidence_bundle.json
 └── product/
-    ├── demo_vendor_comparison/PHASE63_MISSION_PRODUCT_REPORT.md
+    ├── demo_vendor_comparison/
+    │   ├── PHASE63_MISSION_PRODUCT_REPORT.md
+    │   ├── SEED_ROBUSTNESS_REPORT.md   ← seed を2つ以上使ったときに出力
+    │   └── evidence_bundle.json
     ├── demo_deception_value/...
     └── demo_ot_factory_defense/...
 ```
+
+すべてのレーンの出力フォルダーには `evidence_bundle.json`(入力・出力ファイルのハッシュを記録した証跡)が作られ、`evaluate.py` が改ざん・欠落がないことを自動で検証します。
 
 `EVALUATION_SUMMARY.md` の表の「まず読むファイル」列を上から順に開いてください。
 製品比較レポートは日本語で、**結論 → 比較表 → 読み方 → 注意事項** の順に構成されています。

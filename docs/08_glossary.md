@@ -52,7 +52,7 @@ flowchart LR
 
 | 用語 | 意味 |
 |---|---|
-| Evidence Bundle | 評価の入力・コード revision・依存 lock・seed・成果物それぞれの SHA-256 をまとめた証跡ファイル(`evidence_bundle.json`)。読み込み時に改ざん・欠落を検出する |
+| Evidence Bundle | 評価の入力・コード revision・依存 lock・seed・成果物それぞれの SHA-256 をまとめた証跡ファイル(`evidence_bundle.json`)。読み込み時に改ざん・欠落を検出する。複数 seed の評価では `seed=-1` とし、seed 一覧を指標に記録 |
 | Bundle hash | Evidence Bundle 全体のハッシュ。評価記録へ転記して結果を一意に特定する |
 | EvaluationRun | 評価1回分を表す共通の契約オブジェクト |
 | Manifest | 実行条件(入力・seed・バージョン)の記録ファイル |
@@ -60,6 +60,10 @@ flowchart LR
 | 95% CI(信頼区間) | 複数 seed の結果から推定した平均値の不確かさの幅 |
 | Effect size(効果量) | 2条件の差の大きさ。CyberMatch では対応ランク双列相関([-1, 1])を使用 |
 | Failure region | 感度分析で防御が崩れることが再現された条件の範囲 |
+| Seed robustness(seed 頑健性) | seed を変えて同じ評価を繰り返したときの結果の安定性。`SEED_ROBUSTNESS_REPORT.md` に95%信頼区間と「1位の割合」を出力 |
+| 1位の割合 (top share) | 複数の seed のうち、その候補が1位になった割合。100%なら seed によって順位が入れ替わらない |
+| Baseline(基準値) | 標準ベンチマーク等が補正係数を掛ける元になる、全製品×全目的の Phase6.3 シミュレーション結果 |
+| Baseline provenance | どの基準値ファイル(パスと SHA-256)を使ったかの記録。`baseline_provenance.json` |
 
 ### Evidence class(根拠の種類)
 

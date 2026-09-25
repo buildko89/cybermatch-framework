@@ -1,10 +1,23 @@
 # CyberMatch Framework
 
-Documentation index (Japanese): [docs/README.md](docs/README.md). Architecture and stability references:
-[docs/05_architecture.md](docs/05_architecture.md), [docs/06_public_api.md](docs/06_public_api.md), and
-[docs/07_dependency_policy.md](docs/07_dependency_policy.md).
+**CyberMatch v2.0.0** · [日本語README](README_JP.md) · [Documentation index](docs/README.md)
 
-**CyberMatch v2.0.0**
+## Documentation to follow (step by step)
+
+The guides under `docs/` are written in Japanese and numbered in reading order.
+
+| Step | When | Read |
+|---:|---|---|
+| 0 | Install and verify the environment (prerequisites, install options, upgrading from 1.x) | [docs/00_installation.md](docs/00_installation.md) |
+| 1 | First run: set up, run the evaluation menu, read the summary (about 15 minutes) | [docs/01_quickstart.md](docs/01_quickstart.md) |
+| 2 | Choose what to evaluate and learn how to read each report | [docs/02_evaluation_menu.md](docs/02_evaluation_menu.md) |
+| 3 | Run a demo in the GUI | [scenarios/demos/README.md](scenarios/demos/README.md) |
+| 4 | Evaluate your own telemetry, run the HITL pilot, or compare LLM explanations | [docs/03_external_evaluation_guide.md](docs/03_external_evaluation_guide.md) |
+| 5 | Record a pilot (intake, approval, Evidence Bundle hash) | [pilots/phase3/PILOT_INTAKE_TEMPLATE.md](pilots/phase3/PILOT_INTAKE_TEMPLATE.md) |
+| 6 | Blind human review of LLM explanation candidates (OR-4) | [docs/procedures/or4_blind_human_review_20260915.md](docs/procedures/or4_blind_human_review_20260915.md) |
+| - | Agentic security model and metrics | [docs/04_agentic_security.md](docs/04_agentic_security.md) |
+| - | Architecture, public API and 1.x migration, dependencies | [docs/05_architecture.md](docs/05_architecture.md), [docs/06_public_api.md](docs/06_public_api.md), [docs/07_dependency_policy.md](docs/07_dependency_policy.md) |
+| - | Glossary (Evidence Bundle, SUT, HITL, evidence class, ...) | [docs/08_glossary.md](docs/08_glossary.md) |
 
 CyberMatch is a cyber decision-making simulator that reproduces attacker decision processes and enables comparative evaluation of defense strategies and security products.
 
@@ -14,8 +27,6 @@ It is designed for research and evaluation questions that are difficult to answe
 - Did deception alter attacker belief, confidence, trust, or path choice?
 - Did coalition coordination cost reduce attacker effectiveness?
 - Which product profile is effective against which attacker mission?
-
-[日本語README](README_JP.md)
 
 ## What is CyberMatch?
 
@@ -121,21 +132,28 @@ has a 60-second timeout and covers core imports, Agentic Security, Threat
 Hunting, and fuzzing contracts:
 
 ```bash
-python scripts/run_tests.py --smoke
+python scripts/run_tests.py --smoke   # about 20 seconds
+python scripts/run_tests.py --fast    # every test except slow end-to-end runs, about 90 seconds
+python scripts/run_tests.py --full    # complete suite, about 18 minutes (CI runs it nightly)
 ```
 
 ### 2. Run the Evaluation Menu
 
 `scripts/evaluate.py` runs named evaluation lanes. Each run writes to its own
-`output/evaluations/<run-id>/` directory, verifies Evidence Bundles where
-available, and writes an `EVALUATION_SUMMARY.md` that lists the report to read
-first for every lane.
+`output/evaluations/<run-id>/` directory, writes and verifies an Evidence
+Bundle for every lane that produces output, and writes an
+`EVALUATION_SUMMARY.md` that lists the report to read first for every lane.
 
 ```bash
 python scripts/evaluate.py --list        # show lanes and presets
-python scripts/evaluate.py quickstart    # check + replay + product (about 2 minutes)
-python scripts/evaluate.py all           # every lane (about 3 minutes)
+python scripts/evaluate.py quickstart    # check + replay + product with one seed (about 1.5 minutes)
+python scripts/evaluate.py all           # every lane; product/standard use seeds 0-4 (about 7 minutes)
+python scripts/evaluate.py product --seeds 0   # fastest, no confidence intervals
 ```
+
+With two or more seeds, the product and standard lanes add a
+`SEED_ROBUSTNESS_REPORT.md` with 95% confidence intervals and how often each
+candidate ranks first.
 
 Lanes: `check`, `replay`, `product`, `standard`, `hunting`, `agentic`,
 `resilience`, and `fuzzing`. See [docs/02_evaluation_menu.md](docs/02_evaluation_menu.md)
@@ -164,7 +182,7 @@ Once running, your terminal will display a URL (usually `http://localhost:8501`)
 
 ## Command-Line Execution (Representative Experiments)
 
-> **Note (2.0.0)**: The repository root no longer contains Python modules. The former root modules (`scenario_loader.py`, `run_scenarios.py`, `cybermatch.py`, the decision-model modules, and others) now live under `cybermatch/` (`loaders/`, `decision_model/`, `evaluation/runner.py`, ...). Command-line scripts are unchanged. Code that imported the old names must be updated; see the migration table in [docs/06_public_api.md](docs/06_public_api.md#3-1x-からの移行200-の破壊的変更).
+> **Note (2.0.0)**: The implementation package was renamed from `src.cybermatch` to `cybermatch`, and the repository root no longer contains Python modules. The former root modules now live under `cybermatch/` (`loaders/`, `decision_model/`, `evaluation/runner.py`, ...); `from cybermatch import CyberDefenseSimulator` and the other 1.x names keep working. Command-line scripts are unchanged. See the migration table in [docs/06_public_api.md](docs/06_public_api.md#3-1x-からの移行200-の破壊的変更).
 
 ### Active Defense Evaluation
 Evaluate intelligence-driven active defense:
@@ -361,21 +379,20 @@ cybermatch-framework/
   README.md
   README_JP.md
   docs/                # Curated guides (Japanese), numbered in reading order
-  src/
-    cybermatch/
-      agentic/
-      attacker/
-      config/
-      decision_model/  # Intent, behavior, feature space, taxonomy, decision graph
-      defense/
-      evaluation/
-      fuzzing/
-      loaders/         # Scenario, benchmark, and topology loaders
-      models/
-      pilot/
-      simulation/
-      threat_hunting/
-      visualization/
+  cybermatch/          # Implementation package (was src.cybermatch in 1.x)
+    agentic/
+    attacker/
+    config/
+    decision_model/    # Intent, behavior, feature space, taxonomy, decision graph
+    defense/
+    evaluation/        # runner.py, benchmark_suites.py (Phase8.x), seed_robustness.py
+    fuzzing/
+    loaders/           # Scenario, benchmark, and topology loaders
+    models/
+    pilot/
+    simulation/
+    threat_hunting/
+    visualization/
   cybermatch_core/     # Stable import facade
   benchmarks/
   fuzzing/
@@ -390,12 +407,12 @@ cybermatch-framework/
   profiles/
     products/
   apps/
-    streamlit_app.py   # GUI Dashboard App
+    streamlit_app.py   # GUI Dashboard App (labels and UI text in streamlit_text.py)
   scripts/
     evaluate.py        # Evaluation menu entry point
   tests/
   output/              # generated locally, gitignored
-  pyproject.toml, requirements*.lock, pytest.ini   # tool configuration only
+  pyproject.toml, requirements*.lock   # tool configuration only (pytest settings live in pyproject.toml)
 ```
 
 ## License

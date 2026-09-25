@@ -43,30 +43,40 @@ flowchart LR
 
 > 1.x では、リポジトリ直下の互換モジュールを 2.0 まで維持すると定めていました。2.0.0 でその予定どおり廃止しています(次章)。
 
-`cybermatch` という名前は、2.0 で直下の `cybermatch.py` を廃止したことで空きました。
-`cybermatch` を `cybermatch` パッケージへ改名する移行は、今後のメジャーバージョンで扱います(2.x の間は `cybermatch` のまま)。
-
 ## 3. 1.x からの移行(2.0.0 の破壊的変更)
 
-2.0.0 で、リポジトリ直下にあった14個の Python モジュールを `cybermatch/` 配下へ移動し、直下からは削除しました。
+2.0.0 では、次の2つを同時に行いました。
+
+1. **実装パッケージ名の変更**: `src.cybermatch` → `cybermatch`(ディレクトリも `src/cybermatch/` → `cybermatch/`)。`src` という汎用的な名前でのインストールをやめ、他ライブラリとの名前衝突を防ぎます。
+2. **直下モジュールの廃止**: リポジトリ直下にあった14個の Python モジュールを `cybermatch/` 配下へ移動しました。
+
 旧名で import すると `ModuleNotFoundError` になるため、次の表に従って書き換えてください。
 
 ```mermaid
 flowchart LR
-    subgraph Old["1.x: リポジトリ直下"]
+    subgraph Old["1.x"]
+        O0["src.cybermatch.*"]
         O1[scenario_loader.py<br/>benchmark_loader.py<br/>topology_loader.py]
         O2[intent_inference.py ほか<br/>意思決定モデル 8本]
-        O3[cybermatch.py<br/>run_scenarios.py<br/>strategy_layer.py<br/>※別名のみ]
+        O3[run_scenarios.py<br/>strategy_layer.py<br/>cybermatch.py]
     end
     subgraph New["2.0: cybermatch/"]
+        N0["cybermatch.*"]
         N1[loaders/]
         N2[decision_model/]
-        N3[simulation/ models/ config/<br/>evaluation/runner.py<br/>defense/strategy_layer.py]
+        N3[evaluation/runner.py<br/>defense/strategy_layer.py<br/>cybermatch パッケージ直下の遅延エクスポート]
     end
+    O0 --> N0
     O1 --> N1
     O2 --> N2
     O3 --> N3
 ```
+
+### 実装パッケージ
+
+| 1.x の import | 2.0 の import |
+|---|---|
+| `src.cybermatch.<サブパッケージ>` | `cybermatch.<サブパッケージ>`(例: `src.cybermatch.agentic` → `cybermatch.agentic`) |
 
 ### ローダー・意思決定モデル(実装本体を移動)
 
@@ -84,23 +94,33 @@ flowchart LR
 | `strategy_validation` | `cybermatch.decision_model.strategy_validation` |
 | `decision_graph` | `cybermatch.decision_model.decision_graph` |
 
-### 別名モジュール(廃止し、実体を直接 import)
+### 別名モジュール
 
-| 1.x の import | 2.0 の import |
+| 1.x の import | 2.0 での扱い |
 |---|---|
-| `run_scenarios` | `cybermatch.evaluation.runner` |
-| `strategy_layer` | `cybermatch.defense.strategy_layer` |
-| `from cybermatch import CyberDefenseSimulator` | `from cybermatch.simulation.simulator import CyberDefenseSimulator` |
-| `from cybermatch import SimulationConfig` | `from cybermatch.config.simulation_config import SimulationConfig` |
-| `from cybermatch import ProductProfile, HuntingCapabilities, load_product_profile` | `from cybermatch.models.product import ...`(推奨: `cybermatch_core.products`) |
-| `from cybermatch import Visualizer` | `from cybermatch.visualization.visualizer import Visualizer` |
-| `from cybermatch import AttackerModel` | `from cybermatch.attacker.attacker_model import AttackerModel` |
-| `from cybermatch import OptimizationEngine` | `from cybermatch.defense.ilp_mpc_strategy import OptimizationEngine` |
+| `run_scenarios` | 廃止。`cybermatch.evaluation.runner` を使う |
+| `strategy_layer` | 廃止。`cybermatch.defense.strategy_layer` を使う |
+| `from cybermatch import CyberDefenseSimulator` など | **そのまま動作**。`cybermatch` パッケージが `CyberDefenseSimulator`、`SimulationConfig`、`ProductProfile`、`HuntingCapabilities`、`load_product_profile`、`Visualizer`、`AttackerModel`、`OptimizationEngine` を遅延読み込みで再エクスポートします |
+
+### 内部関数の移動(内部 API のため参考)
+
+| 1.x | 2.0 |
+|---|---|
+| `runner._phase82_*` 〜 `runner._phase85_*`、`run_phase82`〜`run_phase85` | `cybermatch.evaluation.benchmark_suites` に移動。`cybermatch.evaluation.runner` からも引き続き参照可能(遅延再エクスポート)。ただし `monkeypatch` などで差し替える場合は `benchmark_suites` 側を対象にすること |
 
 ### 変わらないもの
 
 - `cybermatch_core.*` の API、CLI(`scripts/*.py` と `cybermatch-*` コマンド)の引数、出力ファイル名、証跡・スキーマのバージョン。
 - `python -c "from run_scenarios import ..."` のように旧名を使っていたワンライナーは、`from cybermatch.evaluation.runner import ...` に置き換えてください。
+
+### 2.0.0 で追加された機能(互換性に影響しない)
+
+| 機能 | 内容 |
+|---|---|
+| `scripts/run_scenario.py --output-dir / --seeds / --baseline / --no-evidence` | 出力先・seed・Phase8 の基準値を指定可能。出力フォルダーに `evidence_bundle.json` を自動生成 |
+| Phase8.x の `baseline_summary_path` 引数 | `run_phase82`〜`run_phase85` が基準値の入力元を明示的に受け取り、`baseline_provenance.json` に記録 |
+| `cybermatch.evaluation.seed_robustness` | seed ごとのスコアの95%信頼区間と「1位の割合」を出力 |
+| `cybermatch_core.contracts.write_directory_evidence_bundle` / `collect_input_payloads` | 既存の出力フォルダーを Evidence Bundle 化するヘルパー |
 
 ## 4. 安定性の境界
 
