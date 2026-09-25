@@ -58,3 +58,52 @@ namespaces = true
 
 [tool.setuptools.package-data]
 "src.cybermatch.schemas" = ["*.json"]
+
+[tool.pytest.ini_options]
+norecursedirs = [
+  "work_git",
+  "external",
+  "output",
+  "__pycache__",
+  ".pytest_cache",
+  ".pytest_tmp",
+  ".pytest_cache_runtime",
+]
+markers = [
+  "smoke: fast smoke tests",
+  "phase1: Phase1 tests",
+  "phase2: Phase2 tests",
+  "phase3: Phase3 tests",
+  "phase4: Phase4 tests",
+  "phase5: Phase5 tests",
+  "phase8: Phase8 tests",
+  "phase83: Phase8.3 benchmark suite tests",
+  "phase84: Phase8.4 topology library tests",
+  "phase85: Phase8.5 standard benchmark tests",
+  "phase90: Phase9.0 intent inference tests",
+  "phase91: Phase9.1 behavior profile tests",
+  "phase92: Phase9.2 feature space tests",
+  "phase93: Phase9.3 ProfileCore integration tests",
+  "phase94: Phase9.4 archetype interpretation tests",
+  "phase95: Phase9.5 strategy layer tests",
+  "phase96: Phase9.6 attacker taxonomy tests",
+  "phase97: Phase9.7 target-specific strategy tests",
+  "phase98: Phase9.8 strategy validation tests",
+  "phase99: Phase9.9 decision graph tests",
+  "intent: Intent inference tests",
+  "behavior: Behavior profile tests",
+  "feature: Feature space tests",
+  "archetype: Archetype interpretation tests",
+  "strategy: Strategy layer tests",
+  "taxonomy: Attacker taxonomy tests",
+  "target_strategy: Target-specific strategy tests",
+  "strategy_validation: Strategy validation tests",
+  "decision_graph: Decision graph tests",
+  "threat_hunting: Defender-side threat hunting tests",
+  "agentic_security: Agentic topology, containment, learning, and threat-intelligence integrity tests",
+  "profilecore: ProfileCore integration tests",
+  "scenario: Scenario import tests",
+  "benchmark: Benchmark suite tests",
+  "topology: Topology library tests",
+  "slow: slow end-to-end evaluation tests",
+]
