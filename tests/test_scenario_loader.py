@@ -177,7 +177,7 @@ def test_phase82_scenario_catalog_evaluation_smoke(tmp_path, monkeypatch):
 
     monkeypatch.setattr(
         "cybermatch.evaluation.benchmark_suites._phase82_load_phase63_rows",
-        lambda: [
+        lambda summary_path=None: [
             {
                 "profile_id": "sample_ids",
                 "product_category": "ids",

@@ -14,7 +14,29 @@ from cybermatch.loaders.scenario_loader import ScenarioValidationError, list_ava
 from cybermatch.loaders.benchmark_loader import BenchmarkValidationError, load_benchmark
 
 
-def _run_benchmark(path: str, output_dir: str | None) -> tuple[str, str, int]:
+PHASE8_BENCHMARK_DEFAULTS = {
+    "cybermatch_standard_v1": ("phase85_standard_benchmark", "output/phase85_standard_benchmark"),
+}
+PHASE83_DEFAULT = ("phase83_benchmark_suite", "output/phase83_benchmark_suite")
+
+
+def _phase8_baseline(target: str, seeds: list[int], baseline: str | None) -> str:
+    """Return the baseline summary path for a Phase8.x benchmark.
+
+    Without ``--baseline`` a fresh Phase6.3 baseline covering every product and
+    mission is generated inside the benchmark output, so the result never
+    depends on output/phase63_mission_products.
+    """
+    if baseline:
+        return baseline
+    from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation
+
+    baseline_dir = Path(target) / "baseline"
+    run_phase63_mission_aware_product_evaluation(seeds=seeds, output_dir=str(baseline_dir))
+    return str(baseline_dir / "mission_product_summary.json")
+
+
+def _run_benchmark(path: str, output_dir: str | None, baseline: str | None) -> tuple[str, str, int]:
     """Dispatch a benchmark file and return (runner, output_dir, row_count)."""
 
     benchmark = load_benchmark(path)
@@ -31,17 +53,16 @@ def _run_benchmark(path: str, output_dir: str | None) -> tuple[str, str, int]:
         target = output_dir or "output/threat_hunting/cybermatch_hunting_v1"
         rows = run_hunting_benchmark(benchmark_path=path, output_dir=target)
         return "hunting_recipe_evaluation", target, len(rows)
-    if metadata.get("name") == "cybermatch_standard_v1":
-        from cybermatch.evaluation.runner import run_phase85_standard_benchmark
 
-        target = output_dir or "output/phase85_standard_benchmark"
-        rows = run_phase85_standard_benchmark(benchmark_path=path, output_dir=target)
-        return "phase85_standard_benchmark", target, len(rows)
-    from cybermatch.evaluation.runner import run_phase83_benchmark_suite
+    from cybermatch.evaluation.runner import run_phase83_benchmark_suite, run_phase85_standard_benchmark
 
-    target = output_dir or "output/phase83_benchmark_suite"
-    rows = run_phase83_benchmark_suite(benchmark_path=path, output_dir=target)
-    return "phase83_benchmark_suite", target, len(rows)
+    runner_name, default_dir = PHASE8_BENCHMARK_DEFAULTS.get(str(metadata.get("name")), PHASE83_DEFAULT)
+    run = run_phase85_standard_benchmark if runner_name == "phase85_standard_benchmark" else run_phase83_benchmark_suite
+    target = output_dir or default_dir
+    seeds = [int(seed) for seed in benchmark.get("seeds", [0])]
+    baseline_path = _phase8_baseline(target, seeds, baseline)
+    rows = run(benchmark_path=path, output_dir=target, baseline_summary_path=baseline_path)
+    return runner_name, target, len(rows)
 
 
 def main() -> int:
@@ -51,6 +72,13 @@ def main() -> int:
     parser.add_argument(
         "--output-dir",
         help="Override the output directory declared by the scenario or benchmark.",
+    )
+    parser.add_argument(
+        "--baseline",
+        help=(
+            "Phase6.3 mission_product_summary.json used as the standard/product benchmark baseline. "
+            "Default: generate a fresh baseline inside the output directory."
+        ),
     )
     args = parser.parse_args()
 
@@ -67,7 +95,7 @@ def main() -> int:
     try:
         config = json.loads(Path(args.scenario).read_text(encoding="utf-8"))
         if isinstance(config, dict) and "scenarios" in config and "evaluation" not in config:
-            runner, output_dir, row_count = _run_benchmark(args.scenario, args.output_dir)
+            runner, output_dir, row_count = _run_benchmark(args.scenario, args.output_dir, args.baseline)
             metadata = config.get("metadata", {})
             print(f"benchmark name: {metadata.get('name')}")
             print(f"runner: {runner}")
@@ -75,6 +103,8 @@ def main() -> int:
             print(f"rows: {row_count}")
             print("success: true")
             return 0
+        if args.baseline:
+            parser.error("--baseline applies only to the standard and product benchmarks")
         result = run_scenario_from_file(args.scenario, output_dir=args.output_dir)
     except ScenarioValidationError as exc:
         print(f"failure: {exc}", file=sys.stderr)

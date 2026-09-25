@@ -34,7 +34,6 @@ if str(ROOT) not in sys.path:
 
 DEFAULT_OUTPUT_ROOT = "output/evaluations"
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{3,64}$")
-PHASE63_BASELINE_DIR = "output/phase63_mission_products"
 
 
 @dataclass(frozen=True)
@@ -82,17 +81,9 @@ def _product_commands(out: str) -> List[List[str]]:
 
 
 def _standard_commands(out: str) -> List[List[str]]:
-    # The standard benchmark derives its rows from the Phase6.3 summary stored in
-    # PHASE63_BASELINE_DIR. Regenerate that baseline with every product and
-    # mission first so the result does not depend on whichever demo ran last.
-    refresh_baseline = (
-        "from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation as run; "
-        f"run(seeds=[0], output_dir={PHASE63_BASELINE_DIR!r})"
-    )
-    return [
-        _py("-c", refresh_baseline),
-        _py("scripts/run_scenario.py", "benchmarks/cybermatch_standard_v1.json", "--output-dir", out),
-    ]
+    # run_scenario.py generates a fresh Phase6.3 baseline inside the output
+    # directory, so the result never depends on output/phase63_mission_products.
+    return [_py("scripts/run_scenario.py", "benchmarks/cybermatch_standard_v1.json", "--output-dir", out)]
 
 
 def _hunting_commands(out: str) -> List[List[str]]:
@@ -176,7 +167,7 @@ LANES: Dict[str, Lane] = {
             "業種シナリオ×トポロジ×mission×製品の総当たりで、どの防御が安定して効くか",
             "~1",
             _standard_commands,
-            reports=("PHASE85_STANDARD_BENCHMARK_REPORT.md", "standard_benchmark_summary.csv"),
+            reports=("PHASE85_STANDARD_BENCHMARK_REPORT.md", "baseline_provenance.json"),
         ),
         Lane(
             "hunting",

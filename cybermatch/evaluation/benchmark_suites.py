@@ -8,6 +8,7 @@ re-exporting every name defined here, so existing imports keep working.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import os
 from typing import Dict, List, Tuple
@@ -92,13 +93,47 @@ def _phase82_adjustment_factor(
     return max(0.5, min(1.5, factor))
 
 
-def _phase82_load_phase63_rows() -> List[Dict[str, object]]:
-    summary_path = os.path.join("output", "phase63_mission_products", "mission_product_summary.json")
-    if not os.path.exists(summary_path):
-        return run_phase63_mission_aware_product_evaluation(seeds=[0])
-    with open(summary_path, "r", encoding="utf-8") as f:
+PHASE63_SHARED_SUMMARY_PATH = os.path.join("output", "phase63_mission_products", "mission_product_summary.json")
+BASELINE_PROVENANCE_FILENAME = "baseline_provenance.json"
+
+
+def _phase82_load_phase63_rows(summary_path: str | None = None) -> List[Dict[str, object]]:
+    """Load the Phase6.3 baseline rows that the Phase8.x suites adjust.
+
+    An explicit ``summary_path`` must exist. Without one, the historical shared
+    location is used, which depends on whichever Phase6.3 run wrote it last.
+    """
+    if summary_path is not None:
+        if not os.path.isfile(summary_path):
+            raise FileNotFoundError(f"Phase6.3 baseline summary not found: {summary_path}")
+        path = summary_path
+    else:
+        path = PHASE63_SHARED_SUMMARY_PATH
+        if not os.path.exists(path):
+            return run_phase63_mission_aware_product_evaluation(seeds=[0])
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return list(data.get("rows", []))
+
+
+def _write_baseline_provenance(output_dir: str, summary_path: str | None) -> None:
+    """Record which Phase6.3 baseline produced a Phase8.x result."""
+    path = summary_path or PHASE63_SHARED_SUMMARY_PATH
+    digest = None
+    if os.path.isfile(path):
+        with open(path, "rb") as f:
+            digest = hashlib.sha256(f.read()).hexdigest()
+    payload = {
+        "baseline_summary_path": path.replace(os.sep, "/"),
+        "baseline_summary_sha256": digest,
+        "explicit_baseline": summary_path is not None,
+        "note": None
+        if summary_path is not None
+        else "Implicit shared baseline: the result depends on the last Phase6.3 run written to output/phase63_mission_products.",
+    }
+    os.makedirs(output_dir, exist_ok=True)
+    with open(os.path.join(output_dir, BASELINE_PROVENANCE_FILENAME), "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
 def _phase82_build_rows(scenarios: List[Dict[str, object]], phase63_rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
@@ -263,14 +298,16 @@ def _write_phase82_report(rows: List[Dict[str, object]], analysis: Dict[str, obj
 def run_phase82_scenario_catalog_evaluation(
     output_dir: str = os.path.join("output", "phase82_scenario_catalog"),
     catalog_dir: str = os.path.join("scenarios", "catalog"),
+    baseline_summary_path: str | None = None,
 ) -> List[Dict[str, object]]:
     from cybermatch.loaders.scenario_loader import load_scenario_catalog
 
     scenarios = load_scenario_catalog(catalog_dir)
-    phase63_rows = _phase82_load_phase63_rows()
+    phase63_rows = _phase82_load_phase63_rows(baseline_summary_path)
     rows = _phase82_build_rows(scenarios, phase63_rows)
     analysis = _phase82_analysis(rows)
     _write_phase82_outputs(rows, analysis, output_dir)
+    _write_baseline_provenance(output_dir, baseline_summary_path)
     return rows
 
 
@@ -291,14 +328,17 @@ def _phase83_product_id_from_path(path_value: str) -> str:
     return os.path.splitext(os.path.basename(path_value))[0]
 
 
-def _phase83_benchmark_rows(config: Dict[str, object]) -> List[Dict[str, object]]:
+def _phase83_benchmark_rows(
+    config: Dict[str, object],
+    baseline_summary_path: str | None = None,
+) -> List[Dict[str, object]]:
     from cybermatch.loaders.scenario_loader import load_scenario
 
     scenarios = [load_scenario(str(path)) for path in config.get("scenarios", [])]
     scenario_names = {str(scenario.get("metadata", {}).get("name")) for scenario in scenarios}
     mission_names = {str(mission) for mission in config.get("missions", [])}
     product_ids = {_phase83_product_id_from_path(str(path)) for path in config.get("products", [])}
-    phase63_rows = _phase82_load_phase63_rows()
+    phase63_rows = _phase82_load_phase63_rows(baseline_summary_path)
     rows = _phase82_build_rows(scenarios, phase63_rows)
     return [
         row
@@ -493,14 +533,16 @@ def _write_phase83_report(summary_rows: List[Dict[str, object]], analysis: Dict[
 def run_phase83_benchmark_suite(
     benchmark_path: str = os.path.join("benchmarks", "product_evaluation_benchmark.json"),
     output_dir: str = os.path.join("output", "phase83_benchmark_suite"),
+    baseline_summary_path: str | None = None,
 ) -> List[Dict[str, object]]:
     from cybermatch.loaders.benchmark_loader import load_benchmark
 
     config = load_benchmark(benchmark_path)
-    detail_rows = _phase83_benchmark_rows(config)
+    detail_rows = _phase83_benchmark_rows(config, baseline_summary_path=baseline_summary_path)
     summary_rows = _phase83_summary_rows(config, detail_rows)
     analysis = _phase83_analysis(summary_rows, detail_rows)
     _write_phase83_outputs(summary_rows, detail_rows, analysis, output_dir)
+    _write_baseline_provenance(output_dir, baseline_summary_path)
     return summary_rows
 
 
@@ -720,14 +762,16 @@ def _write_phase84_report(rows: List[Dict[str, object]], analysis: Dict[str, obj
 def run_phase84_topology_evaluation(
     output_dir: str = os.path.join("output", "phase84_topology_library"),
     topology_dir: str = os.path.join("topologies"),
+    baseline_summary_path: str | None = None,
 ) -> List[Dict[str, object]]:
     from cybermatch.loaders.topology_loader import list_available_topologies, load_topology
 
     topologies = [load_topology(str(path)) for path in list_available_topologies(topology_dir)]
-    phase63_rows = _phase82_load_phase63_rows()
+    phase63_rows = _phase82_load_phase63_rows(baseline_summary_path)
     rows = _phase84_build_rows(topologies, phase63_rows)
     analysis = _phase84_analysis(rows)
     _write_phase84_outputs(rows, analysis, output_dir)
+    _write_baseline_provenance(output_dir, baseline_summary_path)
     return rows
 
 
@@ -746,7 +790,10 @@ PHASE85_STANDARD_COLUMNS = [
 ]
 
 
-def _phase85_detail_rows(config: Dict[str, object]) -> List[Dict[str, object]]:
+def _phase85_detail_rows(
+    config: Dict[str, object],
+    baseline_summary_path: str | None = None,
+) -> List[Dict[str, object]]:
     from cybermatch.loaders.scenario_loader import load_scenario
     from cybermatch.loaders.topology_loader import load_topology
 
@@ -754,7 +801,9 @@ def _phase85_detail_rows(config: Dict[str, object]) -> List[Dict[str, object]]:
     topologies = [load_topology(str(path)) for path in config.get("topologies", [])]
     missions = {str(mission) for mission in config.get("missions", [])}
     products = {_phase83_product_id_from_path(str(path)) for path in config.get("products", [])}
-    phase63_rows = [row for row in _phase82_load_phase63_rows() if row.get("profile_id") != "baseline"]
+    phase63_rows = [
+        row for row in _phase82_load_phase63_rows(baseline_summary_path) if row.get("profile_id") != "baseline"
+    ]
     rows: List[Dict[str, object]] = []
     for scenario in scenarios:
         scenario_metadata = scenario.get("metadata", {})
@@ -966,12 +1015,14 @@ def _write_phase85_report(summary_rows: List[Dict[str, object]], analysis: Dict[
 def run_phase85_standard_benchmark(
     benchmark_path: str = os.path.join("benchmarks", "cybermatch_standard_v1.json"),
     output_dir: str = os.path.join("output", "phase85_standard_benchmark"),
+    baseline_summary_path: str | None = None,
 ) -> List[Dict[str, object]]:
     from cybermatch.loaders.benchmark_loader import load_benchmark
 
     config = load_benchmark(benchmark_path)
-    detail_rows = _phase85_detail_rows(config)
+    detail_rows = _phase85_detail_rows(config, baseline_summary_path=baseline_summary_path)
     summary_rows = _phase85_summary_rows(config, detail_rows)
     analysis = _phase85_analysis(summary_rows, detail_rows)
     _write_phase85_outputs(summary_rows, detail_rows, analysis, output_dir)
+    _write_baseline_provenance(output_dir, baseline_summary_path)
     return summary_rows

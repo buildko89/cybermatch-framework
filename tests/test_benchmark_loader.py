@@ -77,7 +77,7 @@ def test_phase83_benchmark_runner_smoke(tmp_path, monkeypatch):
             "scenario_adjusted_effectiveness": 0.7,
         },
     ]
-    monkeypatch.setattr("cybermatch.evaluation.benchmark_suites._phase83_benchmark_rows", lambda config: detail_rows)
+    monkeypatch.setattr("cybermatch.evaluation.benchmark_suites._phase83_benchmark_rows", lambda config, baseline_summary_path=None: detail_rows)
 
     benchmark_path = tmp_path / "benchmark.json"
     benchmark_path.write_text(json.dumps(_valid_benchmark()), encoding="utf-8")
