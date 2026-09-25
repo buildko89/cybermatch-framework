@@ -11,7 +11,7 @@ import json
 import subprocess
 import sys
 import time
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Dict, List, Optional, Set
 
 import streamlit as st
@@ -196,7 +196,9 @@ from apps.streamlit_text import (  # noqa: E402
 
 
 def canonical_repo_path(path_value: str | Path) -> str:
-    return Path(path_value).as_posix()
+    # Session values saved on Windows contain backslashes; PureWindowsPath
+    # treats both separators as separators on every OS.
+    return PureWindowsPath(str(path_value)).as_posix()
 
 
 def normalized_option_selection(values: Any, options: List[str], *, path_values: bool = False) -> List[str]:
