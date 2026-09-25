@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.cybermatch.decision_model.mission_taxonomy import INTENT_CLASSES, MISSION_LAYER_CLASSES, TARGET_CLASSES, MissionTaxonomyAnalyzer
-from src.cybermatch.evaluation.runner import run_phase96_taxonomy_evaluation
+from cybermatch.decision_model.mission_taxonomy import INTENT_CLASSES, MISSION_LAYER_CLASSES, TARGET_CLASSES, MissionTaxonomyAnalyzer
+from cybermatch.evaluation.runner import run_phase96_taxonomy_evaluation
 
 
 pytestmark = [pytest.mark.phase96, pytest.mark.taxonomy]

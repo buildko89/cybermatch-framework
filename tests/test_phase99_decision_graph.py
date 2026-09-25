@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.cybermatch.decision_model.decision_graph import DecisionGraphBuilder
-from src.cybermatch.evaluation.runner import run_phase99_decision_graph_evaluation
+from cybermatch.decision_model.decision_graph import DecisionGraphBuilder
+from cybermatch.evaluation.runner import run_phase99_decision_graph_evaluation
 
 
 pytestmark = [pytest.mark.phase99, pytest.mark.decision_graph]
@@ -73,7 +73,7 @@ def test_phase99_artifacts_generated(tmp_path):
     )
 
     assert result["analysis"]["graph_valid"] is True
-    assert (output_dir / "src.cybermatch.decision_model.decision_graph.png").exists()
+    assert (output_dir / "cybermatch.decision_model.decision_graph.png").exists()
     assert (output_dir / "intent_mission_graph.png").exists()
     assert (output_dir / "mission_target_graph.png").exists()
     assert (output_dir / "target_strategy_graph.png").exists()

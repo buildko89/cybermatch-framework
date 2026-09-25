@@ -245,7 +245,7 @@ flowchart LR
 | `check` | `python scripts/run_tests.py --smoke` / `python scripts/validate_assets.py --root .` |
 | `replay` | `python scripts/run_external_replay.py --source ... --output <dir>`(引数は[03 手順書 5.3](03_external_evaluation_guide.md#53-評価を実行する)) |
 | `product` | `python scripts/run_scenario.py scenarios/demos/demo_vendor_comparison.json --output-dir <dir>` |
-| `standard` | ① `python -c "from src.cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation as r; r(seeds=[0])"` ② `python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json --output-dir <dir>` |
+| `standard` | ① `python -c "from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation as r; r(seeds=[0])"` ② `python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json --output-dir <dir>` |
 | `hunting` | `python scripts/run_scenario.py benchmarks/cybermatch_hunting_v1.json --output-dir <dir>` |
 | `agentic` | `python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json --output-dir <dir>` |
 | `resilience` | `python scripts/run_agentic_resilience.py --output-dir <dir>` |
@@ -316,4 +316,4 @@ python scripts/run_phase63.py `
 | HITL pilot UI (`apps/pilot_web.py`) | 人間の承認・判断が必要なため | [03 手順書 6章](03_external_evaluation_guide.md#6-経路b-human-in-the-loop-pilot-uiで実行する) |
 | 独自テレメトリ評価 | データ承認・マッピング準備が必要なため | [03 手順書 7章](03_external_evaluation_guide.md#7-経路c-独自csvjsonlを評価する) |
 | LLM shadow 比較 | モデル導入・APIキー・人手レビューが必要なため | [03 手順書 8章](03_external_evaluation_guide.md#8-経路d-説明候補をor-4-shadow評価する) |
-| トポロジ評価 (`run_phase84_topology_evaluation`) | `standard` と同じ基準値に依存するため | `python -c "from src.cybermatch.evaluation.runner import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"` |
+| トポロジ評価 (`run_phase84_topology_evaluation`) | `standard` と同じ基準値に依存するため | `python -c "from cybermatch.evaluation.runner import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"` |

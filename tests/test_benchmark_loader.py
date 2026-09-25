@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from src.cybermatch.loaders.benchmark_loader import BenchmarkValidationError, load_benchmark, validate_benchmark
+from cybermatch.loaders.benchmark_loader import BenchmarkValidationError, load_benchmark, validate_benchmark
 
 
 pytestmark = [pytest.mark.phase83, pytest.mark.benchmark]
@@ -61,7 +61,7 @@ def test_benchmark_validation_fails_for_missing_product():
 
 
 def test_phase83_benchmark_runner_smoke(tmp_path, monkeypatch):
-    from src.cybermatch.evaluation.runner import run_phase83_benchmark_suite
+    from cybermatch.evaluation.runner import run_phase83_benchmark_suite
 
     detail_rows = [
         {
@@ -77,7 +77,7 @@ def test_phase83_benchmark_runner_smoke(tmp_path, monkeypatch):
             "scenario_adjusted_effectiveness": 0.7,
         },
     ]
-    monkeypatch.setattr("src.cybermatch.evaluation.runner._phase83_benchmark_rows", lambda config: detail_rows)
+    monkeypatch.setattr("cybermatch.evaluation.runner._phase83_benchmark_rows", lambda config: detail_rows)
 
     benchmark_path = tmp_path / "benchmark.json"
     benchmark_path.write_text(json.dumps(_valid_benchmark()), encoding="utf-8")

@@ -3,9 +3,9 @@ import sys
 import numpy as np
 import pytest
 
-from src.cybermatch.application.process_control import launch_logged_process, terminate_process
-from src.cybermatch.application.artifacts import discover_files, missing_artifacts
-from src.cybermatch.simulation.probability import normalize_probability_vector
+from cybermatch.application.process_control import launch_logged_process, terminate_process
+from cybermatch.application.artifacts import discover_files, missing_artifacts
+from cybermatch.simulation.probability import normalize_probability_vector
 
 
 def test_probability_normalization_is_pure_and_has_uniform_fallback() -> None:

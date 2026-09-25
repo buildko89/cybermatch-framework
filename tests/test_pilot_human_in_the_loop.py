@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.contracts import canonical_sha256
-from src.cybermatch.pilot.ai import TemplateExplanationGateway, grounded_explanation
-from src.cybermatch.pilot.contracts import require_approved_run_spec
-from src.cybermatch.pilot.grounding import validate_ai_answer
-from src.cybermatch.pilot.service import PilotEvaluationService
+from cybermatch.contracts import canonical_sha256
+from cybermatch.pilot.ai import TemplateExplanationGateway, grounded_explanation
+from cybermatch.pilot.contracts import require_approved_run_spec
+from cybermatch.pilot.grounding import validate_ai_answer
+from cybermatch.pilot.service import PilotEvaluationService
 
 
 pytestmark = [pytest.mark.phase3, pytest.mark.threat_hunting]

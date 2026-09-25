@@ -10,7 +10,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from src.cybermatch.evaluation.runner import run_phase3_expected_utility_evaluation  # noqa: E402
+from cybermatch.evaluation.runner import run_phase3_expected_utility_evaluation  # noqa: E402
 
 
 def _parse_seeds(value: str) -> list[int]:

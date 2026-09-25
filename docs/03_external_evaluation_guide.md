@@ -469,7 +469,7 @@ mappingの`field_map`は、CyberMatch側field名から入力recordのfield名へ
 
 ### 7.4 Custom mappingを作る
 
-custom mappingは`src/cybermatch/schemas/telemetry-mapping.schema.json`に従う。例:
+custom mappingは`cybermatch/schemas/telemetry-mapping.schema.json`に従う。例:
 
 ```json
 {
@@ -968,11 +968,11 @@ F1=1.0は、そのGround Truth、mapping、recipe、dataset、seedの範囲内�
 | [08 用語集](08_glossary.md) | 用語の定義 |
 | [`pilots/phase3/PILOT_INTAKE_TEMPLATE.md`](../pilots/phase3/PILOT_INTAKE_TEMPLATE.md) | 外部pilot受付・承認記録 |
 | [OR-4 Blind Human Review](procedures/or4_blind_human_review_20260915.md) | OR-4 blind human review |
-| `src/cybermatch/schemas/telemetry-mapping.schema.json` | mapping schema |
-| `src/cybermatch/schemas/pilot-run-spec.schema.json` | Pilot RunSpec schema |
-| `src/cybermatch/schemas/pilot-result-view.schema.json` | ResultView schema |
-| `src/cybermatch/schemas/pilot-ai-answer.schema.json` | AIAnswer schema |
-| `src/cybermatch/schemas/pilot-llm-audit.schema.json` | LLM audit schema |
+| `cybermatch/schemas/telemetry-mapping.schema.json` | mapping schema |
+| `cybermatch/schemas/pilot-run-spec.schema.json` | Pilot RunSpec schema |
+| `cybermatch/schemas/pilot-result-view.schema.json` | ResultView schema |
+| `cybermatch/schemas/pilot-ai-answer.schema.json` | AIAnswer schema |
+| `cybermatch/schemas/pilot-llm-audit.schema.json` | LLM audit schema |
 
 ---
 

@@ -1,6 +1,6 @@
 import pytest
 
-from src.cybermatch.agentic.learning import (
+from cybermatch.agentic.learning import (
     LearningEpisode,
     RewardHackingLearningConfig,
     evaluate_learning_comparison,

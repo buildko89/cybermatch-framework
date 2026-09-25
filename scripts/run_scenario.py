@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.cybermatch.loaders.scenario_loader import ScenarioValidationError, list_available_scenarios, load_scenario, run_scenario_from_file
-from src.cybermatch.loaders.benchmark_loader import BenchmarkValidationError, load_benchmark
+from cybermatch.loaders.scenario_loader import ScenarioValidationError, list_available_scenarios, load_scenario, run_scenario_from_file
+from cybermatch.loaders.benchmark_loader import BenchmarkValidationError, load_benchmark
 
 
 def _run_benchmark(path: str, output_dir: str | None) -> tuple[str, str, int]:
@@ -20,24 +20,24 @@ def _run_benchmark(path: str, output_dir: str | None) -> tuple[str, str, int]:
     benchmark = load_benchmark(path)
     metadata = benchmark.get("metadata", {})
     if metadata.get("type") == "agentic_security":
-        from src.cybermatch.agentic import run_agentic_security_benchmark
+        from cybermatch.agentic import run_agentic_security_benchmark
 
         target = output_dir or "output/agentic_security/cybermatch_agentic_security_v1"
         rows = run_agentic_security_benchmark(benchmark_path=path, output_dir=target)
         return "agentic_security_evaluation", target, len(rows)
     if metadata.get("type") == "threat_hunting":
-        from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
+        from cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
 
         target = output_dir or "output/threat_hunting/cybermatch_hunting_v1"
         rows = run_hunting_benchmark(benchmark_path=path, output_dir=target)
         return "hunting_recipe_evaluation", target, len(rows)
     if metadata.get("name") == "cybermatch_standard_v1":
-        from src.cybermatch.evaluation.runner import run_phase85_standard_benchmark
+        from cybermatch.evaluation.runner import run_phase85_standard_benchmark
 
         target = output_dir or "output/phase85_standard_benchmark"
         rows = run_phase85_standard_benchmark(benchmark_path=path, output_dir=target)
         return "phase85_standard_benchmark", target, len(rows)
-    from src.cybermatch.evaluation.runner import run_phase83_benchmark_suite
+    from cybermatch.evaluation.runner import run_phase83_benchmark_suite
 
     target = output_dir or "output/phase83_benchmark_suite"
     rows = run_phase83_benchmark_suite(benchmark_path=path, output_dir=target)

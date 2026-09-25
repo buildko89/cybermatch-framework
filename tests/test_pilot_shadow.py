@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.pilot.ai import TemplateExplanationGateway
-from src.cybermatch.pilot.shadow import run_shadow_evaluation, write_shadow_report
+from cybermatch.pilot.ai import TemplateExplanationGateway
+from cybermatch.pilot.shadow import run_shadow_evaluation, write_shadow_report
 
 
 pytestmark = [pytest.mark.phase3, pytest.mark.threat_hunting]

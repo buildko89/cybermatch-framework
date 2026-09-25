@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from src.cybermatch.fuzzing import (
+from cybermatch.fuzzing import (
     ExecutionLimits,
     FUZZING_SCHEMA_VERSION,
     FuzzArtifactError,
@@ -19,9 +19,9 @@ from src.cybermatch.fuzzing import (
     replay_case,
     run_campaign,
 )
-from src.cybermatch.contracts import EvidenceBundle
-from src.cybermatch.fuzzing.mutators import events_hash
-from src.cybermatch.threat_hunting import GroundTruthLabel, HuntEvent, SCHEMA_VERSION
+from cybermatch.contracts import EvidenceBundle
+from cybermatch.fuzzing.mutators import events_hash
+from cybermatch.threat_hunting import GroundTruthLabel, HuntEvent, SCHEMA_VERSION
 
 
 def _case() -> FuzzCase:
@@ -95,9 +95,9 @@ def _spec() -> FuzzCampaignSpec:
 
 
 def test_campaign_writes_hash_verified_artifacts_and_replays(tmp_path, monkeypatch):
-    monkeypatch.setattr("src.cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (_case(),))
+    monkeypatch.setattr("cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (_case(),))
     monkeypatch.setattr(
-        "src.cybermatch.fuzzing.runner.evaluate_oracles",
+        "cybermatch.fuzzing.runner.evaluate_oracles",
         lambda *args, **kwargs: (
             OracleResult("forced_failure", "fail", "high", "forced-fingerprint", {}),
         ),
@@ -120,7 +120,7 @@ def test_campaign_writes_hash_verified_artifacts_and_replays(tmp_path, monkeypat
 
 
 def test_campaign_loader_detects_tampering(tmp_path, monkeypatch):
-    monkeypatch.setattr("src.cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (_case(),))
+    monkeypatch.setattr("cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (_case(),))
     output = tmp_path / "campaign"
     run_campaign(_spec(), output_dir=output)
     summary = output / "campaign_summary.json"
@@ -133,7 +133,7 @@ def test_campaign_loader_detects_tampering(tmp_path, monkeypatch):
 
 
 def test_identical_campaigns_have_identical_artifact_hashes(tmp_path, monkeypatch):
-    monkeypatch.setattr("src.cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (_case(),))
+    monkeypatch.setattr("cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (_case(),))
 
     first = run_campaign(_spec(), output_dir=tmp_path / "first")
     second = run_campaign(_spec(), output_dir=tmp_path / "second")

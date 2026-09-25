@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.cybermatch.decision_model.feature_space import FeatureSpaceAnalyzer
-from src.cybermatch.evaluation.runner import run_phase92_feature_space_evaluation
+from cybermatch.decision_model.feature_space import FeatureSpaceAnalyzer
+from cybermatch.evaluation.runner import run_phase92_feature_space_evaluation
 
 
 pytestmark = [pytest.mark.phase92, pytest.mark.feature]

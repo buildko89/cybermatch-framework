@@ -1,6 +1,6 @@
 import pytest
 
-from src.cybermatch.agentic.topology import DefenseControl, LayeredDefenseFailureModel
+from cybermatch.agentic.topology import DefenseControl, LayeredDefenseFailureModel
 
 
 pytestmark = pytest.mark.agentic_security

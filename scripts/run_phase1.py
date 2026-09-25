@@ -14,7 +14,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from src.cybermatch.evaluation.runner import (  # noqa: E402
+from cybermatch.evaluation.runner import (  # noqa: E402
     CONDITIONAL_MTD_SCENARIO_NAMES,
     CREDENTIAL_AWARE_MTD_SCENARIO_NAMES,
     NEUTRALIZATION_SCENARIO_MAP,

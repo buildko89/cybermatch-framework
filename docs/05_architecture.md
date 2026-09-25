@@ -7,7 +7,7 @@ CyberMatch は、グラフやシミュレーション履歴だけでなく、**�
 
 ```mermaid
 flowchart TD
-    UI["CLI / Streamlit<br/>scripts/, apps/"] --> APP["アプリケーションサービス<br/>src.cybermatch.application"]
+    UI["CLI / Streamlit<br/>scripts/, apps/"] --> APP["アプリケーションサービス<br/>cybermatch.application"]
     APP --> WF["評価ワークフロー<br/>evaluation / agentic / threat_hunting / fuzzing / pilot"]
     WF --> DOM["シミュレーションとドメインモデル<br/>simulation / attacker / defense / models<br/>decision_model / loaders"]
     DOM --> CON["版管理された契約とスキーマ<br/>contracts / schemas"]
@@ -16,7 +16,7 @@ flowchart TD
     EXT["外部利用者・連携システム"] --> FAC
 ```
 
-- `cybermatch_core` パッケージが **2.x 系の安定ファサード**です。実装はすべて `src.cybermatch` 配下にあります。
+- `cybermatch_core` パッケージが **2.x 系の安定ファサード**です。実装はすべて `cybermatch` 配下にあります。
 - 2.0.0 でリポジトリ直下の Python モジュールを廃止し、直下は設定ファイルとドキュメントだけになりました。旧名からの移行表は [06 公開API方針 3章](06_public_api.md#3-1x-からの移行200-の破壊的変更) を参照してください。
 
 ## 2. ディレクトリと責務
@@ -24,7 +24,7 @@ flowchart TD
 ```text
 cybermatch-framework/
 ├── cybermatch_core/        安定ファサード(外部連携はここだけを使う)
-├── src/cybermatch/
+├── cybermatch/
 │   ├── contracts/          canonical JSON・SHA-256・EvaluationRun・Evidence Bundle・スキーマレジストリ
 │   ├── schemas/            版管理された JSON Schema(資産・pilot・mapping 等)
 │   ├── simulation/         攻撃・防御シミュレータ本体と純粋な確率演算
@@ -69,10 +69,10 @@ cybermatch-framework/
 
 | モジュール | 役割 |
 |---|---|
-| `src.cybermatch.contracts` | canonical JSON、ハッシュ、実行マニフェスト、指標、Evidence Bundle、スキーマレジストリ |
-| `src.cybermatch.evaluation.statistics` / `artifact_io` | 巨大な評価ランナーから切り出した、純粋関数/副作用を限定したヘルパー |
-| `src.cybermatch.simulation.probability` | シミュレータから最初に切り出した純粋な状態演算 |
-| `src.cybermatch.application.process_control` / `artifacts` | Streamlit 層がプロセスのライフサイクル管理と結果探索を委譲する先 |
+| `cybermatch.contracts` | canonical JSON、ハッシュ、実行マニフェスト、指標、Evidence Bundle、スキーマレジストリ |
+| `cybermatch.evaluation.statistics` / `artifact_io` | 巨大な評価ランナーから切り出した、純粋関数/副作用を限定したヘルパー |
+| `cybermatch.simulation.probability` | シミュレータから最初に切り出した純粋な状態演算 |
+| `cybermatch.application.process_control` / `artifacts` | Streamlit 層がプロセスのライフサイクル管理と結果探索を委譲する先 |
 | `scripts/validate_assets.py` | 登録済みの全 JSON 資産を検証する CI・運用者向けの入口 |
 
 以降の分割は、これらテスト済みの継ぎ目 (seam) の内側で進めます。
@@ -133,6 +133,6 @@ Bundle には、コード revision、依存 lock のハッシュ、入力ハッ�
 | 制約 | 状況 |
 |---|---|
 | 共通 Evidence Bundle への移行 | 既存ワークフローのすべてがまだ出力しているわけではない(`product` / `standard` / `hunting` / `agentic` は未対応)。契約と移行境界は用意済みで、段階的に適用する |
-| `src` 名前空間 | 実装パッケージ名は `src.cybermatch` のまま。`cybermatch` への改名は今後のメジャーバージョンで扱う |
+| `src` 名前空間 | 実装パッケージ名は `cybermatch` のまま。`cybermatch` への改名は今後のメジャーバージョンで扱う |
 | 標準ベンチマークの基準値 | `output/phase63_mission_products/` の既存結果を読み込む。`evaluate.py` は毎回再生成して回避([02 評価メニュー 3.4](02_evaluation_menu.md#34-standard--標準ベンチマーク)) |
 | OS 検証 | Ubuntu での動作は push 後の GitHub Actions で検証。ローカル検証は Windows |

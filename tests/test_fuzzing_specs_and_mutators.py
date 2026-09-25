@@ -5,7 +5,7 @@ import random
 
 import pytest
 
-from src.cybermatch.fuzzing import (
+from cybermatch.fuzzing import (
     ExecutionLimits,
     FuzzConstraintError,
     FuzzSpecError,
@@ -16,7 +16,7 @@ from src.cybermatch.fuzzing import (
     score_analysis_guidance,
     validate_semantic_events,
 )
-from src.cybermatch.threat_hunting import HuntEvent, SCHEMA_VERSION
+from cybermatch.threat_hunting import HuntEvent, SCHEMA_VERSION
 
 
 def _event(event_id: str, step: int, event_type: str = "critical_path_progress") -> HuntEvent:

@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from src.cybermatch.fuzzing import (
+from cybermatch.fuzzing import (
     AllowlistedCommandTransport,
     ExecutionLimits,
     ExternalCodec,
@@ -17,8 +17,8 @@ from src.cybermatch.fuzzing import (
     load_campaign_spec,
     load_external_mapping,
 )
-from src.cybermatch.fuzzing.oracles import external_execution_health_oracle
-from src.cybermatch.threat_hunting import Finding, HuntEvent, SCHEMA_VERSION
+from cybermatch.fuzzing.oracles import external_execution_health_oracle
+from cybermatch.threat_hunting import Finding, HuntEvent, SCHEMA_VERSION
 
 
 MAPPING_PATH = "fuzzing/mappings/vendor_neutral_v1.json"

@@ -164,7 +164,7 @@ Once running, your terminal will display a URL (usually `http://localhost:8501`)
 
 ## Command-Line Execution (Representative Experiments)
 
-> **Note (2.0.0)**: The repository root no longer contains Python modules. The former root modules (`scenario_loader.py`, `run_scenarios.py`, `cybermatch.py`, the decision-model modules, and others) now live under `src/cybermatch/` (`loaders/`, `decision_model/`, `evaluation/runner.py`, ...). Command-line scripts are unchanged. Code that imported the old names must be updated; see the migration table in [docs/06_public_api.md](docs/06_public_api.md#3-1x-からの移行200-の破壊的変更).
+> **Note (2.0.0)**: The repository root no longer contains Python modules. The former root modules (`scenario_loader.py`, `run_scenarios.py`, `cybermatch.py`, the decision-model modules, and others) now live under `cybermatch/` (`loaders/`, `decision_model/`, `evaluation/runner.py`, ...). Command-line scripts are unchanged. Code that imported the old names must be updated; see the migration table in [docs/06_public_api.md](docs/06_public_api.md#3-1x-からの移行200-の破壊的変更).
 
 ### Active Defense Evaluation
 Evaluate intelligence-driven active defense:
@@ -351,7 +351,7 @@ The runner always evaluates the deterministic template and installed Qwen2.5 mod
 ### Topology Evaluation
 Evaluate how different enterprise network topologies impact attacker choices:
 ```bash
-python -c "from src.cybermatch.evaluation.runner import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"
+python -c "from cybermatch.evaluation.runner import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"
 ```
 
 ## Repository Structure

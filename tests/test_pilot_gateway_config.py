@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.pilot.ai import TemplateExplanationGateway
-from src.cybermatch.pilot.config import build_explanation_gateway, load_llm_config
-from src.cybermatch.pilot.orcarouter import OrcaRouterExplanationGateway
-from src.cybermatch.pilot.policy import LLMPolicyError
-from src.cybermatch.pilot.service import PilotEvaluationService
+from cybermatch.pilot.ai import TemplateExplanationGateway
+from cybermatch.pilot.config import build_explanation_gateway, load_llm_config
+from cybermatch.pilot.orcarouter import OrcaRouterExplanationGateway
+from cybermatch.pilot.policy import LLMPolicyError
+from cybermatch.pilot.service import PilotEvaluationService
 
 
 pytestmark = [pytest.mark.phase3, pytest.mark.threat_hunting]

@@ -126,7 +126,7 @@ cybermatch-framework/
 ├── scripts/                   CLI(evaluate.py = 評価メニューの入口)
 ├── apps/                      Streamlit GUI、HITL pilot UI
 ├── cybermatch_core/           安定した公開 API(外部連携はここを使う)
-├── src/cybermatch/            実装本体(ローダー・意思決定モデルを含む)
+├── cybermatch/            実装本体(ローダー・意思決定モデルを含む)
 ├── scenarios/ benchmarks/ topologies/ profiles/ recipes/
 │   mappings/ replays/ fuzzing/ protocols/ configs/   評価条件(JSON)
 ├── pilots/ models/            pilot 受付テンプレート、ローカル LLM 配置場所
@@ -136,7 +136,7 @@ cybermatch-framework/
 
 直下には設定ファイル(`pyproject.toml`、lock、`pytest.ini` など)だけを置いています。各ファイルの役割は [docs/05 アーキテクチャ](docs/05_architecture.md#リポジトリ直下のファイル) を参照してください。
 
-> **v2.0.0 の変更:** 直下にあった Python モジュール(`scenario_loader.py`、`run_scenarios.py`、`cybermatch.py` など)は `src/cybermatch/` 配下へ移動しました。旧名で import しているコードは [docs/06 公開API方針 3章](docs/06_public_api.md#3-1x-からの移行200-の破壊的変更) の対応表に従って書き換えてください。
+> **v2.0.0 の変更:** 直下にあった Python モジュール(`scenario_loader.py`、`run_scenarios.py`、`cybermatch.py` など)は `cybermatch/` 配下へ移動しました。旧名で import しているコードは [docs/06 公開API方針 3章](docs/06_public_api.md#3-1x-からの移行200-の破壊的変更) の対応表に従って書き換えてください。
 
 ## ライセンス
 

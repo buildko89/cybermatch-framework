@@ -29,9 +29,9 @@ def _fake_phase63_stats(scenarios, **_kwargs):
 
 
 def test_phase63_selection_limits_rows_and_writes_manifest(tmp_path, monkeypatch):
-    from src.cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation
+    from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation
 
-    monkeypatch.setattr("src.cybermatch.evaluation.runner.run_scenarios_multi_seed", _fake_phase63_stats)
+    monkeypatch.setattr("cybermatch.evaluation.runner.run_scenarios_multi_seed", _fake_phase63_stats)
     output_dir = tmp_path / "phase63"
 
     rows = run_phase63_mission_aware_product_evaluation(
@@ -59,7 +59,7 @@ def test_phase63_selection_limits_rows_and_writes_manifest(tmp_path, monkeypatch
 
 
 def test_phase63_selection_rejects_unknown_mission(tmp_path):
-    from src.cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation
+    from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation
 
     with pytest.raises(ValueError, match="Unsupported Phase6.3 missions"):
         run_phase63_mission_aware_product_evaluation(

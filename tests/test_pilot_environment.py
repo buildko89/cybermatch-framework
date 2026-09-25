@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.pilot.environment import load_pilot_environment
-from src.cybermatch.pilot.policy import LLMPolicyError
+from cybermatch.pilot.environment import load_pilot_environment
+from cybermatch.pilot.policy import LLMPolicyError
 
 
 pytestmark = [pytest.mark.phase3, pytest.mark.threat_hunting]

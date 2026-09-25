@@ -6,12 +6,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-import src.cybermatch.threat_hunting.closed_loop_evaluation as evaluation_module
-from src.cybermatch.loaders.scenario_loader import load_scenario
-from src.cybermatch.attacker.attacker_model import AttackerModel
-from src.cybermatch.config.simulation_config import SimulationConfig
-from src.cybermatch.simulation.simulator import CyberDefenseSimulator
-from src.cybermatch.threat_hunting.closed_loop_evaluation import (
+import cybermatch.threat_hunting.closed_loop_evaluation as evaluation_module
+from cybermatch.loaders.scenario_loader import load_scenario
+from cybermatch.attacker.attacker_model import AttackerModel
+from cybermatch.config.simulation_config import SimulationConfig
+from cybermatch.simulation.simulator import CyberDefenseSimulator
+from cybermatch.threat_hunting.closed_loop_evaluation import (
     CLOSED_LOOP_REPORT_FILENAME,
     CLOSED_LOOP_SUMMARY_FILENAME,
     run_hunting_closed_loop_evaluation,

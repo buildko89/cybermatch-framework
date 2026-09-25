@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 
-from src.cybermatch.fuzzing import (
+from cybermatch.fuzzing import (
     ExecutionLimits,
     FUZZING_SCHEMA_VERSION,
     FuzzCampaignSpec,
@@ -15,8 +15,8 @@ from src.cybermatch.fuzzing import (
     evaluate_oracles,
     generate_cases,
 )
-from src.cybermatch.fuzzing.mutators import events_hash
-from src.cybermatch.threat_hunting import GroundTruthLabel, HuntEvent, SCHEMA_VERSION
+from cybermatch.fuzzing.mutators import events_hash
+from cybermatch.threat_hunting import GroundTruthLabel, HuntEvent, SCHEMA_VERSION
 
 
 def _event(event_id: str, step: int, event_type: str) -> HuntEvent:
@@ -90,7 +90,7 @@ def _seed() -> SeedInput:
 
 
 def test_case_generation_is_reproducible_and_retags_truth(monkeypatch):
-    monkeypatch.setattr("src.cybermatch.fuzzing.corpus.load_seed_input", lambda *args, **kwargs: _seed())
+    monkeypatch.setattr("cybermatch.fuzzing.corpus.load_seed_input", lambda *args, **kwargs: _seed())
 
     first = generate_cases(_spec())
     second = generate_cases(_spec())

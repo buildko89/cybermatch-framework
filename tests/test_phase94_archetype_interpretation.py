@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.cybermatch.decision_model.archetype_analysis import ArchetypeInterpreter
-from src.cybermatch.evaluation.runner import run_phase94_archetype_interpretation
+from cybermatch.decision_model.archetype_analysis import ArchetypeInterpreter
+from cybermatch.evaluation.runner import run_phase94_archetype_interpretation
 
 
 pytestmark = [pytest.mark.phase94, pytest.mark.archetype]

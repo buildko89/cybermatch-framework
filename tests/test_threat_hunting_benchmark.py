@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.loaders.benchmark_loader import hunting_evaluation_matrix_size, load_hunting_benchmark
-from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
+from cybermatch.loaders.benchmark_loader import hunting_evaluation_matrix_size, load_hunting_benchmark
+from cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
 
 
 pytestmark = [pytest.mark.threat_hunting, pytest.mark.benchmark]
@@ -72,7 +72,7 @@ def test_hunting_benchmark_smoke_completeness_is_one(tmp_path, monkeypatch):
         return rows
 
     monkeypatch.setattr(
-        "src.cybermatch.threat_hunting.benchmark_runner.run_hunting_recipe_evaluation",
+        "cybermatch.threat_hunting.benchmark_runner.run_hunting_recipe_evaluation",
         fake_runner,
     )
     output = tmp_path / "benchmark"

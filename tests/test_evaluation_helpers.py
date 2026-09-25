@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from src.cybermatch.evaluation.artifact_io import write_rows
-from src.cybermatch.evaluation.statistics import mean_or_none, std_or_none, to_float
+from cybermatch.evaluation.artifact_io import write_rows
+from cybermatch.evaluation.statistics import mean_or_none, std_or_none, to_float
 
 
 def test_statistics_helpers_preserve_runner_semantics() -> None:

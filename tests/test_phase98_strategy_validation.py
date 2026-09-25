@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.cybermatch.evaluation.runner import run_phase98_strategy_validation
-from src.cybermatch.decision_model.strategy_validation import StrategyValidationEngine
+from cybermatch.evaluation.runner import run_phase98_strategy_validation
+from cybermatch.decision_model.strategy_validation import StrategyValidationEngine
 
 
 pytestmark = [pytest.mark.phase98, pytest.mark.strategy_validation]

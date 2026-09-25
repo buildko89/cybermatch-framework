@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from src.cybermatch.config.simulation_config import SimulationConfig
+from cybermatch.config.simulation_config import SimulationConfig
 from cybermatch_core.products import HuntingCapabilities, load_product_profile
 
 

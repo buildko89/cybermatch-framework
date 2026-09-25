@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.cybermatch.decision_model.feature_export import ProfileCorePCAAnalyzer
-from src.cybermatch.evaluation.runner import run_phase93_profilecore_analysis
+from cybermatch.decision_model.feature_export import ProfileCorePCAAnalyzer
+from cybermatch.evaluation.runner import run_phase93_profilecore_analysis
 
 
 pytestmark = [pytest.mark.phase93, pytest.mark.profilecore]

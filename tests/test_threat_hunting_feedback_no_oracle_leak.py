@@ -24,7 +24,7 @@ def test_feedback_policy_public_api_rejects_truth_objects():
 
 
 def test_feedback_policy_module_has_no_ground_truth_or_evaluator_dependency():
-    import src.cybermatch.threat_hunting.feedback_policy as module
+    import cybermatch.threat_hunting.feedback_policy as module
 
     source = inspect.getsource(module)
     assert "GroundTruthLabel" not in source

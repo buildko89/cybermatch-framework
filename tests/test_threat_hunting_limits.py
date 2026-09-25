@@ -2,7 +2,7 @@ import inspect
 
 import pytest
 
-import src.cybermatch.threat_hunting.engine as engine_module
+import cybermatch.threat_hunting.engine as engine_module
 from cybermatch_core.threat_hunting import (
     GroundTruthLabel,
     HuntEvent,

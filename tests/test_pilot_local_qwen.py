@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.pilot.ai import grounded_explanation
-from src.cybermatch.pilot.local_qwen import LocalQwenExplanationGateway
+from cybermatch.pilot.ai import grounded_explanation
+from cybermatch.pilot.local_qwen import LocalQwenExplanationGateway
 
 
 pytestmark = [pytest.mark.phase3, pytest.mark.threat_hunting]

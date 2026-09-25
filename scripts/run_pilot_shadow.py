@@ -8,14 +8,14 @@ import os
 from pathlib import Path
 from typing import Mapping
 
-from src.cybermatch.pilot.ai import LLMGateway, TemplateExplanationGateway
-from src.cybermatch.pilot.config import build_explanation_gateway
-from src.cybermatch.pilot.environment import load_pilot_environment
-from src.cybermatch.pilot.local_qwen import LocalQwenError, LocalQwenExplanationGateway
-from src.cybermatch.pilot.orcarouter import OrcaRouterExplanationGateway
-from src.cybermatch.pilot.prompts import SYSTEM_PROMPT, build_explanation_prompt
-from src.cybermatch.pilot.shadow import run_shadow_evaluation, write_shadow_report
-from src.cybermatch.contracts import canonical_json, canonical_sha256
+from cybermatch.pilot.ai import LLMGateway, TemplateExplanationGateway
+from cybermatch.pilot.config import build_explanation_gateway
+from cybermatch.pilot.environment import load_pilot_environment
+from cybermatch.pilot.local_qwen import LocalQwenError, LocalQwenExplanationGateway
+from cybermatch.pilot.orcarouter import OrcaRouterExplanationGateway
+from cybermatch.pilot.prompts import SYSTEM_PROMPT, build_explanation_prompt
+from cybermatch.pilot.shadow import run_shadow_evaluation, write_shadow_report
+from cybermatch.contracts import canonical_json, canonical_sha256
 
 
 ROOT = Path(__file__).resolve().parents[1]

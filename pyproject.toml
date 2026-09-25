@@ -42,8 +42,8 @@ all = [
 
 [project.scripts]
 cybermatch-scenario = "scripts.run_scenario:main"
-cybermatch-hunt = "src.cybermatch.threat_hunting.cli:main"
-cybermatch-fuzz = "src.cybermatch.fuzzing.cli:main"
+cybermatch-hunt = "cybermatch.threat_hunting.cli:main"
+cybermatch-fuzz = "cybermatch.fuzzing.cli:main"
 cybermatch-validate-assets = "scripts.validate_assets:main"
 cybermatch-agentic-benchmark = "scripts.run_agentic_resilience:main"
 cybermatch-external-replay = "scripts.run_external_replay:main"
@@ -53,11 +53,11 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src.cybermatch*", "cybermatch_core*", "scripts*"]
+include = ["cybermatch*", "cybermatch_core*", "scripts*"]
 namespaces = true
 
 [tool.setuptools.package-data]
-"src.cybermatch.schemas" = ["*.json"]
+"cybermatch.schemas" = ["*.json"]
 
 [tool.pytest.ini_options]
 norecursedirs = [

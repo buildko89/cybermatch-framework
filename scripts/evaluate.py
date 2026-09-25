@@ -86,7 +86,7 @@ def _standard_commands(out: str) -> List[List[str]]:
     # PHASE63_BASELINE_DIR. Regenerate that baseline with every product and
     # mission first so the result does not depend on whichever demo ran last.
     refresh_baseline = (
-        "from src.cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation as run; "
+        "from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation as run; "
         f"run(seeds=[0], output_dir={PHASE63_BASELINE_DIR!r})"
     )
     return [

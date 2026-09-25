@@ -7,7 +7,7 @@ from dataclasses import replace
 
 import pytest
 
-from src.cybermatch.fuzzing import (
+from cybermatch.fuzzing import (
     ExecutionLimits,
     FUZZING_SCHEMA_VERSION,
     FuzzCase,
@@ -22,8 +22,8 @@ from src.cybermatch.fuzzing import (
     replay_case,
     run_campaign,
 )
-from src.cybermatch.fuzzing.mutators import events_hash
-from src.cybermatch.threat_hunting import HuntEvent, SCHEMA_VERSION
+from cybermatch.fuzzing.mutators import events_hash
+from cybermatch.threat_hunting import HuntEvent, SCHEMA_VERSION
 
 
 def _event(event_id: str, step: int, event_type: str, *, prohibited: bool = False) -> HuntEvent:
@@ -223,7 +223,7 @@ def test_fz5_campaign_writes_and_replays_both_loop_results(tmp_path, monkeypatch
     spec = load_campaign_spec("fuzzing/campaigns/threat_hunting_fz5_closed_loop_v1.json")
     spec = replace(spec, limits=replace(spec.limits, max_cases=1))
     monkeypatch.setattr(
-        "src.cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (case,)
+        "cybermatch.fuzzing.runner.generate_cases", lambda *args, **kwargs: (case,)
     )
     output = tmp_path / "fz5-artifacts"
 

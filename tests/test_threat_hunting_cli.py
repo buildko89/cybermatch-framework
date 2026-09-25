@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-import src.cybermatch.threat_hunting.cli as cli_module
+import cybermatch.threat_hunting.cli as cli_module
 from cybermatch_core.threat_hunting import load_threat_hunting_artifacts, threat_hunting_main
 
 

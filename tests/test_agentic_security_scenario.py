@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.loaders.benchmark_loader import load_benchmark
-from src.cybermatch.loaders.scenario_loader import ScenarioValidationError, load_scenario, run_scenario_from_file, validate_scenario
+from cybermatch.loaders.benchmark_loader import load_benchmark
+from cybermatch.loaders.scenario_loader import ScenarioValidationError, load_scenario, run_scenario_from_file, validate_scenario
 
 
 pytestmark = pytest.mark.agentic_security
@@ -166,7 +166,7 @@ def test_hybrid_ransom_with_deception_scenario_runs(tmp_path):
 
 
 def test_agentic_benchmark_suite_runs(tmp_path):
-    from src.cybermatch.agentic import run_agentic_security_benchmark
+    from cybermatch.agentic import run_agentic_security_benchmark
 
     rows = run_agentic_security_benchmark(
         benchmark_path="benchmarks/cybermatch_agentic_security_v1.json",

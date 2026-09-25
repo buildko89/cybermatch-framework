@@ -55,6 +55,6 @@ def test_compatibility_requirements_uses_the_runtime_lock():
 
 
 def test_repository_root_has_no_python_modules():
-    # 2.0 moved every root-level module into src.cybermatch; keep the root for
+    # 2.0 moved every root-level module into cybermatch; keep the root for
     # configuration and documentation only.
     assert sorted(path.name for path in REPOSITORY_ROOT.glob("*.py")) == []

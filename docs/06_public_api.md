@@ -6,7 +6,7 @@
 flowchart LR
     EXT[外部の連携コード] -->|使ってよい| CORE["cybermatch_core.*<br/>(安定ファサード)"]
     EXT -->|使ってよい| CLI["pyproject.toml の<br/>CLI エントリポイント"]
-    EXT -.->|内部実装。新規連携では使わない| SRC["src.cybermatch.*"]
+    EXT -.->|内部実装。新規連携では使わない| SRC["cybermatch.*"]
     CORE --> SRC
 ```
 
@@ -38,17 +38,17 @@ flowchart LR
 | 対象 | 2.x での扱い |
 |---|---|
 | `cybermatch_core.*` | 安定 API |
-| `src.cybermatch.*` | 実装パス。ファサードから再エクスポートされていないものは内部扱いで、**新しい外部連携はこれらに依存しないこと** |
+| `cybermatch.*` | 実装パス。ファサードから再エクスポートされていないものは内部扱いで、**新しい外部連携はこれらに依存しないこと** |
 | 公開シンボルの削除 | 少なくとも1つのマイナーリリースの間は非推奨 (deprecated) として残し、削除は次のメジャーバージョン(3.0)より前には行わない |
 
 > 1.x では、リポジトリ直下の互換モジュールを 2.0 まで維持すると定めていました。2.0.0 でその予定どおり廃止しています(次章)。
 
 `cybermatch` という名前は、2.0 で直下の `cybermatch.py` を廃止したことで空きました。
-`src.cybermatch` を `cybermatch` パッケージへ改名する移行は、今後のメジャーバージョンで扱います(2.x の間は `src.cybermatch` のまま)。
+`cybermatch` を `cybermatch` パッケージへ改名する移行は、今後のメジャーバージョンで扱います(2.x の間は `cybermatch` のまま)。
 
 ## 3. 1.x からの移行(2.0.0 の破壊的変更)
 
-2.0.0 で、リポジトリ直下にあった14個の Python モジュールを `src/cybermatch/` 配下へ移動し、直下からは削除しました。
+2.0.0 で、リポジトリ直下にあった14個の Python モジュールを `cybermatch/` 配下へ移動し、直下からは削除しました。
 旧名で import すると `ModuleNotFoundError` になるため、次の表に従って書き換えてください。
 
 ```mermaid
@@ -58,7 +58,7 @@ flowchart LR
         O2[intent_inference.py ほか<br/>意思決定モデル 8本]
         O3[cybermatch.py<br/>run_scenarios.py<br/>strategy_layer.py<br/>※別名のみ]
     end
-    subgraph New["2.0: src/cybermatch/"]
+    subgraph New["2.0: cybermatch/"]
         N1[loaders/]
         N2[decision_model/]
         N3[simulation/ models/ config/<br/>evaluation/runner.py<br/>defense/strategy_layer.py]
@@ -72,35 +72,35 @@ flowchart LR
 
 | 1.x の import | 2.0 の import |
 |---|---|
-| `scenario_loader` | `src.cybermatch.loaders.scenario_loader`(推奨: `cybermatch_core.scenarios`) |
-| `benchmark_loader` | `src.cybermatch.loaders.benchmark_loader`(推奨: `cybermatch_core.benchmarks`) |
-| `topology_loader` | `src.cybermatch.loaders.topology_loader`(推奨: `cybermatch_core.topologies`) |
-| `intent_inference` | `src.cybermatch.decision_model.intent_inference` |
-| `behavior_profile` | `src.cybermatch.decision_model.behavior_profile` |
-| `feature_space` | `src.cybermatch.decision_model.feature_space` |
-| `feature_export` | `src.cybermatch.decision_model.feature_export` |
-| `archetype_analysis` | `src.cybermatch.decision_model.archetype_analysis` |
-| `mission_taxonomy` | `src.cybermatch.decision_model.mission_taxonomy` |
-| `strategy_validation` | `src.cybermatch.decision_model.strategy_validation` |
-| `decision_graph` | `src.cybermatch.decision_model.decision_graph` |
+| `scenario_loader` | `cybermatch.loaders.scenario_loader`(推奨: `cybermatch_core.scenarios`) |
+| `benchmark_loader` | `cybermatch.loaders.benchmark_loader`(推奨: `cybermatch_core.benchmarks`) |
+| `topology_loader` | `cybermatch.loaders.topology_loader`(推奨: `cybermatch_core.topologies`) |
+| `intent_inference` | `cybermatch.decision_model.intent_inference` |
+| `behavior_profile` | `cybermatch.decision_model.behavior_profile` |
+| `feature_space` | `cybermatch.decision_model.feature_space` |
+| `feature_export` | `cybermatch.decision_model.feature_export` |
+| `archetype_analysis` | `cybermatch.decision_model.archetype_analysis` |
+| `mission_taxonomy` | `cybermatch.decision_model.mission_taxonomy` |
+| `strategy_validation` | `cybermatch.decision_model.strategy_validation` |
+| `decision_graph` | `cybermatch.decision_model.decision_graph` |
 
 ### 別名モジュール(廃止し、実体を直接 import)
 
 | 1.x の import | 2.0 の import |
 |---|---|
-| `run_scenarios` | `src.cybermatch.evaluation.runner` |
-| `strategy_layer` | `src.cybermatch.defense.strategy_layer` |
-| `from cybermatch import CyberDefenseSimulator` | `from src.cybermatch.simulation.simulator import CyberDefenseSimulator` |
-| `from cybermatch import SimulationConfig` | `from src.cybermatch.config.simulation_config import SimulationConfig` |
-| `from cybermatch import ProductProfile, HuntingCapabilities, load_product_profile` | `from src.cybermatch.models.product import ...`(推奨: `cybermatch_core.products`) |
-| `from cybermatch import Visualizer` | `from src.cybermatch.visualization.visualizer import Visualizer` |
-| `from cybermatch import AttackerModel` | `from src.cybermatch.attacker.attacker_model import AttackerModel` |
-| `from cybermatch import OptimizationEngine` | `from src.cybermatch.defense.ilp_mpc_strategy import OptimizationEngine` |
+| `run_scenarios` | `cybermatch.evaluation.runner` |
+| `strategy_layer` | `cybermatch.defense.strategy_layer` |
+| `from cybermatch import CyberDefenseSimulator` | `from cybermatch.simulation.simulator import CyberDefenseSimulator` |
+| `from cybermatch import SimulationConfig` | `from cybermatch.config.simulation_config import SimulationConfig` |
+| `from cybermatch import ProductProfile, HuntingCapabilities, load_product_profile` | `from cybermatch.models.product import ...`(推奨: `cybermatch_core.products`) |
+| `from cybermatch import Visualizer` | `from cybermatch.visualization.visualizer import Visualizer` |
+| `from cybermatch import AttackerModel` | `from cybermatch.attacker.attacker_model import AttackerModel` |
+| `from cybermatch import OptimizationEngine` | `from cybermatch.defense.ilp_mpc_strategy import OptimizationEngine` |
 
 ### 変わらないもの
 
 - `cybermatch_core.*` の API、CLI(`scripts/*.py` と `cybermatch-*` コマンド)の引数、出力ファイル名、証跡・スキーマのバージョン。
-- `python -c "from run_scenarios import ..."` のように旧名を使っていたワンライナーは、`from src.cybermatch.evaluation.runner import ...` に置き換えてください。
+- `python -c "from run_scenarios import ..."` のように旧名を使っていたワンライナーは、`from cybermatch.evaluation.runner import ...` に置き換えてください。
 
 ## 4. 安定性の境界
 
@@ -108,4 +108,4 @@ flowchart LR
 |---|---|
 | 公開ファサード、CLI 引数、証跡/スキーマのバージョン、文書化された出力ファイル名 | 互換性レビュー |
 | データ契約 | 新しいバージョン番号と移行ノート |
-| `src.cybermatch` 配下でファサードから再エクスポートされていない関数 | 内部実装扱い。マイナーバージョン間で変更され得る |
+| `cybermatch` 配下でファサードから再エクスポートされていない関数 | 内部実装扱い。マイナーバージョン間で変更され得る |

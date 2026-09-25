@@ -8,8 +8,8 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.cybermatch.pilot.service import PilotEvaluationService
-from src.cybermatch.pilot.environment import load_pilot_environment
+from cybermatch.pilot.service import PilotEvaluationService
+from cybermatch.pilot.environment import load_pilot_environment
 
 
 ROOT = Path(__file__).resolve().parents[1]

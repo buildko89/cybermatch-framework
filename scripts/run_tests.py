@@ -60,7 +60,7 @@ def main() -> int:
     args = parser.parse_args()
 
     repository_root = Path(__file__).resolve().parents[1]
-    compile_targets = ["src/cybermatch/loaders", "src/cybermatch/decision_model", "src/cybermatch/defense", "src/cybermatch/application", "src/cybermatch/contracts", "src/cybermatch/evaluation", "src/cybermatch/simulation", "src/cybermatch/threat_hunting", "src/cybermatch/agentic", "src/cybermatch/pilot", "src/cybermatch/external_sut.py", "cybermatch_core", "scripts/run_tests.py", "scripts/evaluate.py", "scripts/run_scenario.py", "scripts/run_agentic_resilience.py", "scripts/run_threat_hunting.py", "scripts/run_threat_hunting_evaluation.py", "scripts/run_external_replay.py", "scripts/run_pilot_shadow.py", "scripts/setup_qwen25.py", "scripts/validate_assets.py", "apps/pilot_web.py"]
+    compile_targets = ["cybermatch/loaders", "cybermatch/decision_model", "cybermatch/defense", "cybermatch/application", "cybermatch/contracts", "cybermatch/evaluation", "cybermatch/simulation", "cybermatch/threat_hunting", "cybermatch/agentic", "cybermatch/pilot", "cybermatch/external_sut.py", "cybermatch_core", "scripts/run_tests.py", "scripts/evaluate.py", "scripts/run_scenario.py", "scripts/run_agentic_resilience.py", "scripts/run_threat_hunting.py", "scripts/run_threat_hunting_evaluation.py", "scripts/run_external_replay.py", "scripts/run_pilot_shadow.py", "scripts/setup_qwen25.py", "scripts/validate_assets.py", "apps/pilot_web.py"]
     run_id = uuid.uuid4().hex[:12]
     run_root = repository_root / "output" / "pytest_tmp" / run_id
     run_root.mkdir(parents=True, exist_ok=False)

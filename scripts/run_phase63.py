@@ -21,7 +21,7 @@ def main() -> int:
     parser.add_argument("--seed", dest="seeds", action="append", type=int, help="Seed; repeat for multiple seeds.")
     args = parser.parse_args()
 
-    from src.cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation
+    from cybermatch.evaluation.runner import run_phase63_mission_aware_product_evaluation
 
     run_phase63_mission_aware_product_evaluation(
         seeds=args.seeds,

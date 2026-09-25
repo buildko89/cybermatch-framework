@@ -1,6 +1,6 @@
 """Stable facade for defender-side threat hunting contracts."""
 
-from src.cybermatch.threat_hunting import (
+from cybermatch.threat_hunting import (
     AGGREGATE_FUNCTIONS,
     ARTIFACT_FORMAT_VERSION,
     CRITICAL_PATH_EVENT_TYPES,

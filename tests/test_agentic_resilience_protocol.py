@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.cybermatch.loaders.scenario_loader import load_scenario
-from src.cybermatch.agentic import (
+from cybermatch.loaders.scenario_loader import load_scenario
+from cybermatch.agentic import (
     COMMON_METRICS,
     DEFENSE_MODES,
     EvaluationIndependenceError,
@@ -13,8 +13,8 @@ from src.cybermatch.agentic import (
     paired_effect,
     run_agentic_resilience_protocol,
 )
-from src.cybermatch.contracts import EvidenceBundle, load_evidence_bundle
-from src.cybermatch.threat_hunting import HuntEvent
+from cybermatch.contracts import EvidenceBundle, load_evidence_bundle
+from cybermatch.threat_hunting import HuntEvent
 
 
 pytestmark = pytest.mark.agentic_security

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.cybermatch.models.product import HuntingCapabilities, ProductProfile, load_product_profile
+from cybermatch.models.product import HuntingCapabilities, ProductProfile, load_product_profile
 
 
 __all__ = [

@@ -6,10 +6,10 @@ import urllib.error
 
 import pytest
 
-from src.cybermatch.pilot.ai import grounded_explanation
-from src.cybermatch.pilot.orcarouter import OrcaRouterError, OrcaRouterExplanationGateway
-from src.cybermatch.pilot.policy import LLMPolicyError
-from src.cybermatch.pilot.policy import ProviderErrorClass
+from cybermatch.pilot.ai import grounded_explanation
+from cybermatch.pilot.orcarouter import OrcaRouterError, OrcaRouterExplanationGateway
+from cybermatch.pilot.policy import LLMPolicyError
+from cybermatch.pilot.policy import ProviderErrorClass
 
 
 pytestmark = [pytest.mark.phase3, pytest.mark.threat_hunting]

@@ -25,5 +25,15 @@ def test_public_api_policy_documents_compatibility_window() -> None:
     policy = (REPOSITORY_ROOT / "docs" / "06_public_api.md").read_text(encoding="utf-8")
     assert "cybermatch_core" in policy
     assert "3.0)より前には行わない" in policy
-    assert "src.cybermatch.loaders.scenario_loader" in policy
+    assert "cybermatch.loaders.scenario_loader" in policy
     assert "RUN_CONTRACT_VERSION" in policy
+
+
+def test_legacy_cybermatch_names_resolve_lazily() -> None:
+    import cybermatch
+    from cybermatch import CyberDefenseSimulator, SimulationConfig
+    from cybermatch.config.simulation_config import SimulationConfig as Direct
+
+    assert SimulationConfig is Direct
+    assert CyberDefenseSimulator.__name__ == "CyberDefenseSimulator"
+    assert "CyberDefenseSimulator" in cybermatch.__all__

@@ -3,14 +3,14 @@ import json
 import numpy as np
 import pytest
 
-from src.cybermatch.attacker.attacker_model import AttackerModel
+from cybermatch.attacker.attacker_model import AttackerModel
 
-from src.cybermatch.simulation.simulator import CyberDefenseSimulator
+from cybermatch.simulation.simulator import CyberDefenseSimulator
 
-from src.cybermatch.config.simulation_config import SimulationConfig
+from cybermatch.config.simulation_config import SimulationConfig
 
-from src.cybermatch.visualization.visualizer import Visualizer
-from src.cybermatch.evaluation.runner import (
+from cybermatch.visualization.visualizer import Visualizer
+from cybermatch.evaluation.runner import (
     MULTI_SEED_SCENARIO_NAMES,
     MULTI_SEED_STATS_COLUMNS,
     POLICY_SELECTION_COLUMNS,
@@ -716,7 +716,7 @@ def test_retreat_can_be_driven_by_perceived_utility():
 
 
 def test_targeted_neutralization_evaluation_outputs(tmp_path, monkeypatch):
-    import src.cybermatch.evaluation.runner as scenario_module
+    import cybermatch.evaluation.runner as scenario_module
 
     monkeypatch.setattr(
         scenario_module,

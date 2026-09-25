@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from src.cybermatch.pilot.ai import grounded_explanation
-from src.cybermatch.pilot.contracts import validate_contract
-from src.cybermatch.pilot.grounding import validate_ai_answer
-from src.cybermatch.pilot.policy import (
+from cybermatch.pilot.ai import grounded_explanation
+from cybermatch.pilot.contracts import validate_contract
+from cybermatch.pilot.grounding import validate_ai_answer
+from cybermatch.pilot.policy import (
     CYBERMATCH_EXPLANATION_TASK,
     LLMPolicyError,
     ProviderErrorClass,

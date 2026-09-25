@@ -1,4 +1,4 @@
 """Stable facade for agentic-security evaluation contracts."""
 
-from src.cybermatch.agentic import *  # noqa: F401,F403
-from src.cybermatch.agentic import __all__
+from cybermatch.agentic import *  # noqa: F401,F403
+from cybermatch.agentic import __all__

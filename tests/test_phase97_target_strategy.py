@@ -3,11 +3,11 @@ import json
 import numpy as np
 import pytest
 
-from src.cybermatch.simulation.simulator import CyberDefenseSimulator
+from cybermatch.simulation.simulator import CyberDefenseSimulator
 
-from src.cybermatch.config.simulation_config import SimulationConfig
-from src.cybermatch.evaluation.runner import run_phase97_target_strategy_evaluation
-from src.cybermatch.defense.strategy_layer import StrategyInferenceEngine
+from cybermatch.config.simulation_config import SimulationConfig
+from cybermatch.evaluation.runner import run_phase97_target_strategy_evaluation
+from cybermatch.defense.strategy_layer import StrategyInferenceEngine
 
 
 pytestmark = [pytest.mark.phase97, pytest.mark.target_strategy]

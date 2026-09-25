@@ -9,7 +9,7 @@ from cybermatch_core.threat_hunting import (
     load_threat_hunting_report,
     run_hunting_history_evaluation,
 )
-from src.cybermatch.threat_hunting.evaluation_cli import main
+from cybermatch.threat_hunting.evaluation_cli import main
 
 
 def _history(tmp_path):

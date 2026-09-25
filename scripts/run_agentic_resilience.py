@@ -2,7 +2,7 @@
 
 import argparse
 
-from src.cybermatch.agentic.protocol import run_agentic_resilience_protocol
+from cybermatch.agentic.protocol import run_agentic_resilience_protocol
 
 
 def main(argv: list[str] | None = None) -> int:
