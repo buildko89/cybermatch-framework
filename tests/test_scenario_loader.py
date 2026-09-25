@@ -176,7 +176,7 @@ def test_phase82_scenario_catalog_evaluation_smoke(tmp_path, monkeypatch):
     from cybermatch.evaluation.runner import run_phase82_scenario_catalog_evaluation
 
     monkeypatch.setattr(
-        "cybermatch.evaluation.runner._phase82_load_phase63_rows",
+        "cybermatch.evaluation.benchmark_suites._phase82_load_phase63_rows",
         lambda: [
             {
                 "profile_id": "sample_ids",

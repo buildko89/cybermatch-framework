@@ -29,7 +29,7 @@ def test_phase85_standard_benchmark_runner_smoke(tmp_path, monkeypatch):
     from cybermatch.evaluation.runner import run_phase85_standard_benchmark
 
     monkeypatch.setattr(
-        "cybermatch.evaluation.runner._phase82_load_phase63_rows",
+        "cybermatch.evaluation.benchmark_suites._phase82_load_phase63_rows",
         lambda: [
             {
                 "profile_id": "sample_ids",
