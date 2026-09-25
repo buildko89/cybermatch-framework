@@ -129,8 +129,14 @@ def main() -> None:
     mode.add_argument("--publication", action="store_true", help="Run the full Phase4.1-Phase4.25 publication workflow.")
     parser.add_argument("--seeds", default="0", help="Comma-separated seed list. Default: 0")
     parser.add_argument("--output-dir", default=os.path.join("output", "phase4_publication"))
-    parser.add_argument("--config", default="config.json")
+    parser.add_argument(
+        "--config",
+        default="",
+        help="SimulationConfig JSON. Default: the built-in configuration (no implicit config.json lookup).",
+    )
     args = parser.parse_args()
+    if args.config and not os.path.isfile(args.config):
+        parser.error(f"config file not found: {args.config}")
 
     seeds = _parse_seeds(args.seeds)
     plan = _publication_plan() if args.publication else _quick_plan()

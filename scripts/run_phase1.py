@@ -43,8 +43,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run CyberMatch Phase1 Defense Neutralization evaluations.")
     parser.add_argument("--seeds", default="0", help="Comma-separated seed list. Default: 0")
     parser.add_argument("--output-dir", default=os.path.join("output", "phase1_publication"))
-    parser.add_argument("--config", default="config.json")
+    parser.add_argument(
+        "--config",
+        default="",
+        help="SimulationConfig JSON. Default: the built-in configuration (no implicit config.json lookup).",
+    )
     args = parser.parse_args()
+    if args.config and not os.path.isfile(args.config):
+        parser.error(f"config file not found: {args.config}")
 
     seeds = _parse_seeds(args.seeds)
     print("Running Phase1 neutralization evaluation...")
