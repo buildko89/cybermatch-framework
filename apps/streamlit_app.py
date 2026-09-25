@@ -171,7 +171,7 @@ PHASE98_ARTIFACTS = {
 PHASE99_ARTIFACTS = {
     "summary_csv": PHASE99_OUTPUT_DIR / "decision_graph_summary.csv",
     "summary_json": PHASE99_OUTPUT_DIR / "decision_graph_summary.json",
-    "decision_graph": PHASE99_OUTPUT_DIR / "decision_graph.png",
+    "decision_graph": PHASE99_OUTPUT_DIR / "src.cybermatch.decision_model.decision_graph.png",
     "intent_mission": PHASE99_OUTPUT_DIR / "intent_mission_graph.png",
     "mission_target": PHASE99_OUTPUT_DIR / "mission_target_graph.png",
     "target_strategy": PHASE99_OUTPUT_DIR / "target_strategy_graph.png",
@@ -1753,7 +1753,7 @@ def render_run(text: Dict[str, Any]) -> None:
                     [
                         sys.executable,
                         "-c",
-                        "from run_scenarios import run_phase83_benchmark_suite; run_phase83_benchmark_suite()",
+                        "from src.cybermatch.evaluation.runner import run_phase83_benchmark_suite; run_phase83_benchmark_suite()",
                     ],
                     PHASE83_LOG_PATH,
                     "phase83_done",
@@ -1875,7 +1875,7 @@ def render_run(text: Dict[str, Any]) -> None:
                 [
                     sys.executable,
                     "-c",
-                    "from run_scenarios import run_phase62_product_profile_evaluation; run_phase62_product_profile_evaluation()",
+                    "from src.cybermatch.evaluation.runner import run_phase62_product_profile_evaluation; run_phase62_product_profile_evaluation()",
                 ],
                 PHASE62_LOG_PATH,
                 "phase62_done",
@@ -2535,7 +2535,7 @@ def render_benchmark(text: Dict[str, Any]) -> None:
             [
                 sys.executable,
                 "-c",
-                "from run_scenarios import run_phase85_standard_benchmark; run_phase85_standard_benchmark()",
+                "from src.cybermatch.evaluation.runner import run_phase85_standard_benchmark; run_phase85_standard_benchmark()",
             ],
             PHASE85_LOG_PATH,
             "phase85_done",

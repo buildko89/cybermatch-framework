@@ -8,6 +8,22 @@
 | `demo_deception_value.json` | Deceptionは攻撃者の迂回・無駄行動・撤退を変え得る | cloud_native、persistence / critical_hunter、Honeypot / Deception / XDR |
 | `demo_ot_factory_defense.json` | 資産とトポロジにより防御優先順位は変化する | ot_environment、achievement / critical_hunter、IPS / Deception / XDR |
 
+## 全体の流れ
+
+```mermaid
+flowchart LR
+    A[Streamlit起動] --> B[表示言語: 日本語]
+    B --> C[実行 → デモシナリオ<br/>条件を適用]
+    C --> D[Phase6.3 評価を実行]
+    D --> E[結果ページで説明<br/>結論→理由→比較→前提]
+```
+
+GUIを使わずに3デモをまとめて実行し、結果を別フォルダーに保存するだけなら、リポジトリルートで次を実行する(約40秒)。
+
+```powershell
+python scripts/evaluate.py product
+```
+
 ## 起動前の準備
 
 以下のコマンドは、リポジトリのルートディレクトリで実行する。
@@ -18,13 +34,12 @@ python --version
 python -c "import streamlit; print(streamlit.__version__)"
 ```
 
-`streamlit` が利用できない場合は、プロジェクトで使用するPython環境を有効化してから依存関係を導入する。
+`streamlit` が利用できない場合は、プロジェクトで使用するPython環境を有効化してから依存関係を導入する(詳細は [docs/01 クイックスタート](../../docs/01_quickstart.md))。
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.lock
+python -m pip install --no-deps -e .
 ```
-
-> `requirements.txt` には開発環境固有の依存関係が含まれる場合がある。既存の仮想環境がある場合は、その環境を使用する。
 
 ## GUIから起動する手順
 
@@ -107,6 +122,11 @@ python scripts/run_scenario.py scenarios/demos/demo_ot_factory_defense.json
 ```
 
 選択済みのmission、製品、topology、seedだけを評価し、出力先は各JSONで指定された `output/phase63_mission_products/` になる。
+結果を残したまま別のデモを実行する場合は、`--output-dir` で出力先を分ける。
+
+```powershell
+python scripts/run_scenario.py scenarios/demos/demo_deception_value.json --output-dir output/demo-deception-001
+```
 
 個別に条件を指定する場合は、Phase6.3用CLIを使う。
 
@@ -131,13 +151,15 @@ output/phase63_mission_products/
 | `mission_product_summary.json` | 集計値と分析結果 |
 | `PHASE63_MISSION_PRODUCT_REPORT.md` | Markdown形式の評価レポート |
 
-同じ出力先で次の評価を実行すると、既存の集計ファイルは更新される。デモ結果を保存する場合は、実行後に出力ディレクトリを別の場所へコピーするか、ダウンロード機能でCSV、JSON、Markdown、manifestを保存する。
+同じ出力先で次の評価を実行すると、既存の集計ファイルは更新される。デモ結果を保存する場合は、`--output-dir` で出力先を分けるか、実行後に出力ディレクトリを別の場所へコピーするか、ダウンロード機能でCSV、JSON、Markdown、manifestを保存する。
+
+> **注意:** `output/phase63_mission_products/` の集計は、標準ベンチマークとトポロジ評価の基準値としても読み込まれる。デモを実行した直後に標準ベンチマークを個別実行すると、デモで選んだ製品・missionだけで集計されてしまう。標準ベンチマークは `python scripts/evaluate.py standard` で実行すること(基準値を全条件で再生成してから集計する)。
 
 ## トラブルシュート
 
 | 状況 | 確認・対応 |
 | --- | --- |
-| `No module named streamlit` | 正しいPython環境を有効化し、`python -m pip install -r requirements.txt` を実行する。 |
+| `No module named streamlit` | 正しいPython環境を有効化し、`python -m pip install -r requirements-dev.lock` を実行する。 |
 | ブラウザが開かない | ターミナルに表示されたLocal URLを手動で開く。 |
 | 実行ボタンが押せない | 実行中の評価がないか確認し、必要に応じて **実行を停止** を使う。 |
 | 結果が表示されない | 実行ページのRun logでエラーを確認し、`output/phase63_mission_products/` にsummaryファイルが生成されているか確認する。 |

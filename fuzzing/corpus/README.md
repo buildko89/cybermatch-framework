@@ -1,9 +1,12 @@
-# Fuzzing seed corpus
+# ファジング用シードコーパス
 
-The checked-in corpus contains only reviewed, non-weaponized semantic inputs.
-Generated and minimized cases are written below `output/fuzzing/` and are not
-committed by default. Every retained case records its source hash, deterministic
-seed, mutation trace, target manifest, oracle evidence, and artifact hashes.
+| 種類 | 場所 | Git 管理 |
+|---|---|---|
+| レビュー済みのシード入力 | `fuzzing/corpus/`(このディレクトリ) | する |
+| 生成・最小化されたケース | `output/fuzzing/` またはキャンペーンの `--output-dir` | しない(既定) |
 
-Ground-truth labels are evaluator-only data and must never be passed to a fuzz
-target.
+- ここに置くのは、レビュー済みで**武器化されていない**意味的な入力だけです。
+- 保持される各ケースには、元入力のハッシュ、決定的な seed、変異の履歴、ターゲットのマニフェスト、オラクルの証拠、成果物のハッシュが記録されます。
+- **正解ラベル (Ground Truth) は評価器専用のデータ**です。ファジングのターゲットへ渡してはいけません。
+
+キャンペーンの実行方法は [docs/02 評価メニュー 3.8](../../docs/02_evaluation_menu.md#38-fuzzing--分析駆動ファジング) を参照してください。

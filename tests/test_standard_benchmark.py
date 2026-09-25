@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from benchmark_loader import evaluation_matrix_size, load_standard_benchmark
+from src.cybermatch.loaders.benchmark_loader import evaluation_matrix_size, load_standard_benchmark
 
 
 pytestmark = [pytest.mark.phase85, pytest.mark.benchmark]
@@ -26,10 +26,10 @@ def test_standard_benchmark_matrix_size():
 
 
 def test_phase85_standard_benchmark_runner_smoke(tmp_path, monkeypatch):
-    from run_scenarios import run_phase85_standard_benchmark
+    from src.cybermatch.evaluation.runner import run_phase85_standard_benchmark
 
     monkeypatch.setattr(
-        "run_scenarios._phase82_load_phase63_rows",
+        "src.cybermatch.evaluation.runner._phase82_load_phase63_rows",
         lambda: [
             {
                 "profile_id": "sample_ids",

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from scenario_loader import ScenarioValidationError, list_available_scenarios, load_scenario, load_scenario_catalog, run_scenario_from_file, validate_scenario
+from src.cybermatch.loaders.scenario_loader import ScenarioValidationError, list_available_scenarios, load_scenario, load_scenario_catalog, run_scenario_from_file, validate_scenario
 
 
 pytestmark = [pytest.mark.phase8, pytest.mark.scenario]
@@ -104,7 +104,7 @@ def test_run_scenario_from_file_smoke(tmp_path, monkeypatch):
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         return [{"ok": True}]
 
-    monkeypatch.setattr("run_scenarios.run_phase63_mission_aware_product_evaluation", fake_phase63)
+    monkeypatch.setattr("src.cybermatch.evaluation.runner.run_phase63_mission_aware_product_evaluation", fake_phase63)
 
     result = run_scenario_from_file(str(scenario_path))
 
@@ -173,10 +173,10 @@ def test_load_scenario_catalog():
 
 
 def test_phase82_scenario_catalog_evaluation_smoke(tmp_path, monkeypatch):
-    from run_scenarios import run_phase82_scenario_catalog_evaluation
+    from src.cybermatch.evaluation.runner import run_phase82_scenario_catalog_evaluation
 
     monkeypatch.setattr(
-        "run_scenarios._phase82_load_phase63_rows",
+        "src.cybermatch.evaluation.runner._phase82_load_phase63_rows",
         lambda: [
             {
                 "profile_id": "sample_ids",

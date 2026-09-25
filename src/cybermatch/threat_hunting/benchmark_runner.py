@@ -9,8 +9,8 @@ from collections import defaultdict
 from pathlib import Path
 from statistics import fmean
 
-from benchmark_loader import hunting_evaluation_matrix_size, load_benchmark
-from scenario_loader import load_scenario
+from src.cybermatch.loaders.benchmark_loader import hunting_evaluation_matrix_size, load_benchmark
+from src.cybermatch.loaders.scenario_loader import load_scenario
 
 from .models import canonical_json
 from .scenario_runner import run_hunting_recipe_evaluation

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cybermatch-framework"
-version = "1.0.1"
+version = "2.0.0"
 description = "A reproducible cyber decision and resilience evaluation framework"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -50,22 +50,6 @@ cybermatch-external-replay = "scripts.run_external_replay:main"
 
 [tool.setuptools]
 include-package-data = true
-py-modules = [
-  "archetype_analysis",
-  "behavior_profile",
-  "benchmark_loader",
-  "cybermatch",
-  "decision_graph",
-  "feature_export",
-  "feature_space",
-  "intent_inference",
-  "mission_taxonomy",
-  "run_scenarios",
-  "scenario_loader",
-  "strategy_layer",
-  "strategy_validation",
-  "topology_loader",
-]
 
 [tool.setuptools.packages.find]
 where = ["."]

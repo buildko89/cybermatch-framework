@@ -27,5 +27,10 @@ review/
 # Pilot secrets are loaded only from the repository-local environment file.
 /.env
 
-docs/
+# docs/ root keeps private planning material out of Git; only the curated
+# guides (README, numbered chapters, procedures) are tracked.
+/docs/*
+!/docs/README.md
+!/docs/[0-9][0-9]_*.md
+!/docs/procedures/
 report/

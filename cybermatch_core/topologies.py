@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from topology_loader import (
+from src.cybermatch.loaders.topology_loader import (
     TopologyValidationError,
     list_available_topologies,
     load_topology,

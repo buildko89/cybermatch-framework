@@ -3,9 +3,11 @@ import json
 import numpy as np
 import pytest
 
-from cybermatch import CyberDefenseSimulator, SimulationConfig
-from intent_inference import MissionInferenceEngine
-from run_scenarios import run_phase90_intent_inference_evaluation
+from src.cybermatch.simulation.simulator import CyberDefenseSimulator
+
+from src.cybermatch.config.simulation_config import SimulationConfig
+from src.cybermatch.decision_model.intent_inference import MissionInferenceEngine
+from src.cybermatch.evaluation.runner import run_phase90_intent_inference_evaluation
 
 
 pytestmark = [pytest.mark.phase90, pytest.mark.intent]

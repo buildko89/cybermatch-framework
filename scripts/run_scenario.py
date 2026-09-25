@@ -10,14 +10,48 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scenario_loader import ScenarioValidationError, list_available_scenarios, load_scenario, run_scenario_from_file
-from benchmark_loader import BenchmarkValidationError, load_benchmark
+from src.cybermatch.loaders.scenario_loader import ScenarioValidationError, list_available_scenarios, load_scenario, run_scenario_from_file
+from src.cybermatch.loaders.benchmark_loader import BenchmarkValidationError, load_benchmark
+
+
+def _run_benchmark(path: str, output_dir: str | None) -> tuple[str, str, int]:
+    """Dispatch a benchmark file and return (runner, output_dir, row_count)."""
+
+    benchmark = load_benchmark(path)
+    metadata = benchmark.get("metadata", {})
+    if metadata.get("type") == "agentic_security":
+        from src.cybermatch.agentic import run_agentic_security_benchmark
+
+        target = output_dir or "output/agentic_security/cybermatch_agentic_security_v1"
+        rows = run_agentic_security_benchmark(benchmark_path=path, output_dir=target)
+        return "agentic_security_evaluation", target, len(rows)
+    if metadata.get("type") == "threat_hunting":
+        from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
+
+        target = output_dir or "output/threat_hunting/cybermatch_hunting_v1"
+        rows = run_hunting_benchmark(benchmark_path=path, output_dir=target)
+        return "hunting_recipe_evaluation", target, len(rows)
+    if metadata.get("name") == "cybermatch_standard_v1":
+        from src.cybermatch.evaluation.runner import run_phase85_standard_benchmark
+
+        target = output_dir or "output/phase85_standard_benchmark"
+        rows = run_phase85_standard_benchmark(benchmark_path=path, output_dir=target)
+        return "phase85_standard_benchmark", target, len(rows)
+    from src.cybermatch.evaluation.runner import run_phase83_benchmark_suite
+
+    target = output_dir or "output/phase83_benchmark_suite"
+    rows = run_phase83_benchmark_suite(benchmark_path=path, output_dir=target)
+    return "phase83_benchmark_suite", target, len(rows)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run a CyberMatch JSON scenario.")
     parser.add_argument("scenario", nargs="?", help="Path to a CyberMatch scenario JSON file.")
     parser.add_argument("--list", action="store_true", help="List catalog scenarios.")
+    parser.add_argument(
+        "--output-dir",
+        help="Override the output directory declared by the scenario or benchmark.",
+    )
     args = parser.parse_args()
 
     if args.list:
@@ -33,48 +67,15 @@ def main() -> int:
     try:
         config = json.loads(Path(args.scenario).read_text(encoding="utf-8"))
         if isinstance(config, dict) and "scenarios" in config and "evaluation" not in config:
-            benchmark = load_benchmark(args.scenario)
-            metadata = benchmark.get("metadata", {})
-            if metadata.get("type") == "agentic_security":
-                from src.cybermatch.agentic import run_agentic_security_benchmark
-
-                rows = run_agentic_security_benchmark(benchmark_path=args.scenario)
-                print(f"benchmark name: {metadata.get('name')}")
-                print("runner: agentic_security_evaluation")
-                print("output dir: output/agentic_security/cybermatch_agentic_security_v1")
-                print(f"rows: {len(rows)}")
-                print("success: true")
-                return 0
-            if metadata.get("type") == "threat_hunting":
-                from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
-
-                rows = run_hunting_benchmark(benchmark_path=args.scenario)
-                print(f"benchmark name: {metadata.get('name')}")
-                print("runner: hunting_recipe_evaluation")
-                print("output dir: output/threat_hunting/cybermatch_hunting_v1")
-                print(f"rows: {len(rows)}")
-                print("success: true")
-                return 0
-            if metadata.get("name") == "cybermatch_standard_v1":
-                from run_scenarios import run_phase85_standard_benchmark
-
-                rows = run_phase85_standard_benchmark(benchmark_path=args.scenario)
-                print(f"benchmark name: {metadata.get('name')}")
-                print("runner: phase85_standard_benchmark")
-                print("output dir: output/phase85_standard_benchmark")
-                print(f"rows: {len(rows)}")
-                print("success: true")
-                return 0
-            from run_scenarios import run_phase83_benchmark_suite
-
-            rows = run_phase83_benchmark_suite(benchmark_path=args.scenario)
+            runner, output_dir, row_count = _run_benchmark(args.scenario, args.output_dir)
+            metadata = config.get("metadata", {})
             print(f"benchmark name: {metadata.get('name')}")
-            print("runner: phase83_benchmark_suite")
-            print("output dir: output/phase83_benchmark_suite")
-            print(f"rows: {len(rows)}")
+            print(f"runner: {runner}")
+            print(f"output dir: {output_dir}")
+            print(f"rows: {row_count}")
             print("success: true")
             return 0
-        result = run_scenario_from_file(args.scenario)
+        result = run_scenario_from_file(args.scenario, output_dir=args.output_dir)
     except ScenarioValidationError as exc:
         print(f"failure: {exc}", file=sys.stderr)
         return 2

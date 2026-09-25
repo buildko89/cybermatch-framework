@@ -14,10 +14,11 @@ from typing import Dict, Iterable, List, Mapping, Sequence
 
 import numpy as np
 
-from feature_space import FEATURE_NAMES, FeatureSpaceAnalyzer
+from src.cybermatch.decision_model.feature_space import FEATURE_NAMES, FeatureSpaceAnalyzer
 
 
-PROFILECORE_PARENT = Path(__file__).resolve().parent / "external"
+# Repository root: src/cybermatch/decision_model/feature_export.py -> parents[3].
+PROFILECORE_PARENT = Path(__file__).resolve().parents[3] / "external"
 
 
 @dataclass(frozen=True)

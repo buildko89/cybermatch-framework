@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from benchmark_loader import load_benchmark
-from scenario_loader import ScenarioValidationError, load_scenario, run_scenario_from_file, validate_scenario
+from src.cybermatch.loaders.benchmark_loader import load_benchmark
+from src.cybermatch.loaders.scenario_loader import ScenarioValidationError, load_scenario, run_scenario_from_file, validate_scenario
 
 
 pytestmark = pytest.mark.agentic_security

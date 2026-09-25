@@ -3,9 +3,10 @@ import json
 import numpy as np
 import pytest
 
-from behavior_profile import BehaviorProfileEngine
-from cybermatch import CyberDefenseSimulator, SimulationConfig
-from run_scenarios import run_phase91_behavior_profile_evaluation
+from src.cybermatch.decision_model.behavior_profile import BehaviorProfileEngine
+from src.cybermatch.simulation.simulator import CyberDefenseSimulator
+from src.cybermatch.config.simulation_config import SimulationConfig
+from src.cybermatch.evaluation.runner import run_phase91_behavior_profile_evaluation
 
 
 pytestmark = [pytest.mark.phase91, pytest.mark.behavior]

@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from scenario_loader import load_scenario
+from src.cybermatch.loaders.scenario_loader import load_scenario
 from src.cybermatch.agentic import (
     COMMON_METRICS,
     DEFENSE_MODES,

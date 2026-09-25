@@ -6,14 +6,14 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from scenario_loader import (
+from src.cybermatch.loaders.scenario_loader import (
     ALLOWED_HUNTING_NOISE_PROFILES,
     ALLOWED_MISSIONS,
     ScenarioValidationError,
     _resolve_repo_path,
     load_scenario,
 )
-from topology_loader import TopologyValidationError, load_topology
+from src.cybermatch.loaders.topology_loader import TopologyValidationError, load_topology
 
 
 BENCHMARK_DIR = _resolve_repo_path("benchmarks")

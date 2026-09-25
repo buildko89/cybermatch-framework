@@ -8,7 +8,7 @@ from apps.streamlit_app import (
     load_product_profiles,
     normalized_option_selection,
 )
-from scenario_loader import load_scenario
+from src.cybermatch.loaders.scenario_loader import load_scenario
 
 
 def test_demo_scenarios_validate_and_are_listed():

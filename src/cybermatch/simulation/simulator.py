@@ -8,10 +8,10 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional, Tuple
 
-from behavior_profile import BehaviorProfileEngine
-from intent_inference import MissionInferenceEngine
-from mission_taxonomy import MissionTaxonomyAnalyzer
-from strategy_layer import StrategyInferenceEngine
+from src.cybermatch.decision_model.behavior_profile import BehaviorProfileEngine
+from src.cybermatch.decision_model.intent_inference import MissionInferenceEngine
+from src.cybermatch.decision_model.mission_taxonomy import MissionTaxonomyAnalyzer
+from src.cybermatch.defense.strategy_layer import StrategyInferenceEngine
 
 # ロギング設定
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

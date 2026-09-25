@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-ROOT = Path(__file__).resolve().parent
+# Repository root: src/cybermatch/loaders/<module>.py -> parents[3].
+ROOT = Path(__file__).resolve().parents[3]
 TOPOLOGY_DIR = ROOT / "topologies"
 
 ALLOWED_TOPOLOGY_LEVELS = {

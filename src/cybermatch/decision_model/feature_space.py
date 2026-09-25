@@ -12,8 +12,8 @@ from typing import Dict, Iterable, List, Mapping, Sequence
 
 import numpy as np
 
-from behavior_profile import BehaviorProfileEngine
-from intent_inference import MissionInferenceEngine
+from src.cybermatch.decision_model.behavior_profile import BehaviorProfileEngine
+from src.cybermatch.decision_model.intent_inference import MissionInferenceEngine
 
 
 FEATURE_NAMES = (

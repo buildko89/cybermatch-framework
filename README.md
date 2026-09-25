@@ -1,9 +1,10 @@
 # CyberMatch Framework
 
-Architecture and stability references: [ARCHITECTURE.md](ARCHITECTURE.md),
-[PUBLIC_API.md](PUBLIC_API.md), and [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md).
+Documentation index (Japanese): [docs/README.md](docs/README.md). Architecture and stability references:
+[docs/05_architecture.md](docs/05_architecture.md), [docs/06_public_api.md](docs/06_public_api.md), and
+[docs/07_dependency_policy.md](docs/07_dependency_policy.md).
 
-**CyberMatch v1.0.1**
+**CyberMatch v2.0.0**
 
 CyberMatch is a cyber decision-making simulator that reproduces attacker decision processes and enables comparative evaluation of defense strategies and security products.
 
@@ -113,7 +114,7 @@ The default install (`python -m pip install -e .`) contains only the simulation
 core. The `hunting` extra adds optional scikit-learn models, `ui` adds the
 Streamlit dashboard, and `dev` adds test/build/lock tooling. Exact runtime
 versions are available through `python -m pip install -r requirements.txt`.
-See [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md) for dependency and lock rules.
+See [docs/07_dependency_policy.md](docs/07_dependency_policy.md) for dependency and lock rules.
 
 Run the curated fast lane to ensure your environment is set up correctly. It
 has a 60-second timeout and covers core imports, Agentic Security, Threat
@@ -123,7 +124,24 @@ Hunting, and fuzzing contracts:
 python scripts/run_tests.py --smoke
 ```
 
-### 2. How to Start the GUI Dashboard
+### 2. Run the Evaluation Menu
+
+`scripts/evaluate.py` runs named evaluation lanes. Each run writes to its own
+`output/evaluations/<run-id>/` directory, verifies Evidence Bundles where
+available, and writes an `EVALUATION_SUMMARY.md` that lists the report to read
+first for every lane.
+
+```bash
+python scripts/evaluate.py --list        # show lanes and presets
+python scripts/evaluate.py quickstart    # check + replay + product (about 2 minutes)
+python scripts/evaluate.py all           # every lane (about 3 minutes)
+```
+
+Lanes: `check`, `replay`, `product`, `standard`, `hunting`, `agentic`,
+`resilience`, and `fuzzing`. See [docs/02_evaluation_menu.md](docs/02_evaluation_menu.md)
+(Japanese) for what each lane answers and how to read its output.
+
+### 3. How to Start the GUI Dashboard
 
 You can use the built-in Streamlit dashboard to run evaluations and visualize the results.
 
@@ -146,7 +164,7 @@ Once running, your terminal will display a URL (usually `http://localhost:8501`)
 
 ## Command-Line Execution (Representative Experiments)
 
-> **Note**: During massive refactorings, core modules were moved into the `src/cybermatch/` directory. However, the root `cybermatch.py`, `run_scenarios.py`, and `strategy_layer.py` modules have been retained as aliases for backwards compatibility. Existing execution commands continue to work without changes.
+> **Note (2.0.0)**: The repository root no longer contains Python modules. The former root modules (`scenario_loader.py`, `run_scenarios.py`, `cybermatch.py`, the decision-model modules, and others) now live under `src/cybermatch/` (`loaders/`, `decision_model/`, `evaluation/runner.py`, ...). Command-line scripts are unchanged. Code that imported the old names must be updated; see the migration table in [docs/06_public_api.md](docs/06_public_api.md#3-1x-からの移行200-の破壊的変更).
 
 ### Active Defense Evaluation
 Evaluate intelligence-driven active defense:
@@ -163,9 +181,9 @@ python scripts/run_tests.py --phase phase5
 ### Mission-Aware Product Evaluation
 Evaluate product profile effectiveness by attacker mission from the CLI:
 ```bash
-python scripts/run_scenarios.py
-# Or with a specific scenario:
 python scripts/run_scenario.py scenarios/mission_product_eval_basic.json
+# Keep earlier results by choosing a new output directory:
+python scripts/run_scenario.py scenarios/demos/demo_vendor_comparison.json --output-dir output/demo-vendor-001
 ```
 
 ### Scenario Catalog & Benchmark Suite
@@ -175,9 +193,10 @@ List built-in scenarios:
 ```bash
 python scripts/run_scenario.py --list
 ```
-Run the standard CyberMatch benchmark suite:
+Run the standard CyberMatch benchmark suite (the evaluation menu first
+regenerates the full Phase6.3 baseline it depends on):
 ```bash
-python scripts/run_scenario.py benchmarks/cybermatch_standard_v1.json
+python scripts/evaluate.py standard
 ```
 
 ### Agentic Security Evaluation
@@ -188,7 +207,7 @@ Run the reproducible trust-boundary, open/closed containment, layered-defense fa
 python scripts/run_scenario.py benchmarks/cybermatch_agentic_security_v1.json
 ```
 
-See `AGENTIC_SECURITY.md` for the topology, failure-domain, learning, event, action, and metric contracts.
+See [docs/04_agentic_security.md](docs/04_agentic_security.md) for the topology, failure-domain, learning, event, action, and metric contracts.
 
 Run the v2 flagship protocol with five paired seeds, six defense modes,
 confidence intervals, paired effect sizes, sensitivity analysis, independence
@@ -332,7 +351,7 @@ The runner always evaluates the deterministic template and installed Qwen2.5 mod
 ### Topology Evaluation
 Evaluate how different enterprise network topologies impact attacker choices:
 ```bash
-python -c "from run_scenarios import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"
+python -c "from src.cybermatch.evaluation.runner import run_phase84_topology_evaluation; run_phase84_topology_evaluation()"
 ```
 
 ## Repository Structure
@@ -341,31 +360,29 @@ python -c "from run_scenarios import run_phase84_topology_evaluation; run_phase8
 cybermatch-framework/
   README.md
   README_JP.md
+  docs/                # Curated guides (Japanese), numbered in reading order
   src/
     cybermatch/
       agentic/
       attacker/
       config/
+      decision_model/  # Intent, behavior, feature space, taxonomy, decision graph
       defense/
       evaluation/
       fuzzing/
+      loaders/         # Scenario, benchmark, and topology loaders
       models/
+      pilot/
       simulation/
       threat_hunting/
       visualization/
   cybermatch_core/     # Stable import facade
-  cybermatch.py        # Alias for backwards compatibility
-  run_scenarios.py     # Alias for backwards compatibility
-  strategy_layer.py    # Alias for backwards compatibility
-  scenario_loader.py
-  benchmark_loader.py
   benchmarks/
   fuzzing/
     allowlists/
     campaigns/
     corpus/
     mappings/
-  topology_loader.py
   topologies/
   scenarios/
   recipes/
@@ -375,8 +392,10 @@ cybermatch-framework/
   apps/
     streamlit_app.py   # GUI Dashboard App
   scripts/
+    evaluate.py        # Evaluation menu entry point
   tests/
   output/              # generated locally, gitignored
+  pyproject.toml, requirements*.lock, pytest.ini   # tool configuration only
 ```
 
 ## License

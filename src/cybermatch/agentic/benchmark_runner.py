@@ -5,8 +5,8 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from benchmark_loader import load_benchmark
-from scenario_loader import load_scenario
+from src.cybermatch.loaders.benchmark_loader import load_benchmark
+from src.cybermatch.loaders.scenario_loader import load_scenario
 from src.cybermatch.threat_hunting.models import canonical_json
 
 from .scenario_runner import run_agentic_security_evaluation

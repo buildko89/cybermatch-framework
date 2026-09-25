@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from benchmark_loader import hunting_evaluation_matrix_size, load_hunting_benchmark
+from src.cybermatch.loaders.benchmark_loader import hunting_evaluation_matrix_size, load_hunting_benchmark
 from src.cybermatch.threat_hunting.benchmark_runner import run_hunting_benchmark
 
 

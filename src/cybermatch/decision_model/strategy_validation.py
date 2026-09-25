@@ -12,8 +12,8 @@ from typing import Dict, List, Mapping, Sequence
 
 import numpy as np
 
-from mission_taxonomy import TARGET_CLASSES, TARGET_STRATEGY_MAP
-from strategy_layer import STRATEGY_CLASSES, STRATEGY_FEATURES
+from src.cybermatch.decision_model.mission_taxonomy import TARGET_CLASSES, TARGET_STRATEGY_MAP
+from src.cybermatch.defense.strategy_layer import STRATEGY_CLASSES, STRATEGY_FEATURES
 
 
 @dataclass(frozen=True)

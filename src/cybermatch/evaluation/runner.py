@@ -9,16 +9,22 @@ from typing import Dict, List, Optional, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-from cybermatch import CyberDefenseSimulator, ProductProfile, SimulationConfig, Visualizer, load_product_profile
-from archetype_analysis import ArchetypeInterpretationResult, ArchetypeInterpreter
-from behavior_profile import PROFILE_CLASSES, BehaviorProfileEngine
-from decision_graph import GRAPH_EDGE_LAYERS, GRAPH_LAYERS, DecisionGraph, DecisionGraphBuilder
-from feature_export import ProfileCorePCAAnalyzer
-from feature_space import CRITICAL_PATH_FEATURES, FEATURE_NAMES, FeatureSpaceAnalyzer
-from intent_inference import MISSION_CLASSES, MissionInferenceEngine
-from mission_taxonomy import INTENT_CLASSES, MISSION_LAYER_CLASSES, TARGET_CLASSES, TARGET_STRATEGY_MAP, MissionTaxonomyAnalyzer, TaxonomyResult
-from strategy_layer import STRATEGY_CLASSES, STRATEGY_FEATURES, StrategyInferenceEngine
-from strategy_validation import StrategyValidationEngine, StrategyValidationResult
+from src.cybermatch.simulation.simulator import CyberDefenseSimulator
+
+from src.cybermatch.models.product import ProductProfile, load_product_profile
+
+from src.cybermatch.config.simulation_config import SimulationConfig
+
+from src.cybermatch.visualization.visualizer import Visualizer
+from src.cybermatch.decision_model.archetype_analysis import ArchetypeInterpretationResult, ArchetypeInterpreter
+from src.cybermatch.decision_model.behavior_profile import PROFILE_CLASSES, BehaviorProfileEngine
+from src.cybermatch.decision_model.decision_graph import GRAPH_EDGE_LAYERS, GRAPH_LAYERS, DecisionGraph, DecisionGraphBuilder
+from src.cybermatch.decision_model.feature_export import ProfileCorePCAAnalyzer
+from src.cybermatch.decision_model.feature_space import CRITICAL_PATH_FEATURES, FEATURE_NAMES, FeatureSpaceAnalyzer
+from src.cybermatch.decision_model.intent_inference import MISSION_CLASSES, MissionInferenceEngine
+from src.cybermatch.decision_model.mission_taxonomy import INTENT_CLASSES, MISSION_LAYER_CLASSES, TARGET_CLASSES, TARGET_STRATEGY_MAP, MissionTaxonomyAnalyzer, TaxonomyResult
+from src.cybermatch.defense.strategy_layer import STRATEGY_CLASSES, STRATEGY_FEATURES, StrategyInferenceEngine
+from src.cybermatch.decision_model.strategy_validation import StrategyValidationEngine, StrategyValidationResult
 from src.cybermatch.evaluation.artifact_io import write_rows as _write_rows
 from src.cybermatch.evaluation.statistics import mean_or_none as _mean_or_none
 from src.cybermatch.evaluation.statistics import std_or_none as _std_or_none
@@ -17464,7 +17470,7 @@ def _write_phase99_decision_graph_artifacts(graph: DecisionGraph, builder: Decis
             indent=4,
             ensure_ascii=False,
         )
-    _plot_phase99_decision_graph(graph, os.path.join(output_dir, "decision_graph.png"))
+    _plot_phase99_decision_graph(graph, os.path.join(output_dir, "src.cybermatch.decision_model.decision_graph.png"))
     layer_artifacts = {
         ("intent", "mission"): "intent_mission_graph.png",
         ("mission", "target"): "mission_target_graph.png",
@@ -18330,7 +18336,7 @@ def _phase63_apply_topology(
     if topology_preset is None:
         return None
 
-    from topology_loader import resolve_topology_preset
+    from src.cybermatch.loaders.topology_loader import resolve_topology_preset
 
     topology = resolve_topology_preset(topology_preset)
     metadata = topology.get("metadata", {})
@@ -19005,7 +19011,7 @@ def run_phase82_scenario_catalog_evaluation(
     output_dir: str = os.path.join("output", "phase82_scenario_catalog"),
     catalog_dir: str = os.path.join("scenarios", "catalog"),
 ) -> List[Dict[str, object]]:
-    from scenario_loader import load_scenario_catalog
+    from src.cybermatch.loaders.scenario_loader import load_scenario_catalog
 
     scenarios = load_scenario_catalog(catalog_dir)
     phase63_rows = _phase82_load_phase63_rows()
@@ -19033,7 +19039,7 @@ def _phase83_product_id_from_path(path_value: str) -> str:
 
 
 def _phase83_benchmark_rows(config: Dict[str, object]) -> List[Dict[str, object]]:
-    from scenario_loader import load_scenario
+    from src.cybermatch.loaders.scenario_loader import load_scenario
 
     scenarios = [load_scenario(str(path)) for path in config.get("scenarios", [])]
     scenario_names = {str(scenario.get("metadata", {}).get("name")) for scenario in scenarios}
@@ -19235,7 +19241,7 @@ def run_phase83_benchmark_suite(
     benchmark_path: str = os.path.join("benchmarks", "product_evaluation_benchmark.json"),
     output_dir: str = os.path.join("output", "phase83_benchmark_suite"),
 ) -> List[Dict[str, object]]:
-    from benchmark_loader import load_benchmark
+    from src.cybermatch.loaders.benchmark_loader import load_benchmark
 
     config = load_benchmark(benchmark_path)
     detail_rows = _phase83_benchmark_rows(config)
@@ -19462,7 +19468,7 @@ def run_phase84_topology_evaluation(
     output_dir: str = os.path.join("output", "phase84_topology_library"),
     topology_dir: str = os.path.join("topologies"),
 ) -> List[Dict[str, object]]:
-    from topology_loader import list_available_topologies, load_topology
+    from src.cybermatch.loaders.topology_loader import list_available_topologies, load_topology
 
     topologies = [load_topology(str(path)) for path in list_available_topologies(topology_dir)]
     phase63_rows = _phase82_load_phase63_rows()
@@ -19488,8 +19494,8 @@ PHASE85_STANDARD_COLUMNS = [
 
 
 def _phase85_detail_rows(config: Dict[str, object]) -> List[Dict[str, object]]:
-    from scenario_loader import load_scenario
-    from topology_loader import load_topology
+    from src.cybermatch.loaders.scenario_loader import load_scenario
+    from src.cybermatch.loaders.topology_loader import load_topology
 
     scenarios = [load_scenario(str(path)) for path in config.get("scenarios", [])]
     topologies = [load_topology(str(path)) for path in config.get("topologies", [])]
@@ -19708,7 +19714,7 @@ def run_phase85_standard_benchmark(
     benchmark_path: str = os.path.join("benchmarks", "cybermatch_standard_v1.json"),
     output_dir: str = os.path.join("output", "phase85_standard_benchmark"),
 ) -> List[Dict[str, object]]:
-    from benchmark_loader import load_benchmark
+    from src.cybermatch.loaders.benchmark_loader import load_benchmark
 
     config = load_benchmark(benchmark_path)
     detail_rows = _phase85_detail_rows(config)

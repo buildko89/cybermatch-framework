@@ -53,7 +53,7 @@ def _framework_version() -> str:
     try:
         return version("cybermatch-framework")
     except PackageNotFoundError:
-        return "1.0.1"
+        return "2.0.0"
 
 
 def write_evidence_bundle(

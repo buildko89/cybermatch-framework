@@ -12,7 +12,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from run_scenarios import (  # noqa: E402
+from src.cybermatch.evaluation.runner import (  # noqa: E402
     run_phase4_adaptive_defender_evaluation,
     run_phase4_cns_guided_evaluation,
     run_phase4_nonstationary_evaluation,

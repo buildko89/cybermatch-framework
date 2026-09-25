@@ -14,8 +14,8 @@ from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
 
 import numpy as np
 
-from behavior_profile import BehaviorProfileEngine
-from mission_taxonomy import EXISTING_MISSION_TAXONOMY, MISSION_DEFAULT_TARGET, MISSION_TARGET_MAP, TARGET_STRATEGY_MAP
+from src.cybermatch.decision_model.behavior_profile import BehaviorProfileEngine
+from src.cybermatch.decision_model.mission_taxonomy import EXISTING_MISSION_TAXONOMY, MISSION_DEFAULT_TARGET, MISSION_TARGET_MAP, TARGET_STRATEGY_MAP
 
 
 GRAPH_LAYERS = ("intent", "mission", "target", "strategy", "behavior_profile", "archetype")

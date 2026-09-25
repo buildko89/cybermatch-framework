@@ -13,7 +13,7 @@ from typing import Dict, Iterable, List, Mapping, Sequence
 
 import numpy as np
 
-from feature_space import FEATURE_NAMES
+from src.cybermatch.decision_model.feature_space import FEATURE_NAMES
 
 
 SIGNATURE_FEATURES = (

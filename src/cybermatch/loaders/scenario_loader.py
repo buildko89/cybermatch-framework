@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-ROOT = Path(__file__).resolve().parent
+# Repository root: src/cybermatch/loaders/<module>.py -> parents[3].
+ROOT = Path(__file__).resolve().parents[3]
 
 ALLOWED_RUNNERS = {
     "phase62_product_profile",
@@ -138,7 +139,7 @@ def validate_scenario(scenario: Dict[str, Any]) -> None:
     if topology_preset not in ALLOWED_TOPOLOGY_PRESETS:
         raise ScenarioValidationError(f"Unsupported topology preset: {topology_preset}")
     try:
-        from topology_loader import TopologyValidationError, resolve_topology_preset
+        from src.cybermatch.loaders.topology_loader import TopologyValidationError, resolve_topology_preset
 
         resolve_topology_preset(str(topology_preset))
     except TopologyValidationError as exc:
@@ -257,14 +258,17 @@ def load_scenario_catalog(catalog_dir: str | None = None) -> List[Dict[str, Any]
     return scenarios
 
 
-def run_scenario_from_file(path: str) -> Dict[str, Any]:
-    """Run a validated scenario with an existing Phase6 product evaluation runner."""
+def run_scenario_from_file(path: str, output_dir: str | None = None) -> Dict[str, Any]:
+    """Run a validated scenario with an existing Phase6 product evaluation runner.
+
+    ``output_dir`` overrides ``evaluation.output_dir`` from the scenario file.
+    """
 
     scenario = load_scenario(path)
     metadata = scenario["metadata"]
     evaluation = scenario["evaluation"]
     runner = evaluation["runner"]
-    output_dir = evaluation.get("output_dir")
+    output_dir = output_dir or evaluation.get("output_dir")
     seeds = evaluation.get("seeds")
     runner_kwargs: Dict[str, Any] = {}
     if output_dir:
@@ -323,7 +327,7 @@ def run_scenario_from_file(path: str) -> Dict[str, Any]:
             "success": True,
         }
 
-    from run_scenarios import run_phase62_product_profile_evaluation, run_phase63_mission_aware_product_evaluation
+    from src.cybermatch.evaluation.runner import run_phase62_product_profile_evaluation, run_phase63_mission_aware_product_evaluation
 
     if runner == "phase62_product_profile":
         rows = run_phase62_product_profile_evaluation(**runner_kwargs)

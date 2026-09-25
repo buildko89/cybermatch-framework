@@ -10,7 +10,7 @@ from typing import Mapping, Sequence
 
 import numpy as np
 
-from scenario_loader import load_scenario
+from src.cybermatch.loaders.scenario_loader import load_scenario
 from src.cybermatch.config.simulation_config import SimulationConfig
 from src.cybermatch.simulation.simulator import CyberDefenseSimulator
 from src.cybermatch.threat_hunting import (

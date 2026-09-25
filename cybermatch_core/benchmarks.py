@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from benchmark_loader import (
+from src.cybermatch.loaders.benchmark_loader import (
     BenchmarkValidationError,
     benchmark_counts,
     evaluation_matrix_size,

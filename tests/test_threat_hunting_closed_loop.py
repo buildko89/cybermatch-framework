@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 import src.cybermatch.threat_hunting.closed_loop_evaluation as evaluation_module
-from scenario_loader import load_scenario
+from src.cybermatch.loaders.scenario_loader import load_scenario
 from src.cybermatch.attacker.attacker_model import AttackerModel
 from src.cybermatch.config.simulation_config import SimulationConfig
 from src.cybermatch.simulation.simulator import CyberDefenseSimulator

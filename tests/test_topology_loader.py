@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from topology_loader import TopologyValidationError, list_available_topologies, load_topology, validate_topology
+from src.cybermatch.loaders.topology_loader import TopologyValidationError, list_available_topologies, load_topology, validate_topology
 
 
 pytestmark = [pytest.mark.phase84, pytest.mark.topology]
@@ -52,10 +52,10 @@ def test_topology_list():
 
 
 def test_phase84_topology_evaluation_smoke(tmp_path, monkeypatch):
-    from run_scenarios import run_phase84_topology_evaluation
+    from src.cybermatch.evaluation.runner import run_phase84_topology_evaluation
 
     monkeypatch.setattr(
-        "run_scenarios._phase82_load_phase63_rows",
+        "src.cybermatch.evaluation.runner._phase82_load_phase63_rows",
         lambda: [
             {
                 "profile_id": "sample_ids",

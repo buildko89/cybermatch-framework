@@ -1,10 +1,13 @@
-# CyberMatch Framework 外部評価実行手順書
+# 03. 外部評価実行手順書
+
+> 同梱データで手早く全体を試すだけなら、先に [01 クイックスタート](01_quickstart.md) の `python scripts/evaluate.py quickstart` を実行してください。
+> 本書は、外部評価者が**証跡(Evidence)を残しながら**評価を行うための詳細手順です。用語は [08 用語集](08_glossary.md) を参照してください。
 
 **文書版:** 1.0
 
 **作成日:** 2026-09-15
 
-**対象:** CyberMatch Framework v1.0.1およびOR-0〜OR-4／LOCAL-1までの実装
+**対象:** CyberMatch Framework v2.0.0(v1.0.1時点で作成。手順・コマンドは2.0でも同一)およびOR-0〜OR-4／LOCAL-1までの実装
 
 **想定読者:** 外部評価者、共同研究者、導入検討者、セキュリティ検証担当者
 
@@ -402,7 +405,7 @@ output/pilot/<run-id>/
 
 ### 7.1 この経路を使う前の承認
 
-独自データを扱う前に、`pilots/phase3/PILOT_INTAKE_TEMPLATE.md`をcopyして次を記録する。
+独自データを扱う前に、[`pilots/phase3/PILOT_INTAKE_TEMPLATE.md`](../pilots/phase3/PILOT_INTAKE_TEMPLATE.md)をcopyして次を記録する。
 
 - dataset／SUT識別子
 - データ利用承認reference
@@ -704,7 +707,7 @@ output/pilot/shadow/<shadow-id>/
 | `shadow_blind_review_key.json` | labelとcandidateの対応。採点完了まで隔離 |
 | `provider_send_preview.json` | 実送信bodyと同じnon-secret payload |
 
-人間reviewの実施方法は`OR4_BLIND_HUMAN_REVIEW_PROCEDURE_20260915.md`を参照する。
+人間reviewの実施方法は[OR-4 Blind Human Review手順書](procedures/or4_blind_human_review_20260915.md)を参照する。
 
 ---
 
@@ -935,6 +938,9 @@ F1=1.0は、そのGround Truth、mapping、recipe、dataset、seedの範囲内�
 
 | 目的 | Command |
 |---|---|
+| 評価メニュー表示 | `python scripts/evaluate.py --list` |
+| 環境確認＋同梱replay＋製品比較 | `python scripts/evaluate.py quickstart` |
+| 全評価レーン | `python scripts/evaluate.py all` |
 | 環境確認 | `python scripts/run_tests.py --smoke` |
 | Phase 3確認 | `python scripts/run_tests.py --phase phase3` |
 | 同梱replay | `python scripts/run_external_replay.py ...` |
@@ -952,13 +958,16 @@ F1=1.0は、そのGround Truth、mapping、recipe、dataset、seedの範囲内�
 
 | 文書 | 用途 |
 |---|---|
-| `README_JP.md` | 機能概要と代表command |
-| `ARCHITECTURE.md` | architectureと依存方向 |
-| `DEPENDENCY_POLICY.md` | lock／依存運用 |
-| `PUBLIC_API.md` | public API境界 |
-| `AGENTIC_SECURITY.md` | Agentic Security contract |
-| `pilots/phase3/PILOT_INTAKE_TEMPLATE.md` | 外部pilot受付・承認記録 |
-| `OR4_BLIND_HUMAN_REVIEW_PROCEDURE_20260915.md` | OR-4 blind human review |
+| [`README_JP.md`](../README_JP.md) | 機能概要 |
+| [01 クイックスタート](01_quickstart.md) | 最短の環境構築と評価実行 |
+| [02 評価メニュー](02_evaluation_menu.md) | 評価レーン一覧と結果の読み方 |
+| [04 Agentic Security](04_agentic_security.md) | Agentic Security contract |
+| [05 アーキテクチャ](05_architecture.md) | architectureと依存方向 |
+| [06 公開API方針](06_public_api.md) | public API境界 |
+| [07 依存関係方針](07_dependency_policy.md) | lock／依存運用 |
+| [08 用語集](08_glossary.md) | 用語の定義 |
+| [`pilots/phase3/PILOT_INTAKE_TEMPLATE.md`](../pilots/phase3/PILOT_INTAKE_TEMPLATE.md) | 外部pilot受付・承認記録 |
+| [OR-4 Blind Human Review](procedures/or4_blind_human_review_20260915.md) | OR-4 blind human review |
 | `src/cybermatch/schemas/telemetry-mapping.schema.json` | mapping schema |
 | `src/cybermatch/schemas/pilot-run-spec.schema.json` | Pilot RunSpec schema |
 | `src/cybermatch/schemas/pilot-result-view.schema.json` | ResultView schema |

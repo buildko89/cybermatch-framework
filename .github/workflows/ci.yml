@@ -37,7 +37,7 @@ jobs:
 
       - name: Verify installed imports outside the checkout
         run: >-
-          python -c "import os,tempfile; os.chdir(tempfile.gettempdir()); import cybermatch, cybermatch_core, src.cybermatch.agentic; print('installed imports: ok')"
+          python -c "import os,tempfile; os.chdir(tempfile.gettempdir()); import cybermatch_core, src.cybermatch.agentic, src.cybermatch.loaders.scenario_loader, src.cybermatch.decision_model.decision_graph; print('installed imports: ok')"
 
       - name: Verify installed CLI outside the checkout
         run: python -c "import os,tempfile,subprocess; os.chdir(tempfile.gettempdir()); raise SystemExit(subprocess.run(['cybermatch-scenario', '--help']).returncode)"
@@ -98,4 +98,4 @@ jobs:
 
       - name: Verify optional packages stay optional
         run: >-
-          python -c "import importlib.util,os,tempfile; os.chdir(tempfile.gettempdir()); import cybermatch, cybermatch_core; assert importlib.util.find_spec('sklearn') is None; assert importlib.util.find_spec('streamlit') is None; print('core-only boundary: ok')"
+          python -c "import importlib.util,os,tempfile; os.chdir(tempfile.gettempdir()); import cybermatch_core, cybermatch_core.products, src.cybermatch.simulation.simulator; assert importlib.util.find_spec('sklearn') is None; assert importlib.util.find_spec('streamlit') is None; print('core-only boundary: ok')"

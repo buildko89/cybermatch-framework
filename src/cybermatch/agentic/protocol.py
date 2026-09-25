@@ -8,8 +8,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Mapping
 
-from benchmark_loader import load_benchmark
-from scenario_loader import load_scenario
+from src.cybermatch.loaders.benchmark_loader import load_benchmark
+from src.cybermatch.loaders.scenario_loader import load_scenario
 from src.cybermatch.contracts import write_evidence_bundle
 from src.cybermatch.contracts.canonical import canonical_json
 

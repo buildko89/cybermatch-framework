@@ -10,6 +10,10 @@
 
 **対象ResultView SHA-256:** `e6877b3b5dba6b3cd9a47d967aff94e9465cc99e60e331ec3c4a55dc34465bb7`
 
+> **この文書の位置づけ:** 2026-09-15 に生成した特定の shadow run(上記)を対象とする実施記録兼手順書です。
+> 別の run をレビューする場合は、5章の対象パスと SHA-256、7章の `bundle_hash` を新しい run の値に置き換えて使ってください。
+> shadow run の生成方法は [03 外部評価実行手順書 8章](../03_external_evaluation_guide.md#8-経路d-説明候補をor-4-shadow評価する)、用語は [08 用語集](../08_glossary.md) を参照してください。
+
 ---
 
 ## 1. 目的
@@ -162,7 +166,7 @@ hashが一致しない場合、reviewを開始しない。意図した再生成�
 ### Step 1: Repository rootへ移動
 
 ```powershell
-cd D:\source\repos\profilecore\PoC_Projects\cybermatch\work_git\cybermatch-framework
+Set-Location <CyberMatchのリポジトリルート>
 ```
 
 ### Step 2: Source hashを確認

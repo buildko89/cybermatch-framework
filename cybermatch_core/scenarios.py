@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from scenario_loader import (
+from src.cybermatch.loaders.scenario_loader import (
     ALLOWED_HUNTING_NOISE_PROFILES,
     ALLOWED_MISSIONS,
     ALLOWED_RUNNERS,
