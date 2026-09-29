@@ -19,7 +19,7 @@ CTI・ASM側はT0〜T4bを実装し、全既存pytest suite **847件**の完走�
 | S1 | native範囲完了 | SOP 1fileのUTF-8・front matter・snapshot・manifest照合 | resource、外部package、sandboxはS4b |
 | S2 | native範囲完了 | 承認済みbinding、recipe hash照合、決定論的selector、summary recipe・限定検査 | 自然言語検索はS4c |
 | S3 | native合成baseline実装 | 模擬tool境界、独立label評価、再現hash、日本語report、Evidence Bundle、CLI | Linux CIの実行記録と大規模holdoutは継続検証 |
-| S4b | 実装・ローカル審査完了、Linux実証待ち | 代表8件の固定source/license/hash審査、採用・除外理由、No-Egress worker、Ubuntu CI job | GitHub-hosted Ubuntu runの成功記録 |
+| S4b | 完了 | 代表8件の固定source/license/hash審査、採用・除外理由、No-Egress worker、GitHub-hosted Ubuntu実拒否probe | 外部bindingは意味的同値性の別レビューまで0件を維持 |
 
 「設計が承認された」「型が通った」「模擬台帳が適用状態になった」「実環境で防御できた」は、それぞれ異なる証拠です。今回確認したのはC0の契約・状態遷移と既存機能との回帰です。
 
@@ -371,7 +371,7 @@ T2のresult hash: `db24daafcc33682290cd898aa8a96829a8d2abf61810cf1f665b7e7236729
 
 ## 8. 次の実装単位
 
-1. 追加済みのGitHub Actions jobを実行し、Ubuntu上のnative評価とNo-Egress実拒否probeの成功artifactを保存する。
+1. GitHub Actions run `36561904646`の成功artifactとS4b実行記録を維持する。
 2. S-B02の5 binding固定等価試験を維持し、実ログfield mappingを追加した場合は別fixtureで再検証する。
 3. 外部packageは8件ともscript実行禁止を維持し、意味的同値性を別レビューできたものだけ新revisionのmanifestでbinding候補にする。
 4. CTI・ASM側で実データを扱う場合は、取得・token化・鍵管理・retention承認を信頼境界内の別工程として実施する。

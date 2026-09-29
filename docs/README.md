@@ -49,6 +49,7 @@ flowchart LR
 | 15 | [native Agent Skills評価](15_native_agent_skills_evaluation_guide.md) | 承認済みbinding、決定論的選択、要約検査、模擬tool境界、評価CLI | 開発者・評価者・レビュー担当 |
 | 16 | [外部Agent Skills S4b審査](16_external_agent_skills_s4b_guide.md) | 固定source、license審査、hash allowlist、No-Egress worker、Linux CI | 開発者・セキュリティレビュー担当 |
 | - | [対象限定対処の設計判断記録](procedures/scoped_response_contract_decisions.md) | C0の契約・証拠・時刻・既存形式との互換性に関する判断 | 開発者・レビュー担当 |
+| - | [Agent Skills S4b Linux実行記録](procedures/agent_skills_s4b_execution_record_20260929.md) | 固定revision、No-Egress・read-only probe、artifact hash、採用判定 | セキュリティレビュー担当 |
 | - | [procedures/OR-4 Blind Human Review](procedures/or4_blind_human_review_20260915.md) | 2026-09-15実施分のLLM説明候補ブラインド評価手順(記録) | レビュー担当 |
 
 ## リポジトリ内のその他のガイド

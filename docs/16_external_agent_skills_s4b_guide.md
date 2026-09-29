@@ -58,7 +58,7 @@ python scripts/review_external_agent_skills.py `
 4. networkなし・read-only・非特権containerで拒否probeを行う。
 5. `linux_execution_record.json`、`sandbox_probe.json`、審査reportとEvidence Bundleをartifactへ保存する。
 
-workflowが成功して初めてLinux CIと実OS境界の受入を完了扱いにします。workflow定義の追加だけを実行成功とは扱いません。
+2026-09-29にGitHub Actions run `36561904646`、job `109384520381`で成功しました。詳細とhashは[実行記録](procedures/agent_skills_s4b_execution_record_20260929.md)を参照してください。
 
 ## 6. 制約
 
