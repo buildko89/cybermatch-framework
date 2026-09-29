@@ -28,7 +28,7 @@ class NativeSkillMetadata:
 
 @dataclass(frozen=True)
 class NativeSkillSnapshot:
-    """読み取った同一byte列から作る、不変のpackage snapshot。"""
+    """改行をLFへ正規化したUTF-8 byte列から作る、不変のpackage snapshot。"""
 
     skill_id: str
     package_path: str
@@ -99,7 +99,10 @@ class NativeSkillLoader:
         except UnicodeDecodeError as exc:
             raise NativeSkillLoadError("SKILL.mdはUTF-8でなければなりません") from exc
         metadata = self._parse_front_matter(text, skill_id)
-        sha256 = hashlib.sha256(raw).hexdigest()
+        # Gitのautocrlf設定に左右されないreview snapshotにする。SOPはUTF-8
+        # textだけを許可しているため、CRLF/CRをLFへ統一してからhashとsizeを記録する。
+        canonical_raw = text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+        sha256 = hashlib.sha256(canonical_raw).hexdigest()
         package_path = f"{self._root.name}/{skill_id}/"
         semantic = {
             "schema_version": NATIVE_SKILL_SNAPSHOT_VERSION,
@@ -107,14 +110,14 @@ class NativeSkillLoader:
             "package_path": package_path,
             "metadata": {"name": metadata.name, "description": metadata.description},
             "skill_sha256": sha256,
-            "skill_size_bytes": len(raw),
+            "skill_size_bytes": len(canonical_raw),
         }
         return NativeSkillSnapshot(
             skill_id=skill_id,
             package_path=package_path,
             metadata=metadata,
             skill_sha256=sha256,
-            skill_size_bytes=len(raw),
+            skill_size_bytes=len(canonical_raw),
             snapshot_hash=canonical_sha256(semantic),
         )
 

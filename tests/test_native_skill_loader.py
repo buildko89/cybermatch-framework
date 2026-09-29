@@ -33,6 +33,21 @@ def test_native_sop_snapshot_is_deterministic_and_does_not_execute_content():
     assert first.to_dict()["metadata"]["description"]
 
 
+def test_native_sop_snapshot_is_independent_of_checkout_line_endings(tmp_path):
+    lf_root = tmp_path / "lf" / "packages"
+    crlf_root = tmp_path / "crlf" / "packages"
+    write_skill(lf_root, "cm-example")
+    crlf_package = write_skill(crlf_root, "cm-example")
+    lf_bytes = (crlf_package / "SKILL.md").read_bytes()
+    normalized = lf_bytes.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    (crlf_package / "SKILL.md").write_bytes(normalized.replace(b"\n", b"\r\n"))
+
+    lf_snapshot = NativeSkillLoader(lf_root).load("cm-example")
+    crlf_snapshot = NativeSkillLoader(crlf_root).load("cm-example")
+
+    assert crlf_snapshot == lf_snapshot
+
+
 @pytest.mark.parametrize("skill_id", ["../cm-credential-path", "CM-UPPER", "cm-a/other", "cm-"])
 def test_loader_rejects_unsafe_or_invalid_package_identifier(skill_id):
     with pytest.raises(NativeSkillLoadError):
