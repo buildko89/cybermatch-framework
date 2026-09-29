@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T4b hypothesis Pilot proposal",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "bundle_hash", "abstain", "abstain_reason", "selected_hypothesis_ids", "selected_recipes", "observation_refs", "scope", "rationale"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "bundle_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "abstain": {"type": "boolean"},
+    "abstain_reason": {"type": ["string", "null"]},
+    "selected_hypothesis_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "selected_recipes": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["recipe_id", "recipe_hash"], "properties": {"recipe_id": {"type": "string", "minLength": 1}, "recipe_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}},
+    "observation_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "scope": {"type": ["object", "null"]},
+    "rationale": {"type": "string", "minLength": 1}
+  }
+}

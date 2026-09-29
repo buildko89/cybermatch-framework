@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch S0 Skills評価仕様",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "spec_id", "mode", "manifest_path", "task_fixture_path", "observation_input_path", "evaluator_truth_path", "selector_policy", "metrics", "prohibitions"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "spec_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{2,127}$"},
+    "mode": {"const": "synthetic_only"},
+    "manifest_path": {"type": "string", "pattern": "^configs/agent_skills/manifests/.+\\.json$"},
+    "task_fixture_path": {"type": "string", "pattern": "^configs/agent_skills/fixtures/.+\\.json$"},
+    "observation_input_path": {"type": "string", "pattern": "^configs/threat_hunting/observations/.+\\.json$"},
+    "evaluator_truth_path": {"type": "string", "pattern": "^configs/threat_hunting/evaluator_only/.+\\.json$"},
+    "selector_policy": {"type": "object", "additionalProperties": false, "required": ["version", "max_selected", "tie_break"], "properties": {"version": {"const": "selector-v1"}, "max_selected": {"type": "integer", "minimum": 1, "maximum": 3}, "tie_break": {"const": "priority_desc_then_skill_id_asc"}}},
+    "metrics": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["selection_precision", "selection_recall", "finding_precision", "finding_recall", "abstain_count", "false_response_count"]}},
+    "prohibitions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["no_llm", "no_external_network", "no_external_package_execution", "no_truth_to_detector"]}}
+  }
+}

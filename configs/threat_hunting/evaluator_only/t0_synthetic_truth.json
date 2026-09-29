@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "artifact_class": "evaluator_only_ground_truth",
+  "scenario_id": "t0-synthetic-cti-v1",
+  "labels": [
+    {"label_id": "truth-credential-reuse-001", "label_type": "credential_reuse", "start_step": 2, "end_step": 2, "severity": "high"}
+  ],
+  "detector_access": "forbidden"
+}

@@ -59,6 +59,10 @@ HUNT_EVENT_FIELDS = frozenset(
         "attributes.source_trust",
         "attributes.integrity_decision",
         "attributes.advisory_status",
+        # T2: 観測subjectとしての仮名化identity。攻撃者actorのtruthではない。
+        "attributes.identity_ref",
+        # S2: 合成要約に含まれる明示的な隠蔽指示。実ログ本文ではない。
+        "attributes.summary_text",
     }
 )
 FILTER_PREDICATES = frozenset(

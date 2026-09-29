@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "run_id": "t4a-tokenized-replay-v1",
+  "scenario_id": "t4a-tokenized-detection-compatibility",
+  "tenant_id": "tenant-replay-a",
+  "seed": 0,
+  "horizon_steps": 16,
+  "base_context_spec": "configs/active_defense/runs/t2_synthetic_context_hunting_v1.json",
+  "source_manifest": "configs/active_defense/replay/t4a_tokenized_source_manifest_v1.json"
+}

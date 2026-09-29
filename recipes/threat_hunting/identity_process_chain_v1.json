@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "id": "identity_process_chain_v1",
+  "version": "1.0",
+  "title": "Identity authentication followed by process start and lateral movement",
+  "hypothesis": "A leaked identity that authenticates successfully, starts an observed process, and then moves laterally within a short span warrants investigation.",
+  "source": "observed",
+  "required_fields": [
+    "campaign_id",
+    "event_id",
+    "event_type",
+    "step",
+    "attributes.identity_ref",
+    "attributes.auth_result"
+  ],
+  "group_by": [
+    "campaign_id",
+    "attributes.identity_ref"
+  ],
+  "operations": [
+    {
+      "operator": "filter",
+      "field": "attributes.auth_result",
+      "predicate": "ne",
+      "value": "failure"
+    },
+    {
+      "operator": "sequence",
+      "items": [
+        {
+          "event_type": "credential_use"
+        },
+        {
+          "event_type": "process_start",
+          "within_steps": 3
+        },
+        {
+          "event_type": "lateral_move",
+          "within_steps": 5
+        }
+      ],
+      "max_span_steps": 10,
+      "overlap": false
+    }
+  ],
+  "finding": {
+    "severity": "high",
+    "title": "Identity session progressed from authentication to lateral movement",
+    "reason": "An observed successful authentication, process start, and lateral movement share one identity reference.",
+    "score": 0.85
+  },
+  "metadata": {
+    "tags": [
+      "identity",
+      "process",
+      "lateral-movement",
+      "sequence",
+      "t2-context-hunting"
+    ],
+    "limitations": "Uses only observed event_type and auth_result. It does not use attacker success labels or process maliciousness labels."
+  }
+}

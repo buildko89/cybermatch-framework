@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T3 ログ健全性profile一覧",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profiles"],
+  "$defs": {
+    "rule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["drop_rate_bp", "delay_steps", "retained_fields", "retention_steps"],
+      "properties": {
+        "drop_rate_bp": {"type": "integer", "minimum": 0, "maximum": 10000},
+        "delay_steps": {"type": "integer", "minimum": 0},
+        "retained_fields": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "retention_steps": {"type": "integer", "minimum": 1}
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "profiles": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["schema_version", "profile_id", "family_rules", "policy_hash"],
+        "properties": {
+          "schema_version": {"const": "1.0"},
+          "profile_id": {"type": "string", "minLength": 1},
+          "family_rules": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/rule"}},
+          "policy_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T3 閉ループ評価run仕様",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "scenario_id", "tenant_id", "seeds", "horizon_steps", "t2_context_spec", "potential_graph", "logging_hygiene_profiles", "response_duration_steps", "response_policy_hash", "cost_profile", "modes"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "seeds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 0}},
+    "horizon_steps": {"type": "integer", "minimum": 1, "maximum": 10000},
+    "t2_context_spec": {"type": "string", "pattern": "^configs/active_defense/runs/t2_[A-Za-z0-9_./-]*\\.json$"},
+    "potential_graph": {"type": "string", "pattern": "^configs/active_defense/evaluator_only/[A-Za-z0-9_./-]*\\.json$"},
+    "logging_hygiene_profiles": {"type": "string", "pattern": "^configs/active_defense/hygiene/[A-Za-z0-9_./-]*\\.json$"},
+    "response_duration_steps": {"type": "integer", "minimum": 1},
+    "response_policy_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "cost_profile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["job_cost_units", "triage_cost_units", "false_response_cost_units", "cti_asm_cost_units"],
+      "properties": {
+        "job_cost_units": {"type": "integer", "minimum": 0},
+        "triage_cost_units": {"type": "integer", "minimum": 0},
+        "false_response_cost_units": {"type": "integer", "minimum": 0},
+        "cti_asm_cost_units": {"type": "integer", "minimum": 0}
+      }
+    },
+    "modes": {"const": ["B0_internal_open", "B1_context_open", "B2_internal_closed", "B3_context_closed"]}
+  }
+}

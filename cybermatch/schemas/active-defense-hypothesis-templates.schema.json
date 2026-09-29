@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T2 仮説template catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "catalog_id",
+    "catalog_version",
+    "schema_version",
+    "templates"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "catalog_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "catalog_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "description",
+          "match_kinds",
+          "recipe_file",
+          "subject_kind",
+          "template_id",
+          "template_version",
+          "window_steps"
+        ],
+        "properties": {
+          "template_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+          },
+          "template_version": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+          },
+          "subject_kind": {
+            "enum": [
+              "identity",
+              "node"
+            ]
+          },
+          "match_kinds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "identity_service",
+                "endpoint_exact"
+              ]
+            }
+          },
+          "recipe_file": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+\\.json$"
+          },
+          "window_steps": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

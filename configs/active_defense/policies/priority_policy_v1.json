@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "cti_asm_priority",
+  "policy_version": "1",
+  "weights_bp": {
+    "cti_confidence": 4000,
+    "confirmed_vulnerability": 2500,
+    "credential_leak_without_mfa": 2000,
+    "business_criticality": 1500
+  },
+  "rounding": "floor",
+  "unknown_component_value": 0,
+  "identity_normalization_version": "opaque-exact-v1",
+  "description": "統合計画§6.2のpriority policy v1。priority_bp = floor((4000*q + 2500*v + 2000*a + 1500*b) / 10000)。調査順を決める人工的な重みであり侵害確率ではない。unknown成分は0を代入しmissing_componentsへ記録する。"
+}

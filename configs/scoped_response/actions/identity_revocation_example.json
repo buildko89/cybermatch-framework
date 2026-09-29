@@ -1,0 +1,19 @@
+{
+  "action_id": "response_8729c4f3f2e93eb6a08937581e341c4de371a2249550cb5a489158261b10db39",
+  "run_id": "c0-fixture",
+  "tenant_id": "tenant-example",
+  "finding_ids": [
+    "finding-example"
+  ],
+  "action_type": "revoke_identity",
+  "scope_kind": "identity",
+  "subject_refs": [
+    "identity-example"
+  ],
+  "requested_step": 0,
+  "effective_step": 1,
+  "expires_step": 3,
+  "policy_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "reason_code": "observed_credential_reuse",
+  "schema_version": "1.0"
+}

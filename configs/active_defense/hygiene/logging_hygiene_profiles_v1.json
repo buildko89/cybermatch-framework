@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "schema_version": "1.0",
+      "profile_id": "complete",
+      "family_rules": {
+        "authentication": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "network": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "process": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100}
+      },
+      "policy_hash": "618c5d9eacd9605be87ee62bddba2aa227a925c8f53d08b1a531db0be439331b"
+    },
+    {
+      "schema_version": "1.0",
+      "profile_id": "command_line_removed",
+      "family_rules": {
+        "authentication": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "network": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "process": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result"], "retention_steps": 100}
+      },
+      "policy_hash": "14f219dcb0280913f896e9b6943f41666672cd6306cf7af5e4959813b67b6f4f"
+    },
+    {
+      "schema_version": "1.0",
+      "profile_id": "drop_20_percent",
+      "family_rules": {
+        "authentication": {"drop_rate_bp": 2000, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "network": {"drop_rate_bp": 2000, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "process": {"drop_rate_bp": 2000, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100}
+      },
+      "policy_hash": "3f8bcbbeefa57e23900cfc20dc8d0eb4f6a0e8c635f26aca883bda0eb16a381f"
+    },
+    {
+      "schema_version": "1.0",
+      "profile_id": "delay_3_steps",
+      "family_rules": {
+        "authentication": {"drop_rate_bp": 0, "delay_steps": 3, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "network": {"drop_rate_bp": 0, "delay_steps": 3, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100},
+        "process": {"drop_rate_bp": 0, "delay_steps": 3, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 100}
+      },
+      "policy_hash": "e7c844052ae5f487776ef17d5f57f5464cf04385105d0021b1c5bb403a3bc9ca"
+    },
+    {
+      "schema_version": "1.0",
+      "profile_id": "retention_5_steps",
+      "family_rules": {
+        "authentication": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 5},
+        "network": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 5},
+        "process": {"drop_rate_bp": 0, "delay_steps": 0, "retained_fields": ["auth_result", "parent_process", "process_name"], "retention_steps": 5}
+      },
+      "policy_hash": "8dfac934dea4581a8a305a8c1688ac273ad0eceb10b2256804afbed64c9566b0"
+    }
+  ]
+}

@@ -10,6 +10,8 @@ from typing import Mapping
 
 from jsonschema import Draft202012Validator
 
+from .response import ResponseValidationError, ScopedResponseAction, ResponseReceipt
+
 
 class AssetSchemaError(ValueError):
     """Raised when a registered CyberMatch asset violates its JSON Schema."""
@@ -73,6 +75,16 @@ class SchemaRegistry:
             first = errors[0]
             location = ".".join(str(part) for part in first.absolute_path) or "<root>"
             raise AssetSchemaError(f"{source}: {location}: {first.message}")
+        # 相対時刻と内容由来IDはJSON Schemaだけでは表現できない。
+        response_types = {
+            "scoped_response_action": ScopedResponseAction,
+            "scoped_response_receipt": ResponseReceipt,
+        }
+        if name in response_types:
+            try:
+                response_types[name].from_dict(payload)
+            except ResponseValidationError as exc:
+                raise AssetSchemaError(f"{source}: {exc}") from exc
 
     def validate_repository(self, repository_root: Path) -> AssetValidationSummary:
         root = repository_root.resolve()

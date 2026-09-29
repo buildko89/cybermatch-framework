@@ -1,0 +1,393 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T2 CTI・ASM・内部telemetry 合成観測fixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "asm_observations",
+    "asset_bindings",
+    "cti_observations",
+    "description",
+    "evidence_class",
+    "fixture_id",
+    "internal_telemetry",
+    "run_id",
+    "schema_version",
+    "tenant_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "fixture_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "tenant_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "evidence_class": {
+      "const": "synthetic-only"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cti_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/cti_observation"
+      }
+    },
+    "asm_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/asm_asset_observation"
+      }
+    },
+    "asset_bindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observed_asset_binding"
+      }
+    },
+    "internal_telemetry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_kind"
+        ],
+        "properties": {
+          "source_kind": {
+            "enum": [
+              "synthetic_internal_telemetry",
+              "replay_internal_telemetry"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "cti_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "available_step",
+        "confidence_bp",
+        "credential_kind",
+        "domain_ref",
+        "endpoint_ref",
+        "identity_ref",
+        "observation_id",
+        "observed_step",
+        "schema_version",
+        "source_ref",
+        "source_type",
+        "supersedes_id",
+        "tenant_id",
+        "valid_until_step"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "observation_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "source_ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "source_type": {
+          "enum": [
+            "synthetic_cti",
+            "replay_cti"
+          ]
+        },
+        "observed_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "available_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid_until_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "confidence_bp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "domain_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z0-9.-]+\\.[a-z0-9-]+$"
+        },
+        "identity_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "endpoint_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9+.-]{0,15}://[a-z0-9.-]+:[1-9][0-9]{0,4}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "credential_kind": {
+          "enum": [
+            "password",
+            "session_cookie",
+            "api_key",
+            null
+          ]
+        },
+        "supersedes_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        }
+      }
+    },
+    "vulnerability_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "vulnerability_ref"
+      ],
+      "properties": {
+        "vulnerability_ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "status": {
+          "enum": [
+            "confirmed_unpatched",
+            "inferred_from_product",
+            "patched"
+          ]
+        }
+      }
+    },
+    "asm_asset_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_ref",
+        "available_step",
+        "business_criticality_bp",
+        "confidence_bp",
+        "endpoint_refs",
+        "exposure_status",
+        "mfa_state",
+        "observation_id",
+        "observed_step",
+        "ownership_status",
+        "schema_version",
+        "source_ref",
+        "supersedes_id",
+        "tenant_id",
+        "valid_until_step",
+        "vulnerability_observations"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "observation_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "asset_ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "observed_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "available_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid_until_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "confidence_bp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "ownership_status": {
+          "enum": [
+            "confirmed",
+            "unconfirmed",
+            "unknown"
+          ]
+        },
+        "exposure_status": {
+          "enum": [
+            "exposed",
+            "not_exposed",
+            "unknown"
+          ]
+        },
+        "endpoint_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9+.-]{0,15}://[a-z0-9.-]+:[1-9][0-9]{0,4}$"
+          }
+        },
+        "mfa_state": {
+          "enum": [
+            "enabled",
+            "disabled",
+            "unknown"
+          ]
+        },
+        "vulnerability_observations": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/vulnerability_observation"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "business_criticality_bp": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "supersedes_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        }
+      }
+    },
+    "observed_asset_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_ref",
+        "available_step",
+        "binding_id",
+        "identity_refs",
+        "node_ref",
+        "observed_step",
+        "schema_version",
+        "source_ref",
+        "supersedes_id",
+        "tenant_id",
+        "valid_until_step"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "binding_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "asset_ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "node_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "identity_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+          }
+        },
+        "observed_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "available_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid_until_step": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        },
+        "supersedes_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+        }
+      }
+    }
+  }
+}

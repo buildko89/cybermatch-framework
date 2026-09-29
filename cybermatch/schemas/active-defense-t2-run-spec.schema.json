@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T2 文脈ハンティング run spec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "horizon_steps",
+    "hypothesis_templates",
+    "observation_fixture",
+    "priority_policy",
+    "recipe_root",
+    "run_id",
+    "scenario_id",
+    "scheduler_policy",
+    "schema_version",
+    "seed",
+    "tenant_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "tenant_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "horizon_steps": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "observation_fixture": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\.\\.)[A-Za-z0-9_./-]+$"
+    },
+    "priority_policy": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\.\\.)[A-Za-z0-9_./-]+$"
+    },
+    "scheduler_policy": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\.\\.)[A-Za-z0-9_./-]+$"
+    },
+    "hypothesis_templates": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\.\\.)[A-Za-z0-9_./-]+$"
+    },
+    "recipe_root": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\.\\.)[A-Za-z0-9_./-]+$"
+    }
+  }
+}

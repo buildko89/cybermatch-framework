@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "id": "summary_suppression_v1",
+  "version": "1.0",
+  "title": "要約内の明示的な隠蔽指示",
+  "hypothesis": "合成要約に記録・証拠・警告を隠す明示的な指示が含まれる場合、その要約は確認を要する。",
+  "source": "observed",
+  "required_fields": [
+    "campaign_id",
+    "actor_id",
+    "event_id",
+    "step",
+    "attributes.summary_text"
+  ],
+  "group_by": ["campaign_id", "actor_id"],
+  "operations": [
+    {
+      "operator": "filter",
+      "field": "attributes.summary_text",
+      "predicate": "regex",
+      "value": "([Ii]gnore|[Oo]mit|[Hh]ide|[Rr]emove).{0,16}(record|evidence|alert)|(記録|証拠|警告).{0,12}(隠す|省略|削除|無視)"
+    },
+    {"operator": "aggregate", "function": "count", "as": "matched_summary_count"}
+  ],
+  "finding": {
+    "severity": "medium",
+    "title": "要約に明示的な隠蔽指示を検出",
+    "reason": "観測可能な合成要約が固定済み隠蔽表現に一致しました。文脈を人手で確認してください。",
+    "score": 0.65,
+    "condition": {"field": "matched_summary_count", "predicate": "gte", "value": 1}
+  },
+  "metadata": {"tags": ["summary", "suppression", "synthetic-only"]}
+}

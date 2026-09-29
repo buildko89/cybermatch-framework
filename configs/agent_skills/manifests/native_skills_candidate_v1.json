@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "native-skills-candidate-v1",
+  "source_kind": "native",
+  "status": "review_pending",
+  "execution_mode": "recipe_only",
+  "packages": [
+    {"skill_id": "cm-credential-path", "package_path": "configs/agent_skills/packages/cm-credential-path/", "snapshot_status": "captured", "snapshot_hash": "e647b76f4f7fc36959bb2f6dd8bbcc73af214273c94713aa065b75ebb263cec8"},
+    {"skill_id": "cm-critical-approach", "package_path": "configs/agent_skills/packages/cm-critical-approach/", "snapshot_status": "captured", "snapshot_hash": "659786a05efb423e6d9d8e5248a618c0ba290d1b1554182640c73a5c727355b5"},
+    {"skill_id": "cm-agentic-credential", "package_path": "configs/agent_skills/packages/cm-agentic-credential/", "snapshot_status": "captured", "snapshot_hash": "701663995b0c103e9c8861a9ad62a16dc14b97cbeef7ae455af00acb279638d8"},
+    {"skill_id": "cm-agentic-boundary", "package_path": "configs/agent_skills/packages/cm-agentic-boundary/", "snapshot_status": "captured", "snapshot_hash": "4facb90b40bf0724e231d095a80b4193e775d82cb94faecbf266810bae790e2b"},
+    {"skill_id": "cm-summary-review", "package_path": "configs/agent_skills/packages/cm-summary-review/", "snapshot_status": "captured", "snapshot_hash": "37d6979d38ecfc5fd252cc68ec0dc0fbf4292fc7310b600ed3414c24fe6de8da"}
+  ],
+  "bindings": [
+    {"binding_id": "binding-credential-path", "skill_id": "cm-credential-path", "task_kind": "credential_path", "recipe_id": "credential_to_critical_path_v1", "required_fields": ["attributes.auth_result", "attributes.credential_present"], "priority": 100, "review_state": "review_pending"},
+    {"binding_id": "binding-critical-approach", "skill_id": "cm-critical-approach", "task_kind": "critical_approach", "recipe_id": "critical_path_approach_v1", "required_fields": ["attributes.telemetry_family"], "priority": 100, "review_state": "review_pending"},
+    {"binding_id": "binding-agentic-credential", "skill_id": "cm-agentic-credential", "task_kind": "agentic_credential", "recipe_id": "agentic_credential_chain_v1", "required_fields": ["attributes.credential_scope"], "priority": 100, "review_state": "review_pending"},
+    {"binding_id": "binding-agentic-boundary", "skill_id": "cm-agentic-boundary", "task_kind": "agentic_boundary", "recipe_id": "agentic_boundary_pressure_v1", "required_fields": ["attributes.boundary"], "priority": 100, "review_state": "review_pending"},
+    {"binding_id": "binding-summary-review", "skill_id": "cm-summary-review", "task_kind": "summary_review", "recipe_id": "summary_suppression_v1", "required_fields": ["attributes.summary_text"], "priority": 100, "review_state": "review_pending"}
+  ],
+  "review": {"review_record_id": "s0-native-v1-pending", "reviewer": null, "decision": "pending"}
+}

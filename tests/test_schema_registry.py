@@ -21,17 +21,33 @@ def test_registry_schemas_are_valid_and_all_registered_assets_pass():
 
     assert summary.schema_version == "1.0"
     assert summary.counts == {
+        "active_defense_hypothesis_templates": 1,
+        "active_defense_logging_hygiene_profiles": 1,
+        "active_defense_observation_fixture": 1,
+        "active_defense_potential_graph": 1,
+        "active_defense_priority_policy": 1,
+        "active_defense_scheduler_policy": 1,
+        "active_defense_t2_run_spec": 1,
+        "active_defense_t3_run_spec": 1,
+        "active_defense_t4a_run_spec": 1,
+        "active_defense_tokenized_replay_manifest": 1,
         "agentic_protocol": 1,
         "benchmark": 5,
+        "cti_observation_envelope": 1,
         "external_mapping": 1,
+        "external_skill_review_manifest": 1,
         "fuzz_campaign": 4,
         "product": 10,
-        "recipe": 4,
+        "recipe": 6,
         "scenario": 21,
+        "skill_candidate_manifest": 2,
+        "skills_evaluation_spec": 1,
+        "scoped_response_action": 1,
+        "scoped_response_receipt": 1,
         "telemetry_mapping": 4,
         "topology": 7,
     }
-    assert summary.total == 57
+    assert summary.total == 76
 
 
 def test_schema_rejects_unknown_scenario_envelope_field():
@@ -58,4 +74,4 @@ def test_asset_validation_cli_reports_machine_readable_summary(capsys):
     assert validate_assets_main(["--root", str(REPOSITORY_ROOT)]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output["schema_version"] == "1.0"
-    assert output["total"] == 57
+    assert output["total"] == 76

@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "native-skills-approved-v1",
+  "source_kind": "native",
+  "status": "approved",
+  "execution_mode": "recipe_only",
+  "packages": [
+    {"skill_id": "cm-credential-path", "package_path": "configs/agent_skills/packages/cm-credential-path/", "snapshot_status": "captured", "snapshot_hash": "e647b76f4f7fc36959bb2f6dd8bbcc73af214273c94713aa065b75ebb263cec8"},
+    {"skill_id": "cm-critical-approach", "package_path": "configs/agent_skills/packages/cm-critical-approach/", "snapshot_status": "captured", "snapshot_hash": "659786a05efb423e6d9d8e5248a618c0ba290d1b1554182640c73a5c727355b5"},
+    {"skill_id": "cm-agentic-credential", "package_path": "configs/agent_skills/packages/cm-agentic-credential/", "snapshot_status": "captured", "snapshot_hash": "701663995b0c103e9c8861a9ad62a16dc14b97cbeef7ae455af00acb279638d8"},
+    {"skill_id": "cm-agentic-boundary", "package_path": "configs/agent_skills/packages/cm-agentic-boundary/", "snapshot_status": "captured", "snapshot_hash": "4facb90b40bf0724e231d095a80b4193e775d82cb94faecbf266810bae790e2b"},
+    {"skill_id": "cm-summary-review", "package_path": "configs/agent_skills/packages/cm-summary-review/", "snapshot_status": "captured", "snapshot_hash": "37d6979d38ecfc5fd252cc68ec0dc0fbf4292fc7310b600ed3414c24fe6de8da"}
+  ],
+  "bindings": [
+    {"binding_id": "binding-credential-path", "skill_id": "cm-credential-path", "task_kind": "credential_path", "recipe_id": "credential_to_critical_path_v1", "recipe_hash": "330c014651d654f155b10c431b8bbab96204c1f99022c7cb300bf9fcca563d48", "required_fields": ["actor_id", "campaign_id", "event_id", "event_type", "step"], "priority": 100, "review_state": "approved"},
+    {"binding_id": "binding-critical-approach", "skill_id": "cm-critical-approach", "task_kind": "critical_approach", "recipe_id": "critical_path_approach_v1", "recipe_hash": "2aea90e5fefa8e59cc92a077ed1a525c2f6ed8ca54800ac7c5ab1e597503f1d0", "required_fields": ["actor_id", "campaign_id", "event_id", "event_type", "step"], "priority": 100, "review_state": "approved"},
+    {"binding_id": "binding-agentic-credential", "skill_id": "cm-agentic-credential", "task_kind": "agentic_credential", "recipe_id": "agentic_credential_chain_v1", "recipe_hash": "999d8b245baf8478c1019d1422b46d0387416b2347b36668a1ac0885b3edd704", "required_fields": ["actor_id", "campaign_id", "event_id", "event_type", "step"], "priority": 100, "review_state": "approved"},
+    {"binding_id": "binding-agentic-boundary", "skill_id": "cm-agentic-boundary", "task_kind": "agentic_boundary", "recipe_id": "agentic_boundary_pressure_v1", "recipe_hash": "5702f7c941efa883976f69060ff8c5448efc87529ef7d99e62c84be432c32b8d", "required_fields": ["actor_id", "campaign_id", "event_id", "event_type", "step"], "priority": 100, "review_state": "approved"},
+    {"binding_id": "binding-summary-review", "skill_id": "cm-summary-review", "task_kind": "summary_review", "recipe_id": "summary_suppression_v1", "recipe_hash": "d717b310dfd005f4ffed62c978fb66473abccfb72a1ff7b3261e66d30afac082", "required_fields": ["actor_id", "attributes.summary_text", "campaign_id", "event_id", "step"], "priority": 100, "review_state": "approved"}
+  ],
+  "review": {"review_record_id": "s2-native-v1-implementation-review", "reviewer": "repository-maintainer-authorized-implementation", "decision": "approved"}
+}

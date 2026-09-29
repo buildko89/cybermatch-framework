@@ -127,6 +127,9 @@ from .telemetry import (
     build_typed_telemetry,
     serialize_typed_telemetry,
 )
+from .t0_observation_adapter import T0ObservationAdapter, T0ObservationAdapterError
+from .as_of_runner import AsOfFindingTrace, AsOfThreatHuntingResult, AsOfThreatHuntingRunner, AsOfThreatHuntingRunnerError
+from .pseudonymization import HmacIdentityPseudonymizer, IdentityPseudonymizationError
 from .scenario_runner import run_hunting_history_evaluation, run_hunting_recipe_evaluation
 from .benchmark_runner import run_hunting_benchmark
 from .closed_loop_evaluation import (
@@ -143,6 +146,10 @@ from .closed_loop_evaluation import (
 __all__ = [
     "AGGREGATE_FUNCTIONS",
     "ARTIFACT_FORMAT_VERSION",
+    "AsOfThreatHuntingResult",
+    "AsOfFindingTrace",
+    "AsOfThreatHuntingRunner",
+    "AsOfThreatHuntingRunnerError",
     "CRITICAL_PATH_EVENT_TYPES",
     "CLOSED_LOOP_CSV_FILENAME",
     "CLOSED_LOOP_REPORT_FILENAME",
@@ -178,9 +185,11 @@ __all__ = [
     "HistoryGroundTruthAdapter",
     "HistoryObservationAdapter",
     "HistorySource",
+    "HmacIdentityPseudonymizer",
     "HUNT_EVENT_FIELDS",
     "HuntEvent",
     "INTERNAL_EVENT_ALIASES",
+    "IdentityPseudonymizationError",
     "JsonScalar",
     "LoadedThreatHuntingReport",
     "LoadedThreatHuntingArtifacts",
@@ -228,6 +237,8 @@ __all__ = [
     "ThreatHuntingReportPaths",
     "ThreatHuntingReportWriter",
     "ThreatHuntingRunConfig",
+    "T0ObservationAdapter",
+    "T0ObservationAdapterError",
     "TruthMatch",
     "TruthMatchingPolicy",
     "TELEMETRY_FAMILIES",

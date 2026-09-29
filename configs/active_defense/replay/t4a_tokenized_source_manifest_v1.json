@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "t4a-tokenized-source-v1",
+  "evidence_class": "replay-backed",
+  "tenant_id": "tenant-replay-a",
+  "input_file": "configs/active_defense/replay/t4a_tokenized_snapshot_v1.jsonl",
+  "input_format": "jsonl",
+  "normalization_version": "identity-normalization-v1",
+  "identity_key_version": "kv1",
+  "retention_days": 30,
+  "source_refs": ["approved-asm-snapshot-01", "approved-cti-snapshot-01", "approved-inventory-snapshot-01", "approved-log-export-01"],
+  "limitations": ["事前token化済みの固定fixture", "取得元の網羅性と即時性は評価対象外", "対処効果を主張しない"]
+}

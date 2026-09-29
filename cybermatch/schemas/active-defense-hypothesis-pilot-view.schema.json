@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T4b hypothesis Pilot view",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "run_id", "evidence_class", "bundle_hash", "candidates", "artifacts", "limitations"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "evidence_class": {"enum": ["synthetic-only", "replay-backed"]},
+    "bundle_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidates": {"type": "array", "items": {"type": "object"}},
+    "artifacts": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["path"], "properties": {"path": {"type": "string", "minLength": 1}}}},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  }
+}

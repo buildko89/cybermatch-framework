@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "対象限定対処要求 v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action_id",
+    "run_id",
+    "tenant_id",
+    "finding_ids",
+    "action_type",
+    "scope_kind",
+    "subject_refs",
+    "requested_step",
+    "effective_step",
+    "expires_step",
+    "policy_hash",
+    "reason_code"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "action_id": {
+      "type": "string",
+      "pattern": "^response_[0-9a-f]{64}$"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S([\\s\\S]*\\S)?$"
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S([\\s\\S]*\\S)?$"
+    },
+    "finding_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^\\S([\\s\\S]*\\S)?$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "action_type": {
+      "enum": [
+        "revoke_identity",
+        "quarantine_zone",
+        "pause_workload"
+      ]
+    },
+    "scope_kind": {
+      "enum": [
+        "identity",
+        "node",
+        "workload"
+      ]
+    },
+    "subject_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^\\S([\\s\\S]*\\S)?$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "requested_step": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "effective_step": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "expires_step": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "policy_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reason_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action_type": {
+            "const": "revoke_identity"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "scope_kind": {
+            "const": "identity"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action_type": {
+            "const": "quarantine_zone"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "scope_kind": {
+            "const": "node"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action_type": {
+            "const": "pause_workload"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "scope_kind": {
+            "const": "workload"
+          }
+        }
+      }
+    }
+  ]
+}

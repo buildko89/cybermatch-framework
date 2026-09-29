@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "対処適用結果 v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action_id",
+    "run_id",
+    "status",
+    "recorded_step",
+    "effect_start_step",
+    "effect_end_step",
+    "affected_subject_refs",
+    "reason_code"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "action_id": {
+      "type": "string",
+      "pattern": "^response_[0-9a-f]{64}$"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S([\\s\\S]*\\S)?$"
+    },
+    "status": {
+      "enum": [
+        "applied",
+        "rejected",
+        "expired"
+      ]
+    },
+    "recorded_step": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "effect_start_step": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "effect_end_step": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "affected_subject_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^\\S([\\s\\S]*\\S)?$"
+      },
+      "minItems": 0,
+      "uniqueItems": true
+    },
+    "reason_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "rejected"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "effect_start_step": {
+            "type": "null"
+          },
+          "effect_end_step": {
+            "type": "null"
+          },
+          "affected_subject_refs": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "effect_start_step": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "effect_end_step": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "affected_subject_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

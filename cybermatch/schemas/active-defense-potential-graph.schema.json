@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T3 evaluator専用潜在操作graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "graph_id", "tenant_id", "exposure_truth", "operations"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "graph_id": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "exposure_truth": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["asset_ref", "exposure_kind", "start_step", "end_step"],
+        "properties": {
+          "asset_ref": {"type": "string", "minLength": 1},
+          "exposure_kind": {"type": "string", "minLength": 1},
+          "start_step": {"type": "integer", "minimum": 0},
+          "end_step": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["operation_id", "step", "campaign_ref", "identity_ref", "node_ref", "operation_kind", "session_ref", "session_expires_step", "legitimate"],
+        "properties": {
+          "operation_id": {"type": "string", "minLength": 1},
+          "step": {"type": "integer", "minimum": 0},
+          "campaign_ref": {"type": "string", "minLength": 1},
+          "identity_ref": {"type": "string", "minLength": 1},
+          "node_ref": {"type": "string", "minLength": 1},
+          "operation_kind": {"enum": ["authenticate", "process_start", "lateral_move", "critical_reach"]},
+          "session_ref": {"type": "string", "minLength": 1},
+          "session_expires_step": {"type": "integer", "minimum": 1},
+          "legitimate": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

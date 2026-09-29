@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "observation_id": "cti-obs-001",
+  "run_id": "t0-synthetic-run",
+  "tenant_id": "tenant-example",
+  "event_id": "hunt-event-cti-001",
+  "observed_step": 2,
+  "available_step": 4,
+  "source_kind": "synthetic_cti",
+  "source_ref": "native-synthetic:cti-credential-reuse-v1",
+  "observation": {
+    "event_type": "credential_reuse_indicator",
+    "signal_class": "telemetry",
+    "identity_ref": "identity-example",
+    "node_ref": "node-example",
+    "workload_ref": null,
+    "telemetry_family": "authentication",
+    "exposure_class": null
+  }
+}

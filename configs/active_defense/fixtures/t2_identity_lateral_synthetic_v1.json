@@ -1,0 +1,452 @@
+{
+  "schema_version": "1.0",
+  "fixture_id": "t2_identity_lateral_synthetic_v1",
+  "run_id": "t2-synthetic-context-hunting-v1",
+  "tenant_id": "tenant-a",
+  "evidence_class": "synthetic-only",
+  "description": "T-B01〜T-B03の要素を含むT2受入用の合成fixture。漏洩password予兆（観測済みVPN binding）から仮説を作り、認証→process→遅延到着した横展開ログでFindingを生成する。domainのみ・共有endpoint・未確認ownership・未知identity・到着時失効・置換観測・field欠損・horizon外到着を含む。架空tenant、*.example、合成identity tokenのみを使う。",
+  "cti_observations": [
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-001",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 2,
+      "available_step": 4,
+      "valid_until_step": 30,
+      "confidence_bp": 7000,
+      "domain_ref": null,
+      "identity_ref": "synthetic-id-001",
+      "endpoint_ref": null,
+      "credential_kind": "password",
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-002",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 3,
+      "available_step": 5,
+      "valid_until_step": 30,
+      "confidence_bp": 9000,
+      "domain_ref": null,
+      "identity_ref": "synthetic-id-003",
+      "endpoint_ref": null,
+      "credential_kind": "password",
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-003",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 3,
+      "available_step": 4,
+      "valid_until_step": 30,
+      "confidence_bp": 5000,
+      "domain_ref": "tenant-a.example",
+      "identity_ref": null,
+      "endpoint_ref": null,
+      "credential_kind": null,
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-004",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 3,
+      "available_step": 4,
+      "valid_until_step": 30,
+      "confidence_bp": 6000,
+      "domain_ref": null,
+      "identity_ref": null,
+      "endpoint_ref": "https://www.tenant-a.example:443",
+      "credential_kind": "api_key",
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-005",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 3,
+      "available_step": 4,
+      "valid_until_step": 30,
+      "confidence_bp": 8000,
+      "domain_ref": null,
+      "identity_ref": "synthetic-id-999",
+      "endpoint_ref": null,
+      "credential_kind": "password",
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-006",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 3,
+      "available_step": 4,
+      "valid_until_step": 30,
+      "confidence_bp": 6000,
+      "domain_ref": null,
+      "identity_ref": null,
+      "endpoint_ref": "https://legacy.tenant-a.example:443",
+      "credential_kind": "password",
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-007",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 1,
+      "available_step": 6,
+      "valid_until_step": 5,
+      "confidence_bp": 8000,
+      "domain_ref": null,
+      "identity_ref": "synthetic-id-002",
+      "endpoint_ref": null,
+      "credential_kind": "session_cookie",
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "cti-008",
+      "tenant_id": "tenant-a",
+      "source_ref": "synthetic-cti-feed-01",
+      "source_type": "synthetic_cti",
+      "observed_step": 11,
+      "available_step": 12,
+      "valid_until_step": 30,
+      "confidence_bp": 5000,
+      "domain_ref": null,
+      "identity_ref": "synthetic-id-003",
+      "endpoint_ref": null,
+      "credential_kind": "password",
+      "supersedes_id": "cti-002"
+    }
+  ],
+  "asm_observations": [
+    {
+      "schema_version": "1.0",
+      "observation_id": "asm-cdn-001",
+      "tenant_id": "tenant-a",
+      "asset_ref": "asset-web-frontend-a",
+      "observed_step": 0,
+      "available_step": 1,
+      "valid_until_step": 40,
+      "source_ref": "synthetic-asm-scan-01",
+      "confidence_bp": 9000,
+      "ownership_status": "confirmed",
+      "exposure_status": "exposed",
+      "endpoint_refs": [
+        "https://www.tenant-a.example:443"
+      ],
+      "mfa_state": "unknown",
+      "vulnerability_observations": null,
+      "business_criticality_bp": 3000,
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "asm-cdn-002",
+      "tenant_id": "tenant-a",
+      "asset_ref": "asset-web-frontend-b",
+      "observed_step": 0,
+      "available_step": 1,
+      "valid_until_step": 40,
+      "source_ref": "synthetic-asm-scan-01",
+      "confidence_bp": 9000,
+      "ownership_status": "confirmed",
+      "exposure_status": "exposed",
+      "endpoint_refs": [
+        "https://www.tenant-a.example:443"
+      ],
+      "mfa_state": "unknown",
+      "vulnerability_observations": null,
+      "business_criticality_bp": 3000,
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "asm-legacy-001",
+      "tenant_id": "tenant-a",
+      "asset_ref": "asset-legacy-portal",
+      "observed_step": 0,
+      "available_step": 1,
+      "valid_until_step": 40,
+      "source_ref": "synthetic-asm-scan-01",
+      "confidence_bp": 9000,
+      "ownership_status": "unconfirmed",
+      "exposure_status": "exposed",
+      "endpoint_refs": [
+        "https://legacy.tenant-a.example:443"
+      ],
+      "mfa_state": "unknown",
+      "vulnerability_observations": [],
+      "business_criticality_bp": null,
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "asm-mail-001",
+      "tenant_id": "tenant-a",
+      "asset_ref": "asset-mail-gateway",
+      "observed_step": 0,
+      "available_step": 1,
+      "valid_until_step": 40,
+      "source_ref": "synthetic-asm-scan-01",
+      "confidence_bp": 9000,
+      "ownership_status": "confirmed",
+      "exposure_status": "exposed",
+      "endpoint_refs": [
+        "https://mail.tenant-a.example:443"
+      ],
+      "mfa_state": "enabled",
+      "vulnerability_observations": [
+        {
+          "vulnerability_ref": "SYN-VULN-0002",
+          "status": "inferred_from_product"
+        }
+      ],
+      "business_criticality_bp": null,
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "asm-vpn-001",
+      "tenant_id": "tenant-a",
+      "asset_ref": "asset-vpn-gateway",
+      "observed_step": 0,
+      "available_step": 1,
+      "valid_until_step": 40,
+      "source_ref": "synthetic-asm-scan-01",
+      "confidence_bp": 9000,
+      "ownership_status": "confirmed",
+      "exposure_status": "exposed",
+      "endpoint_refs": [
+        "https://vpn.tenant-a.example:443"
+      ],
+      "mfa_state": "disabled",
+      "vulnerability_observations": [
+        {
+          "vulnerability_ref": "SYN-VULN-0001",
+          "status": "confirmed_unpatched"
+        }
+      ],
+      "business_criticality_bp": 8000,
+      "supersedes_id": null
+    }
+  ],
+  "asset_bindings": [
+    {
+      "schema_version": "1.0",
+      "binding_id": "bind-mail-001",
+      "tenant_id": "tenant-a",
+      "asset_ref": "asset-mail-gateway",
+      "node_ref": "node-mail-gw",
+      "identity_refs": [
+        "synthetic-id-003"
+      ],
+      "observed_step": 0,
+      "available_step": 1,
+      "valid_until_step": 40,
+      "source_ref": "synthetic-inventory-01",
+      "supersedes_id": null
+    },
+    {
+      "schema_version": "1.0",
+      "binding_id": "bind-vpn-001",
+      "tenant_id": "tenant-a",
+      "asset_ref": "asset-vpn-gateway",
+      "node_ref": "node-vpn-gw",
+      "identity_refs": [
+        "synthetic-id-001",
+        "synthetic-id-002"
+      ],
+      "observed_step": 0,
+      "available_step": 1,
+      "valid_until_step": 40,
+      "source_ref": "synthetic-inventory-01",
+      "supersedes_id": null
+    }
+  ],
+  "internal_telemetry": [
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-001",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-001",
+      "observed_step": 6,
+      "available_step": 6,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "credential_use",
+        "signal_class": "telemetry",
+        "identity_ref": "synthetic-id-001",
+        "node_ref": "node-vpn-gw",
+        "workload_ref": null,
+        "telemetry_family": "authentication",
+        "exposure_class": null,
+        "auth_result": "success"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-002",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-002",
+      "observed_step": 7,
+      "available_step": 7,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "process_start",
+        "signal_class": "telemetry",
+        "identity_ref": "synthetic-id-001",
+        "node_ref": "node-app-01",
+        "workload_ref": null,
+        "telemetry_family": "process",
+        "exposure_class": null,
+        "auth_result": null,
+        "process_name": "remote_tool.exe",
+        "parent_process": "services.exe"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-003",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-003",
+      "observed_step": 9,
+      "available_step": 10,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "lateral_move",
+        "signal_class": "telemetry",
+        "identity_ref": "synthetic-id-001",
+        "node_ref": "node-app-01",
+        "workload_ref": null,
+        "telemetry_family": "network",
+        "exposure_class": null,
+        "auth_result": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-004",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-004",
+      "observed_step": 6,
+      "available_step": 6,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "credential_use",
+        "signal_class": "telemetry",
+        "identity_ref": "synthetic-id-003",
+        "node_ref": "node-mail-gw",
+        "workload_ref": null,
+        "telemetry_family": "authentication",
+        "exposure_class": null,
+        "auth_result": "success"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-005",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-005",
+      "observed_step": 8,
+      "available_step": 8,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "credential_use",
+        "signal_class": "telemetry",
+        "identity_ref": "synthetic-id-003",
+        "node_ref": "node-mail-gw",
+        "workload_ref": null,
+        "telemetry_family": "authentication",
+        "exposure_class": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-006",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-006",
+      "observed_step": 8,
+      "available_step": 8,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "critical_path_progress",
+        "signal_class": "derived_signal",
+        "identity_ref": null,
+        "node_ref": "node-vpn-gw",
+        "workload_ref": null,
+        "telemetry_family": "network",
+        "exposure_class": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-007",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-007",
+      "observed_step": 9,
+      "available_step": 9,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "critical_path_near_target",
+        "signal_class": "derived_signal",
+        "identity_ref": null,
+        "node_ref": "node-vpn-gw",
+        "workload_ref": null,
+        "telemetry_family": "network",
+        "exposure_class": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "observation_id": "tel-008",
+      "run_id": "t2-synthetic-context-hunting-v1",
+      "tenant_id": "tenant-a",
+      "event_id": "hunt-event-tel-008",
+      "observed_step": 14,
+      "available_step": 20,
+      "source_kind": "synthetic_internal_telemetry",
+      "source_ref": "synthetic-telemetry:tenant-a-stream-01",
+      "observation": {
+        "event_type": "lateral_move",
+        "signal_class": "telemetry",
+        "identity_ref": "synthetic-id-001",
+        "node_ref": "node-app-02",
+        "workload_ref": null,
+        "telemetry_family": "network",
+        "exposure_class": null,
+        "auth_result": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T4a token化replay run仕様",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "run_id", "scenario_id", "tenant_id", "seed", "horizon_steps", "base_context_spec", "source_manifest"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "tenant_id": {"type": "string", "minLength": 1},
+    "seed": {"type": "integer", "minimum": 0},
+    "horizon_steps": {"type": "integer", "minimum": 1, "maximum": 10000},
+    "base_context_spec": {"type": "string", "pattern": "^configs/active_defense/runs/t2_[A-Za-z0-9_./-]*\\.json$"},
+    "source_manifest": {"type": "string", "pattern": "^configs/active_defense/replay/[A-Za-z0-9_./-]*manifest[A-Za-z0-9_./-]*\\.json$"}
+  }
+}

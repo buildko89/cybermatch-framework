@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "source_name": "mukul975/Anthropic-Cybersecurity-Skills",
+  "source_url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills",
+  "source_revision": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+  "retrieved_at": "2026-09-29",
+  "official_anthropic_product": false,
+  "license_spdx": "Apache-2.0",
+  "license_sha256": "a941b58ef0ba43a31e24ae7ece1b743a585efed9e37792b9ca063e0798be1cbe",
+  "execution_mode": "recipe_only",
+  "candidates": [
+    {
+      "skill_id": "analyzing-dns-logs-for-exfiltration",
+      "snapshot_hash": "920c121ea0a6b5ad0f5c63687a22e196bd72f2c8d36cfbdff557c61814df9441",
+      "decision": "reviewed_not_bound",
+      "reason_codes": ["apache_2_0_verified", "no_semantically_equivalent_recipe", "external_scripts_forbidden"]
+    },
+    {
+      "skill_id": "analyzing-indicators-of-compromise",
+      "snapshot_hash": "d4017a626b7c553217c72612a4cd2a4f98a38a84d62fcdfaffcbcf4d92d98994",
+      "decision": "reviewed_not_bound",
+      "reason_codes": ["apache_2_0_verified", "external_api_references", "no_semantically_equivalent_recipe"]
+    },
+    {
+      "skill_id": "analyzing-linux-audit-logs-for-intrusion",
+      "snapshot_hash": "9fc48cf8c2b5a783fc2b62aba89cab9876363aaf5c4c2537093bd3ea5ccf0e93",
+      "decision": "reviewed_not_bound",
+      "reason_codes": ["apache_2_0_verified", "host_command_references", "no_semantically_equivalent_recipe"]
+    },
+    {
+      "skill_id": "detecting-anomalous-authentication-patterns",
+      "snapshot_hash": "40cfbddeebcc55de3884e807f3cdc62ee71b814ef78bf24186c52bff839282df",
+      "decision": "reviewed_not_bound",
+      "reason_codes": ["apache_2_0_verified", "model_dependency_not_pinned", "no_semantically_equivalent_recipe"]
+    },
+    {
+      "skill_id": "detecting-command-and-control-over-dns",
+      "snapshot_hash": "66b6844ef5b6c9903e075fb2fb40f859b8548faff4328f625a415e5528be1044",
+      "decision": "reviewed_not_bound",
+      "reason_codes": ["apache_2_0_verified", "dual_use_tool_references", "no_semantically_equivalent_recipe"]
+    },
+    {
+      "skill_id": "detecting-aws-credential-exposure-with-trufflehog",
+      "snapshot_hash": "4f60a7d96cd903dfdaf9ca45c1a9eb86468280255c08c05ce27b92e8ee0f198d",
+      "decision": "excluded",
+      "reason_codes": ["external_credential_verification", "external_install_commands", "destructive_rotation_guidance"]
+    },
+    {
+      "skill_id": "detecting-ai-model-prompt-injection-attacks",
+      "snapshot_hash": "f5e19027ce7abb887e94127cadedbdee29129c8b27e06ffe4ee9de0de003f7ce",
+      "decision": "excluded",
+      "reason_codes": ["unpinned_model_dependencies", "no_semantically_equivalent_recipe", "external_scripts_forbidden"]
+    },
+    {
+      "skill_id": "analyzing-ransomware-leak-site-intelligence",
+      "snapshot_hash": "96a66d2ad831cd8d286c4269e6c29627bc3a4965c26609beffe495219e48b5a9",
+      "decision": "excluded",
+      "reason_codes": ["tor_and_hidden_service_guidance", "external_network_required", "cti_policy_requires_safe_intermediary"]
+    }
+  ]
+}

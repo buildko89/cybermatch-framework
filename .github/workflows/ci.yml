@@ -141,3 +141,78 @@ jobs:
       - name: Verify optional packages stay optional
         run: >-
           python -c "import importlib.util,os,tempfile; os.chdir(tempfile.gettempdir()); import cybermatch_core, cybermatch_core.products, cybermatch.simulation.simulator; assert importlib.util.find_spec('sklearn') is None; assert importlib.util.find_spec('streamlit') is None; print('core-only boundary: ok')"
+
+  agent-skills-linux-s4b:
+    name: Agent Skills Linux / S4b No-Egress
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+
+      - name: Install fixed development environment
+        run: |
+          python -m pip install -r requirements-dev.lock
+          python -m pip install --no-deps -e .
+
+      - name: Run native Agent Skills tests and evaluation on Linux
+        run: |
+          python -m pytest -q tests/test_agent_skills_native_mvp.py tests/test_native_manifest_snapshot.py tests/test_native_skill_loader.py
+          python scripts/run_native_agent_skills_evaluation.py --output output/agent_skills/linux-native
+
+      - name: Acquire the fixed external source outside the sandbox
+        run: |
+          mkdir -p tmp/s4b-source
+          git -C tmp/s4b-source init
+          git -C tmp/s4b-source remote add origin https://github.com/mukul975/Anthropic-Cybersecurity-Skills.git
+          git -C tmp/s4b-source fetch --depth 1 origin 54a798831d2266a3ca61ce68a7acb80b81160d57
+          git -C tmp/s4b-source checkout --detach FETCH_HEAD
+          test "$(git -C tmp/s4b-source rev-parse HEAD)" = "54a798831d2266a3ca61ce68a7acb80b81160d57"
+
+      - name: Review fixed external packages without executing scripts
+        run: >-
+          python scripts/review_external_agent_skills.py
+          --source-root tmp/s4b-source
+          --output output/agent_skills/s4b-review
+
+      - name: Pull the worker image before closing network access
+        run: docker pull python:3.12-slim
+
+      - name: Probe No-Egress and read-only host boundaries
+        run: |
+          mkdir -p output/agent_skills/s4b-sandbox
+          chmod 0777 output/agent_skills/s4b-sandbox
+          docker run --rm --pull never \
+            --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges:true --user 65532:65532 \
+            --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+            -v "$GITHUB_WORKSPACE:/repo:ro" \
+            -v "$GITHUB_WORKSPACE/tmp/s4b-source:/external:ro" \
+            -v "$GITHUB_WORKSPACE/output/agent_skills/s4b-sandbox:/output:rw" \
+            python:3.12-slim \
+            python /repo/scripts/run_external_skill_sandbox_probe.py \
+              --repository-root /repo --source-root /external \
+              --manifest /repo/configs/agent_skills/external_review/s4b_external_candidates_v1.json \
+              --output /output
+
+      - name: Record the Linux execution evidence
+        run: >-
+          python scripts/record_linux_agent_skills_ci.py
+          --native-metrics output/agent_skills/linux-native/metrics.json
+          --external-review output/agent_skills/s4b-review/external_skill_review.json
+          --sandbox-probe output/agent_skills/s4b-sandbox/sandbox_probe.json
+          --output output/agent_skills/linux_execution_record.json
+
+      - name: Upload Agent Skills Linux and S4b evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-skills-linux-s4b
+          path: output/agent_skills/
+          if-no-files-found: error

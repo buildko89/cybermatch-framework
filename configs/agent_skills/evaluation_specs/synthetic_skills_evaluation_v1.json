@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "spec_id": "synthetic-skills-evaluation-v1",
+  "mode": "synthetic_only",
+  "manifest_path": "configs/agent_skills/manifests/native_skills_approved_v1.json",
+  "task_fixture_path": "configs/agent_skills/fixtures/native_skills_selection_tasks_v1.json",
+  "observation_input_path": "configs/threat_hunting/observations/t0_synthetic_cti_observation.json",
+  "evaluator_truth_path": "configs/threat_hunting/evaluator_only/t0_synthetic_truth.json",
+  "selector_policy": {"version": "selector-v1", "max_selected": 3, "tie_break": "priority_desc_then_skill_id_asc"},
+  "metrics": ["selection_precision", "selection_recall", "finding_precision", "finding_recall", "abstain_count", "false_response_count"],
+  "prohibitions": ["no_llm", "no_external_network", "no_external_package_execution", "no_truth_to_detector"]
+}

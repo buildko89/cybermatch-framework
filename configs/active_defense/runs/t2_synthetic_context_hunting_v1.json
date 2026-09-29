@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "run_id": "t2-synthetic-context-hunting-v1",
+  "scenario_id": "t2-identity-lateral-synthetic",
+  "tenant_id": "tenant-a",
+  "seed": 0,
+  "horizon_steps": 16,
+  "observation_fixture": "configs/active_defense/fixtures/t2_identity_lateral_synthetic_v1.json",
+  "priority_policy": "configs/active_defense/policies/priority_policy_v1.json",
+  "scheduler_policy": "configs/active_defense/policies/scheduler_policy_v1.json",
+  "hypothesis_templates": "configs/active_defense/templates/hypothesis_templates_v1.json",
+  "recipe_root": "recipes/threat_hunting"
+}

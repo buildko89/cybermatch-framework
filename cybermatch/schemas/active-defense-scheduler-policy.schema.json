@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T2 仮説scheduler policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "max_bindings_per_step",
+    "max_lookback_steps",
+    "max_wait_steps",
+    "policy_id",
+    "policy_version",
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "max_bindings_per_step": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "max_lookback_steps": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "max_wait_steps": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T2 priority policy（調査順の重み。侵害確率ではない）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "identity_normalization_version",
+    "policy_id",
+    "policy_version",
+    "rounding",
+    "schema_version",
+    "unknown_component_value",
+    "weights_bp"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "weights_bp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "business_criticality",
+        "confirmed_vulnerability",
+        "credential_leak_without_mfa",
+        "cti_confidence"
+      ],
+      "properties": {
+        "business_criticality": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "confirmed_vulnerability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "credential_leak_without_mfa": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "cti_confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        }
+      }
+    },
+    "rounding": {
+      "const": "floor"
+    },
+    "unknown_component_value": {
+      "const": 0
+    },
+    "identity_normalization_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/+-]{0,255}$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

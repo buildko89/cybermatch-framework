@@ -40,6 +40,15 @@ flowchart LR
 | 06 | [公開API方針](06_public_api.md) | 安定APIの範囲、互換性・非推奨ルール | 連携開発者 |
 | 07 | [依存関係方針](07_dependency_policy.md) | extras構成、lockファイルの運用 | 開発者 |
 | 08 | [用語集](08_glossary.md) | Evidence Bundle、SUT、HITL、evidence class などの用語 | 全員 |
+| 09 | [対象限定対処の共通基盤](09_scoped_response_guide.md) | C0のデモ、対処契約、状態遷移、証拠検証、既存形式との互換性 | 開発者・評価者 |
+| 10 | [CTI・Skillsの工程・テスト設計](10_cti_skills_implementation_plan.md) | 実装状況、T0/S0の設計入力、受入条件、次の実装単位 | 開発者・レビュー担当 |
+| 11 | [CTI・ASM文脈ハンティング（T2）](11_cti_asm_context_hunting_guide.md) | CTI/ASM相関、priority計算、仮説と調査予算、Finding trace、CLIと出力の読み方 | 開発者・評価者・レビュー担当 |
+| 12 | [能動防御・閉ループ評価（T3）](12_active_defense_closed_loop_evaluation_guide.md) | 4モード比較、ログ欠損、状態付き模擬世界、identity限定対処、paired評価 | 開発者・評価者・レビュー担当 |
+| 13 | [Token化replay・任意接続（T4a／T4b）](13_tokenized_replay_and_optional_integration_guide.md) | replay data quality、検知適合性、attacker結果通知、shadow Pilot、独立UI | 開発者・評価者・レビュー担当 |
+| 14 | [外部CTI・ASM取得の開始判定（将来F1〜F3）](14_external_cti_asm_acquisition_readiness.md) | 取得前ゲート、信頼境界、source別の最小化、実取得へ進む承認条件 | 運用設計者・開発者・レビュー担当 |
+| 15 | [native Agent Skills評価](15_native_agent_skills_evaluation_guide.md) | 承認済みbinding、決定論的選択、要約検査、模擬tool境界、評価CLI | 開発者・評価者・レビュー担当 |
+| 16 | [外部Agent Skills S4b審査](16_external_agent_skills_s4b_guide.md) | 固定source、license審査、hash allowlist、No-Egress worker、Linux CI | 開発者・セキュリティレビュー担当 |
+| - | [対象限定対処の設計判断記録](procedures/scoped_response_contract_decisions.md) | C0の契約・証拠・時刻・既存形式との互換性に関する判断 | 開発者・レビュー担当 |
 | - | [procedures/OR-4 Blind Human Review](procedures/or4_blind_human_review_20260915.md) | 2026-09-15実施分のLLM説明候補ブラインド評価手順(記録) | レビュー担当 |
 
 ## リポジトリ内のその他のガイド

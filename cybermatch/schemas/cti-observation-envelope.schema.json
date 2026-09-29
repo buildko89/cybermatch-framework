@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch T0 観測envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observation_id",
+    "run_id",
+    "tenant_id",
+    "event_id",
+    "observed_step",
+    "available_step",
+    "source_kind",
+    "source_ref",
+    "observation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "observation_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,127}$"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observed_step": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "available_step": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_kind": {
+      "enum": [
+        "synthetic_cti",
+        "synthetic_asm",
+        "replay_cti",
+        "replay_asm",
+        "synthetic_internal_telemetry",
+        "replay_internal_telemetry"
+      ]
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_type",
+        "signal_class",
+        "identity_ref",
+        "node_ref",
+        "workload_ref"
+      ],
+      "properties": {
+        "event_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signal_class": {
+          "enum": [
+            "telemetry",
+            "derived_signal"
+          ]
+        },
+        "identity_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "node_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "workload_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "telemetry_family": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exposure_class": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "auth_result": {
+          "enum": [
+            "success",
+            "failure",
+            null
+          ]
+        },
+        "process_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_process": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    }
+  }
+}

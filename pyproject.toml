@@ -41,6 +41,12 @@ all = [
 ]
 
 [project.scripts]
+cybermatch-scoped-response-demo = "scripts.run_scoped_response_demo:main"
+cybermatch-validate-t1-observations = "scripts.validate_t1_observation_snapshot:main"
+cybermatch-cti-asm-hypothesis-hunt = "scripts.run_cti_asm_hypothesis_hunt:main"
+cybermatch-active-defense-evaluation = "scripts.run_active_defense_closed_loop_evaluation:main"
+cybermatch-tokenized-cti-asm-replay = "scripts.run_tokenized_cti_asm_replay:main"
+cybermatch-active-defense-pilot-shadow = "scripts.run_active_defense_hypothesis_pilot_shadow:main"
 cybermatch-scenario = "scripts.run_scenario:main"
 cybermatch-hunt = "cybermatch.threat_hunting.cli:main"
 cybermatch-fuzz = "cybermatch.fuzzing.cli:main"

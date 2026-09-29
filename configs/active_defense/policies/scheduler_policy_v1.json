@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "hypothesis_scheduler",
+  "policy_version": "1",
+  "max_bindings_per_step": 3,
+  "max_lookback_steps": 20,
+  "max_wait_steps": 5,
+  "description": "統合計画§6.3の既定値。1 stepに最大3 binding、lookback 20 steps、未実行候補の最大待機5 steps。最大待機に達した候補を作成step/ID順で先に、残枠をpriority降順/ID昇順で埋める。"
+}

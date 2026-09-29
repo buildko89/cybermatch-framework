@@ -1,6 +1,14 @@
 """Stable evaluation and artifact contracts."""
 
 from .canonical import canonical_json, canonical_sha256
+from .hygiene import SensitiveDataHygieneError, assert_hygienic_payload
+from .response import (
+    RESPONSE_CONTRACT_VERSION,
+    ACTION_SCOPE_PAIRS,
+    ResponseValidationError,
+    ScopedResponseAction,
+    ResponseReceipt,
+)
 from .evidence import (
     RUN_CONTRACT_VERSION,
     ContractValidationError,
@@ -29,6 +37,13 @@ from .bundle_writer import (
 )
 
 __all__ = [
+    "RESPONSE_CONTRACT_VERSION",
+    "SensitiveDataHygieneError",
+    "assert_hygienic_payload",
+    "ACTION_SCOPE_PAIRS",
+    "ResponseValidationError",
+    "ScopedResponseAction",
+    "ResponseReceipt",
     "RUN_CONTRACT_VERSION",
     "AssetSchemaError",
     "AssetSchemaRegistration",

@@ -1,0 +1,13 @@
+{
+  "action_id": "response_8729c4f3f2e93eb6a08937581e341c4de371a2249550cb5a489158261b10db39",
+  "run_id": "c0-fixture",
+  "status": "applied",
+  "recorded_step": 1,
+  "effect_start_step": 1,
+  "effect_end_step": 3,
+  "affected_subject_refs": [
+    "identity-example"
+  ],
+  "reason_code": "scheduled_action_applied",
+  "schema_version": "1.0"
+}

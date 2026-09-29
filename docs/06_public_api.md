@@ -15,6 +15,11 @@ flowchart LR
 | モジュール | 用途 |
 |---|---|
 | `cybermatch_core.contracts` | EvaluationRun、Evidence Bundle、スキーマレジストリ、canonical ハッシュ |
+| `cybermatch_core.scoped_response` | 対象限定対処の型・模擬適用台帳・node限定legacy変換・合成デモ |
+| `cybermatch_core.threat_hunting.T0ObservationAdapter` | 到着済みのT0合成観測envelopeだけを`HuntEvent`へ変換する境界adapter |
+| `cybermatch_core.threat_hunting.HmacIdentityPseudonymizer` | 平文identityをversion付きHMAC referenceへ変換するT1仮名化器 |
+| `cybermatch_core.active_defense` | T2の文脈ハンティング、T3の閉ループ評価、T4aのtoken化replay、T4bのattacker結果adapter・shadow Pilot。詳細は[11章](11_cti_asm_context_hunting_guide.md)、[12章](12_active_defense_closed_loop_evaluation_guide.md)、[13章](13_tokenized_replay_and_optional_integration_guide.md) |
+| `cybermatch_core.agent_skills.NativeSkillLoader` | 自作SOPを実行せず、front matterとhash付きsnapshotとして読むS1 loader |
 | `cybermatch_core.agentic_security` | Agentic Security 評価 |
 | `cybermatch_core.threat_hunting` | 脅威ハンティング |
 | `cybermatch_core.external_sut` | 外部SUT(評価対象システム)契約とリプレイ評価 |
@@ -27,6 +32,8 @@ flowchart LR
 | 契約 | バージョン定数 / 管理方法 |
 |---|---|
 | 証跡(Evidence)の正規契約 | `RUN_CONTRACT_VERSION` |
+| 対象限定対処・receipt | `RESPONSE_CONTRACT_VERSION`（1.0）。既存feedbackと独立。詳細は[共通基盤](09_scoped_response_guide.md) |
+| CTI/ASM観測・相関・仮説・閉ループ評価 | `ACTIVE_DEFENSE_CONTRACT_VERSION`（1.0）とスキーマレジストリ（`active_defense_*`） |
 | リポジトリ内の JSON 資産 | スキーマレジストリ |
 | 外部SUT境界 | `EXTERNAL_SUT_CONTRACT_VERSION` |
 

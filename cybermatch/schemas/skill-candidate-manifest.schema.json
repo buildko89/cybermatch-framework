@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch S0 Skill候補manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "manifest_id", "source_kind", "status", "execution_mode", "packages", "bindings", "review"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "manifest_id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{2,127}$"},
+    "source_kind": {"const": "native"},
+    "status": {"enum": ["review_pending", "approved", "revoked"]},
+    "execution_mode": {"const": "recipe_only"},
+    "packages": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "object", "additionalProperties": false,
+        "required": ["skill_id", "package_path", "snapshot_status"],
+        "properties": {"skill_id": {"type": "string", "pattern": "^cm-[a-z0-9-]+$"}, "package_path": {"type": "string", "pattern": "^configs/agent_skills/packages/cm-[a-z0-9-]+/$"}, "snapshot_status": {"enum": ["not_captured", "captured"]}, "snapshot_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+        "allOf": [{"if": {"properties": {"snapshot_status": {"const": "captured"}}}, "then": {"required": ["snapshot_hash"]}, "else": {"not": {"required": ["snapshot_hash"]}}}]
+      }
+    },
+    "bindings": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "additionalProperties": false,
+        "required": ["binding_id", "skill_id", "task_kind", "recipe_id", "required_fields", "priority", "review_state"],
+        "properties": {"binding_id": {"type": "string", "pattern": "^binding-[a-z0-9-]+$"}, "skill_id": {"type": "string", "pattern": "^cm-[a-z0-9-]+$"}, "task_kind": {"type": "string", "pattern": "^[a-z][a-z0-9_]+$"}, "recipe_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]+$"}, "recipe_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "required_fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "priority": {"type": "integer", "minimum": 0}, "review_state": {"enum": ["review_pending", "approved", "revoked"]}}
+      }
+    },
+    "review": {"type": "object", "additionalProperties": false, "required": ["review_record_id", "reviewer", "decision"], "properties": {"review_record_id": {"type": "string", "minLength": 1}, "reviewer": {"type": ["string", "null"]}, "decision": {"enum": ["pending", "approved", "rejected"]}}}
+  }
+}

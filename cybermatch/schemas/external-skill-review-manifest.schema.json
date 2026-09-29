@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch S4b外部Skill審査manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_name", "source_url", "source_revision", "retrieved_at", "official_anthropic_product", "license_spdx", "license_sha256", "execution_mode", "candidates"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "source_name": {"type": "string", "minLength": 1},
+    "source_url": {"type": "string", "pattern": "^https://github\\.com/"},
+    "source_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "retrieved_at": {"type": "string", "format": "date"},
+    "official_anthropic_product": {"const": false},
+    "license_spdx": {"const": "Apache-2.0"},
+    "license_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "execution_mode": {"const": "recipe_only"},
+    "candidates": {
+      "type": "array", "minItems": 5, "maxItems": 10,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["skill_id", "snapshot_hash", "decision", "reason_codes"],
+        "properties": {
+          "skill_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+          "snapshot_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "decision": {"enum": ["reviewed_not_bound", "excluded"]},
+          "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9_]+$"}}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "graph_id": "t3_identity_response_potential_graph_v1",
+  "tenant_id": "tenant-a",
+  "exposure_truth": [
+    {"asset_ref": "asset-vpn-gateway", "exposure_kind": "credential_leak", "start_step": 2, "end_step": 30}
+  ],
+  "operations": [
+    {"operation_id": "op-001-auth", "step": 6, "campaign_ref": "campaign-synthetic-001", "identity_ref": "synthetic-id-001", "node_ref": "node-vpn-gw", "operation_kind": "authenticate", "session_ref": "session-synthetic-001", "session_expires_step": 10, "legitimate": false},
+    {"operation_id": "op-002-process", "step": 7, "campaign_ref": "campaign-synthetic-001", "identity_ref": "synthetic-id-001", "node_ref": "node-app-01", "operation_kind": "process_start", "session_ref": "session-synthetic-001", "session_expires_step": 10, "legitimate": false},
+    {"operation_id": "op-003-lateral", "step": 8, "campaign_ref": "campaign-synthetic-001", "identity_ref": "synthetic-id-001", "node_ref": "node-app-01", "operation_kind": "lateral_move", "session_ref": "session-synthetic-001", "session_expires_step": 10, "legitimate": false},
+    {"operation_id": "op-004-session-continues", "step": 9, "campaign_ref": "campaign-synthetic-001", "identity_ref": "synthetic-id-001", "node_ref": "node-app-02", "operation_kind": "process_start", "session_ref": "session-synthetic-001", "session_expires_step": 10, "legitimate": false},
+    {"operation_id": "op-005-reauth", "step": 10, "campaign_ref": "campaign-synthetic-001", "identity_ref": "synthetic-id-001", "node_ref": "node-vpn-gw", "operation_kind": "authenticate", "session_ref": "session-synthetic-002", "session_expires_step": 15, "legitimate": false},
+    {"operation_id": "op-005b-legitimate-reauth", "step": 11, "campaign_ref": "campaign-synthetic-admin", "identity_ref": "synthetic-id-001", "node_ref": "node-vpn-gw", "operation_kind": "authenticate", "session_ref": "session-synthetic-admin", "session_expires_step": 15, "legitimate": true},
+    {"operation_id": "op-006-critical", "step": 12, "campaign_ref": "campaign-synthetic-001", "identity_ref": "synthetic-id-001", "node_ref": "node-critical-01", "operation_kind": "critical_reach", "session_ref": "session-synthetic-002", "session_expires_step": 15, "legitimate": false}
+  ]
+}
