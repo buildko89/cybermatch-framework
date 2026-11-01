@@ -13,7 +13,6 @@ from typing import Mapping, Sequence
 import numpy as np
 
 from cybermatch.config.simulation_config import SimulationConfig
-from cybermatch.simulation.simulator import CyberDefenseSimulator
 
 from .models import canonical_json
 
@@ -152,6 +151,8 @@ def _decision_neutralization_score(history: Mapping[str, object], config: Simula
 
 
 def _run_case(config: SimulationConfig) -> dict[str, object]:
+    from cybermatch.simulation.simulator import CyberDefenseSimulator
+
     simulator = CyberDefenseSimulator(config)
     history = simulator.run()
     metrics = simulator.calculate_metrics()

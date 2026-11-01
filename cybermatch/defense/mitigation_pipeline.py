@@ -7,11 +7,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import time
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
+
+if TYPE_CHECKING:
+    from ..pilot.triage_pipeline import TriagePipeline
 
 from ..contracts.canonical import canonical_sha256
-from ..pilot.triage_pipeline import TriagePipeline
-from .proxy_adapter import ProxyEnforcementAdapter, ExecutionGateError
+from .proxy_adapter import ExecutionGateError, ProxyEnforcementAdapter
 from .shadow_evaluator import ShadowEvaluator, TransactionRecord, generate_golden_replay_dataset
 
 
@@ -25,7 +27,12 @@ class MitigationPipelineOrchestrator:
         shadow_evaluator: ShadowEvaluator | None = None,
     ) -> None:
         self.adapter = proxy_adapter
-        self.triage = triage_pipeline or TriagePipeline()
+        if triage_pipeline is None:
+            from ..pilot.triage_pipeline import TriagePipeline
+
+            self.triage = triage_pipeline or TriagePipeline()
+        else:
+            self.triage = triage_pipeline
         self.shadow_evaluator = shadow_evaluator or ShadowEvaluator(run_id="pre-flight-twin-simulation")
 
     def execute_automated_mitigation(

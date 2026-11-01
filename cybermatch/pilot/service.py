@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Mapping
 
 from cybermatch.contracts import canonical_json, canonical_sha256
-from cybermatch.threat_hunting.replay import run_external_replay_evaluation
 
 from .ai import LLMGateway, grounded_explanation
 from .config import build_explanation_gateway
@@ -69,6 +68,8 @@ class PilotEvaluationService:
     def execute(
         self, run_spec: Mapping[str, object], *, gateway: LLMGateway | None = None
     ) -> dict[str, object]:
+        from cybermatch.threat_hunting.replay import run_external_replay_evaluation
+
         require_approved_run_spec(run_spec)
         output = self.output_root / str(run_spec["run_id"])
         summary = run_external_replay_evaluation(

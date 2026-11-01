@@ -13,7 +13,6 @@ import numpy as np
 
 from cybermatch.config.simulation_config import SimulationConfig
 from cybermatch.models.product import HuntingCapabilities, ProductProfile, load_product_profile
-from cybermatch.simulation.simulator import CyberDefenseSimulator
 
 from .adapters import GROUND_TRUTH_HISTORY_KEYS, OBSERVED_HISTORY_KEYS, HistoryGroundTruthAdapter, HistoryObservationAdapter
 from .artifacts import ThreatHuntingArtifactWriter
@@ -92,6 +91,7 @@ def _simulation_config(
 
 def _simulate_history(config: SimulationConfig) -> Mapping[str, object]:
     """Run one source simulation; isolated for deterministic smoke-test substitution."""
+    from cybermatch.simulation.simulator import CyberDefenseSimulator
 
     return CyberDefenseSimulator(config).run()
 
