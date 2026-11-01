@@ -13,6 +13,7 @@ from .shadow_evaluator import (
     TransactionRecord,
     generate_golden_replay_dataset,
 )
+from .mitigation_pipeline import MitigationPipelineOrchestrator
 
 __all__ = [
     "LabProxyGateway",
@@ -25,4 +26,5 @@ __all__ = [
     "ShadowEvaluationResult",
     "TransactionRecord",
     "generate_golden_replay_dataset",
+    "MitigationPipelineOrchestrator",
 ]
