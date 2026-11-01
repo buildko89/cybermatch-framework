@@ -152,7 +152,7 @@ class ProxyEnforcementAdapter:
         # Step 4: Independent Effect Confirmation (独立した効果観測)
         effect_confirmed = False
         if verify_effect:
-            effect_confirmed = self._confirm_traffic_effect(scope, http_methods, normal_probe_path, policy_id)
+            effect_confirmed = self._confirm_traffic_effect(scope, http_methods, normal_probe_path, policy_id, action_type)
 
         # Step 5: Generate Execution Receipt
         new_rev = config_after.get("revision", deploy_res.get("revision", ""))
@@ -181,12 +181,13 @@ class ProxyEnforcementAdapter:
         http_methods: list[str],
         normal_path: str,
         policy_id: str,
+        action_type: str = "scoped_path_block",
     ) -> bool:
-        """Verify that vulnerable scope is blocked and normal business traffic remains unharmed."""
+        """Verify that vulnerable scope is blocked/decoyed and normal business traffic remains unharmed."""
         test_method = http_methods[0] if http_methods else "POST"
         probe_url = f"{self.proxy_base_url}{vulnerable_scope}"
 
-        # 1. Probe vulnerable endpoint -> Must be blocked (403)
+        # 1. Probe vulnerable endpoint -> Must be blocked (403) or decoyed (200 with canary marker)
         req_probe = urllib.request.Request(
             probe_url,
             data=b'{"test": "exploit_probe"}',
@@ -196,11 +197,21 @@ class ProxyEnforcementAdapter:
 
         try:
             with urllib.request.urlopen(req_probe, timeout=5.0) as resp:
-                # If it returned 200, it was NOT blocked!
-                self._abort_and_rollback(policy_id, "Effect verification failed: exploit traffic was allowed (HTTP 200)")
-                raise EffectConfirmationError(f"Exploit probe unexpectedly succeeded with status {resp.status}")
+                resp_body = json.loads(resp.read().decode("utf-8"))
+                if action_type == "decoy_redirect":
+                    # Decoy mode: must return 200 with canary marker
+                    if "canary_marker" not in resp_body:
+                        self._abort_and_rollback(policy_id, "Effect verification failed: decoy marker missing from response")
+                        raise EffectConfirmationError("Decoy marker missing from proxy response")
+                else:
+                    # Block mode: returning 200 is a failure!
+                    self._abort_and_rollback(policy_id, "Effect verification failed: exploit traffic was allowed (HTTP 200)")
+                    raise EffectConfirmationError(f"Exploit probe unexpectedly succeeded with status {resp.status}")
         except urllib.error.HTTPError as e:
-            if e.code != 403:
+            if action_type == "decoy_redirect":
+                self._abort_and_rollback(policy_id, f"Effect verification failed: expected HTTP 200 decoy, got {e.code}")
+                raise EffectConfirmationError(f"Decoy probe returned status {e.code}, expected 200 OK")
+            elif e.code != 403:
                 self._abort_and_rollback(policy_id, f"Effect verification failed: expected HTTP 403, got {e.code}")
                 raise EffectConfirmationError(f"Exploit probe returned status {e.code}, expected 403 Forbidden")
 

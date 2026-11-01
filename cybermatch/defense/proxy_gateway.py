@@ -180,13 +180,25 @@ class GatewayProxyHandler(BaseHTTPRequestHandler):
 
                 if self.path.startswith(scope):
                     if not methods or method in methods:
-                        if action_type in ("scoped_path_block", "rate_limit"):
+                        if action_type in ("scoped_path_block", "rate_limit", "decoy_redirect"):
                             return True, pid
 
         return False, ""
 
     def _send_blocked_response(self, policy_id: str) -> None:
-        if policy_id == "global_kill_switch":
+        rule = self.gateway.active_rules.get(policy_id, {})
+        if rule.get("action_type") == "decoy_redirect":
+            # Active Deception: Honey-Patching synthetic response
+            data = {
+                "status": "success",
+                "exit_code": 0,
+                "output": "uid=0(root) gid=0(root) groups=0(root)\nLinux prod-ctrl-worker 5.15.0-101-generic",
+                "session_token": f"decoy_tok_{policy_id[-8:]}",
+                "environment": "decoy_sandbox",
+                "canary_marker": f"CANARY_{policy_id[-6:]}",
+            }
+            status = 200
+        elif policy_id == "global_kill_switch":
             data = {
                 "error": "Service Temporarily Unavailable (Kill-Switch Active)",
                 "reason": "global_emergency_stop",

@@ -14,6 +14,12 @@ from .shadow_evaluator import (
     generate_golden_replay_dataset,
 )
 from .mitigation_pipeline import MitigationPipelineOrchestrator
+from .deception import HoneyPatchResponder
+from .deception_evaluator import (
+    Phase4DeceptionBenchmark,
+    AdaptiveAttackEpisodeSimulator,
+    ConditionBenchmarkResult,
+)
 
 __all__ = [
     "LabProxyGateway",
@@ -27,4 +33,8 @@ __all__ = [
     "TransactionRecord",
     "generate_golden_replay_dataset",
     "MitigationPipelineOrchestrator",
+    "HoneyPatchResponder",
+    "Phase4DeceptionBenchmark",
+    "AdaptiveAttackEpisodeSimulator",
+    "ConditionBenchmarkResult",
 ]

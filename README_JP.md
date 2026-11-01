@@ -19,6 +19,7 @@ CyberMatch は、**攻撃者の意思決定プロセスを再現**し、防御�
 | 5 | pilot の受付・承認・Evidence Bundle hash を記録する | [pilots/phase3/PILOT_INTAKE_TEMPLATE.md](pilots/phase3/PILOT_INTAKE_TEMPLATE.md) |
 | 6 | LLM 説明候補を人手でブラインド評価する(OR-4) | [docs/procedures/OR-4 Blind Human Review 手順書](docs/procedures/or4_blind_human_review_20260915.md) |
 | 7 | ローカル小規模LLM（Qwen/Gemma）で設備操作トリアージを行う | [docs/17 ローカルSLMトリアージ手順](docs/17_local_slm_triage_pipeline_guide.md) |
+| 8 | マシンテンポ能動的防御・ハニーパッチング・PSIRT引き継ぎを行う | [docs/18 マシンテンポ能動的防御ガイド](docs/18_machine_tempo_active_defense_guide.md) |
 | - | AI エージェントの安全性評価の仕組みを知る | [docs/04 Agentic Security](docs/04_agentic_security.md) |
 | - | 仕組み・連携・1.x からの移行 | [docs/05 アーキテクチャ](docs/05_architecture.md) / [docs/06 公開API方針](docs/06_public_api.md) / [docs/07 依存関係方針](docs/07_dependency_policy.md) |
 | - | 用語を調べる | [docs/08 用語集](docs/08_glossary.md) |
