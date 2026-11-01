@@ -15,6 +15,7 @@ The guides under `docs/` are written in Japanese and numbered in reading order.
 | 4 | Evaluate your own telemetry, run the HITL pilot, or compare LLM explanations | [docs/03_external_evaluation_guide.md](docs/03_external_evaluation_guide.md) |
 | 5 | Record a pilot (intake, approval, Evidence Bundle hash) | [pilots/phase3/PILOT_INTAKE_TEMPLATE.md](pilots/phase3/PILOT_INTAKE_TEMPLATE.md) |
 | 6 | Blind human review of LLM explanation candidates (OR-4) | [docs/procedures/or4_blind_human_review_20260915.md](docs/procedures/or4_blind_human_review_20260915.md) |
+| 7 | Local SLM Hybrid Triage Pipeline guide (Qwen/Gemma) | [docs/17_local_slm_triage_pipeline_guide.md](docs/17_local_slm_triage_pipeline_guide.md) |
 | - | Agentic security model and metrics | [docs/04_agentic_security.md](docs/04_agentic_security.md) |
 | - | Architecture, public API and 1.x migration, dependencies | [docs/05_architecture.md](docs/05_architecture.md), [docs/06_public_api.md](docs/06_public_api.md), [docs/07_dependency_policy.md](docs/07_dependency_policy.md) |
 | - | Glossary (Evidence Bundle, SUT, HITL, evidence class, ...) | [docs/08_glossary.md](docs/08_glossary.md) |

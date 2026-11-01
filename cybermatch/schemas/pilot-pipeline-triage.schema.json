@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch Pilot Pipeline Triage Schema v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assessment",
+    "summary",
+    "decision_reason",
+    "priority",
+    "priority_reason",
+    "action_recommendation"
+  ],
+  "properties": {
+    "assessment": {
+      "type": "string",
+      "enum": ["benign", "suspicious", "unknown"],
+      "description": "トリアージ判定 (benign: 承認範囲内, suspicious: 要調査・逸脱, unknown: 判断保留)"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "事象の客観的サマリー (誰がどの設備で何を実行し状態がどうなったか)"
+    },
+    "decision_reason": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "承認内容と実操作の差分照合に基づく判断理由"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "調査優先度"
+    },
+    "priority_reason": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "調査優先度を設定した理由"
+    },
+    "action_recommendation": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "調査担当者が次に取るべき具体的な推奨確認アクション"
+    }
+  }
+}

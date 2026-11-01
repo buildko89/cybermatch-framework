@@ -40,6 +40,7 @@ class LocalQwenExplanationGateway:
         n_ctx: int = 8192,
         max_tokens: int = 1024,
         temperature: float = 0.1,
+        system_prompt: str = SYSTEM_PROMPT,
     ) -> None:
         self.root = Path(repository_root).resolve()
         self.model_path = self.root / "models" / "local_llm" / MODEL_NAME
@@ -49,6 +50,7 @@ class LocalQwenExplanationGateway:
         self.n_ctx = n_ctx
         self.max_tokens = max_tokens
         self.temperature = temperature
+        self.system_prompt = system_prompt
 
     def explain(self, result_view: Mapping[str, object]) -> GatewayExplanation:
         prompt = build_explanation_prompt(result_view)
@@ -56,7 +58,7 @@ class LocalQwenExplanationGateway:
         try:
             response = self._model().create_chat_completion(
                 messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": prompt},
                 ],
                 temperature=self.temperature,
@@ -82,7 +84,10 @@ class LocalQwenExplanationGateway:
                 "request_id": None,
                 "fallback_level": 0,
                 "fallback_model": None,
-                "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+                "prompt_sha256": hashlib.sha256(json.dumps(
+                    {"system": self.system_prompt, "user": prompt},
+                    ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+                ).encode("utf-8")).hexdigest(),
                 "prompt_tokens": _nonnegative_int(usage.get("prompt_tokens")),
                 "completion_tokens": _nonnegative_int(usage.get("completion_tokens")),
                 "total_tokens": _nonnegative_int(usage.get("total_tokens")),

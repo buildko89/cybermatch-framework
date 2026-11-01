@@ -69,3 +69,40 @@ def test_local_qwen_malformed_answer_falls_back(tmp_path: Path) -> None:
     result = grounded_explanation(_view(), _gateway(tmp_path, backend))
     assert result["audit"]["validation_status"] == "fallback"
     assert result["audit"]["failure_class"] == "invalid_response"
+
+
+def test_custom_prompt_reaches_backend_without_changing_grounding(tmp_path: Path) -> None:
+    backend = FakeBackend({
+        "choices": [{"message": {"content": json.dumps(_answer())}}],
+    })
+    gateway = LocalQwenExplanationGateway(
+        tmp_path, backend_factory=lambda **kwargs: backend,
+        model_verifier=lambda path: None, system_prompt="Report values neutrally.",
+    )
+    result = grounded_explanation(_view(), gateway)
+    assert backend.calls[0]["messages"][0]["content"] == "Report values neutrally."
+    assert result["audit"]["validation_status"] == "accepted"
+
+
+def test_custom_prompt_does_not_allow_fabricated_evidence(tmp_path: Path) -> None:
+    answer = _answer()
+    answer["claims"][0]["evidence_path"] = "hunting/fabricated.json"
+    backend = FakeBackend({"choices": [{"message": {"content": json.dumps(answer)}}]})
+    gateway = LocalQwenExplanationGateway(
+        tmp_path, backend_factory=lambda **kwargs: backend,
+        model_verifier=lambda path: None, system_prompt="Report values neutrally.",
+    )
+    result = grounded_explanation(_view(), gateway)
+    assert result["audit"]["failure_class"] == "grounding_validation"
+
+
+def test_audit_hash_distinguishes_system_prompts(tmp_path: Path) -> None:
+    hashes = []
+    for prompt in ("First policy", "Second policy"):
+        backend = FakeBackend({"choices": [{"message": {"content": json.dumps(_answer())}}]})
+        gateway = LocalQwenExplanationGateway(
+            tmp_path, backend_factory=lambda **kwargs: backend,
+            model_verifier=lambda path: None, system_prompt=prompt,
+        )
+        hashes.append(grounded_explanation(_view(), gateway)["audit"]["prompt_sha256"])
+    assert hashes[0] != hashes[1]
