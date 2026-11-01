@@ -7,6 +7,12 @@ from .proxy_adapter import (
     ReadBackMismatchError,
     EffectConfirmationError,
 )
+from .shadow_evaluator import (
+    ShadowEvaluator,
+    ShadowEvaluationResult,
+    TransactionRecord,
+    generate_golden_replay_dataset,
+)
 
 __all__ = [
     "LabProxyGateway",
@@ -15,4 +21,8 @@ __all__ = [
     "RevisionConflictError",
     "ReadBackMismatchError",
     "EffectConfirmationError",
+    "ShadowEvaluator",
+    "ShadowEvaluationResult",
+    "TransactionRecord",
+    "generate_golden_replay_dataset",
 ]
