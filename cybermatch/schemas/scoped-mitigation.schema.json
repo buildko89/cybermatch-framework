@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CyberMatch Scoped Mitigation Policy Schema v1",
+  "description": "マシンテンポ局所暫定防護ポリシーおよび決定論的実行ゲート契約のスキーマ定義",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_id",
+    "tenant_id",
+    "target_asset",
+    "target_path_scope",
+    "action_type",
+    "lifecycle_state",
+    "ttl_seconds",
+    "config_snapshot_revision",
+    "validation_bundle_hash",
+    "recovery_policy",
+    "kill_switch_registered"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "スキーマバージョン (1.0固定)"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^mitigation_[0-9a-f]{64}$",
+      "description": "ポリシーの一意識別子 (mitigation_ + canonical SHA-256)"
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9_-]+$",
+      "description": "対象テナントID"
+    },
+    "target_asset": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "対象資産またはゲートウェイ識別子 (例: edge-proxy-01, api-gateway-prod)"
+    },
+    "target_path_scope": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^/[a-zA-Z0-9_./*-]+$",
+      "description": "対象URIパススコープ (正規化されたパスまたはプレフィックス)"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "rate_limit",
+        "scoped_path_block",
+        "shadow_eval",
+        "token_revocation",
+        "decoy_redirect"
+      ],
+      "description": "暫定防護アクション種別 (rate_limit: 短時間流量制限, scoped_path_block: 局所パス遮断, shadow_eval: 非適用事前試験, token_revocation: 資格情報失効, decoy_redirect: 隔離ラボ能動欺瞞)"
+    },
+    "pre_approved_template_id": {
+      "type": ["string", "null"],
+      "description": "事前承認済みテンプレートID (新規生成ルールの場合はnull)"
+    },
+    "lifecycle_state": {
+      "type": "string",
+      "enum": [
+        "Proposed",
+        "Validated",
+        "Applying",
+        "Effective",
+        "Observing",
+        "Recovery",
+        "Closed",
+        "Rejected",
+        "Reconciling",
+        "Escalated"
+      ],
+      "description": "ライフサイクル状態マシンの現在ステータス"
+    },
+    "ttl_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 259200,
+      "description": "有効期限(秒)。action_typeごとの上限: rate_limit<=7200(2h), scoped_path_block<=86400(24h), shadow_eval<=86400(24h)"
+    },
+    "config_snapshot_revision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "事前検証時の本番設定リビジョン番号 (本番適用時の競合検出用)"
+    },
+    "validation_bundle_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "CyberMatch事前検証合格時のEvidence Bundle SHA-256ハッシュ"
+    },
+    "action_parameters": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "アクション固有のパラメータ (例: rate_limit_rps, burst, http_methods, client_ip_filter)"
+    },
+    "recovery_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rollback_action",
+        "trigger_conditions"
+      ],
+      "properties": {
+        "rollback_action": {
+          "type": "string",
+          "enum": [
+            "restore_previous_config",
+            "narrow_scope",
+            "escalate_to_human",
+            "terminate_and_isolate"
+          ],
+          "description": "異常検知またはTTL満了時の復旧アクション"
+        },
+        "trigger_conditions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "latency_spike",
+              "error_rate_threshold_exceeded",
+              "ttl_expired",
+              "kill_switch_triggered",
+              "permanent_patch_deployed",
+              "manual_operator_abort"
+            ]
+          },
+          "description": "ロールバック・復旧を発火させるトリガー条件一覧"
+        },
+        "max_latency_increase_pct": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0,
+          "description": "許容レイテンシ悪化率閾値(%) (例: 5.0)"
+        },
+        "max_error_rate_pct": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 100.0,
+          "description": "許容エラー率閾値(%) (例: 1.0)"
+        }
+      }
+    },
+    "kill_switch_registered": {
+      "type": "boolean",
+      "description": "外部独立キルスイッチが正常登録され到達可能であることの確認フラグ"
+    },
+    "operator_approval_ref": {
+      "type": ["string", "null"],
+      "description": "運用者承認チケットIDまたは承認署名ref (要承認アクション時に必須、事前承認テンプレート時はnull可)"
+    },
+    "audit_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "created_at_utc": {
+          "type": "string",
+          "description": "ポリシー生成日時 (ISO 8601 UTC)"
+        },
+        "proposed_by": {
+          "type": "string",
+          "description": "提案コンポーネント (例: pilot-triage-pipeline-v1, slm-qwen3-4b)"
+        },
+        "golden_replay_suite_id": {
+          "type": "string",
+          "description": "検証に使用した正常リプレイテストスイート識別子"
+        },
+        "golden_replay_sample_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "事前検証で実行した正常トランザクション件数"
+        }
+      }
+    }
+  }
+}

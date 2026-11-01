@@ -45,6 +45,20 @@
       "minLength": 10,
       "maxLength": 500,
       "description": "調査担当者が次に取るべき具体的な推奨確認アクション"
+    },
+    "fallback_used": {
+      "type": "boolean",
+      "description": "推論ゲートウェイ障害時にフォールバックテンプレートが使用されたか"
+    },
+    "fallback_reason": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "フォールバックが発生した理由"
+    },
+    "fallback_provider": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "フォールバック先プロバイダ識別子"
     }
   }
 }
