@@ -1,0 +1,49 @@
+id: owasp_asvs_web_defense
+version: '1.0'
+standard: OWASP ASVS
+standard_version: '4.0.3'
+references:
+  - https://github.com/OWASP/ASVS/tree/v4.0.3/4.0/en
+scope: Local heuristic SAST checklist; full ASVS compliance requires manual and runtime verification
+scoring:
+  initial: 1.0
+  penalties: {critical: 0.3, high: 0.2, medium: 0.1, low: 0.05}
+  minimum: 0.0
+  maximum: 1.0
+  aggregation: Subtract penalty for each unique category and source line; clamp at zero
+  mitigated_phases: Potential interruption after applying all findings' remediations; no operational proof
+checks:
+  - {category: sqli, requirement: V5.3.4, severity: critical, owasp_top10_2021: A03, criterion: Use parameterized database queries and allowlisted identifiers, verification: static}
+  - {category: xss, requirement: V5.3.3, severity: high, owasp_top10_2021: A03, criterion: Enable context-aware output escaping, verification: static}
+  - {category: csrf, requirement: V4.2.2, severity: medium, owasp_top10_2021: A01, criterion: Require CSRF defenses on state-changing requests, verification: static}
+  - {category: ssrf, requirement: V5.2.6, severity: high, owasp_top10_2021: A10, criterion: Allowlist protocols and destinations and enforce safe DNS resolution and egress, verification: static_review}
+  - {category: idor_bola, requirement: V4.2.1, severity: high, owasp_top10_2021: A01, criterion: Enforce object authorization for the authenticated principal, verification: static_review}
+  - {category: command_injection, requirement: V5.3.8, severity: critical, owasp_top10_2021: A03, criterion: Avoid dynamic shell commands, verification: static}
+sections:
+  V4:
+    title: Access control
+    requirements:
+      - {id: V4.2.1, criterion: Enforce access control for sensitive data and objects, verification: static_review}
+      - {id: V4.2.2, criterion: Prevent cross-site request forgery, verification: static}
+  V5:
+    title: Validation sanitization and encoding
+    requirements:
+      - {id: V5.1.3, criterion: Validate input against positive allowlists, verification: manual}
+      - {id: V5.2.6, criterion: Validate outbound destinations against SSRF, verification: static_review}
+      - {id: V5.3.3, criterion: Use context-aware output escaping, verification: static}
+      - {id: V5.3.4, criterion: Parameterize database queries, verification: static}
+      - {id: V5.3.8, criterion: Prevent OS command injection, verification: static}
+  V13:
+    title: API and web service
+    requirements:
+      - {id: V13.1.1, criterion: Use consistent encoding and parsing across API components, verification: manual}
+      - {id: V13.1.3, criterion: Authorize API actions and resources at the service layer, verification: manual}
+  V14:
+    title: Configuration
+    requirements:
+      - {id: V14.2.1, criterion: Keep components current with security fixes, verification: manual}
+      - {id: V14.3.2, criterion: Disable production debug features, verification: manual}
+limitations:
+  - No interprocedural taint or general control-flow proof
+  - Arbitrary SSRF validators and authorization helpers require manual review
+  - No findings gives score 1.0 but does not certify ASVS compliance

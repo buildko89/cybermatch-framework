@@ -1,0 +1,68 @@
+id: identity_mfa_bypass_rules
+version: '1.0'
+status: experimental
+format: Sigma-style metadata with executable KQL over normalized IdentityAuthEvents
+schema:
+  table: IdentityAuthEvents
+  fields:
+    TimeGenerated: datetime
+    UserId: string
+    AuthMethod: string
+    Result: string (denied or approved)
+    SessionId: string (stable session correlation identifier)
+    TokenId: string (stable non-secret token fingerprint; never raw bearer tokens)
+    DeviceId: string
+    DeviceRegistered: bool (explicit false required; unknown is not false)
+  prerequisites:
+    - Normalize provider logs into the documented fields before deploying queries.
+    - Ensure token fingerprints and device identifiers are available for replay correlation.
+rules:
+  - title: MFA push fatigue followed by approval
+    id: 72e6f271-4e10-4846-a1eb-bb193c753c47
+    status: experimental
+    logsource: {category: authentication, product: identity_provider}
+    tags: [attack.credential_access, attack.t1621]
+    level: high
+    detection:
+      method: push
+      denied_count_at_least: 5
+      window: 5m
+      group_by: [UserId]
+      sequence: [denied, approved]
+    kql: |
+      let approvals = IdentityAuthEvents
+        | where AuthMethod == "push" and Result == "approved"
+        | project UserId, ApprovalTime=TimeGenerated, ApprovalSession=SessionId;
+      let denials = IdentityAuthEvents
+        | where AuthMethod == "push" and Result == "denied"
+        | project UserId, DenialTime=TimeGenerated;
+      approvals
+      | join kind=inner denials on UserId
+      | where DenialTime >= ApprovalTime - 5m and DenialTime < ApprovalTime
+      | summarize Denials=count() by UserId, ApprovalTime, ApprovalSession
+      | where Denials >= 5
+    falsepositives: [Repeated legitimate retries followed by successful authentication]
+  - title: Session token reused from an unregistered device
+    id: a389fb2f-d30a-4c21-a654-b72f3198887c
+    status: experimental
+    logsource: {category: authentication, product: identity_provider}
+    tags: [attack.defense_evasion, attack.t1550.004]
+    level: high
+    detection:
+      group_by: [UserId, TokenId]
+      sequence: [successful_token_use, successful_use_from_different_unregistered_device]
+      window: 1h
+    kql: |
+      let uses = IdentityAuthEvents
+        | where Result == "approved" and isnotempty(TokenId) and isnotempty(DeviceId)
+        | project UserId, TokenId, DeviceId, TimeGenerated, DeviceRegistered;
+      uses
+      | where DeviceRegistered == false
+      | project UserId, TokenId, ReplayDevice=DeviceId, ReplayTime=TimeGenerated
+      | join kind=inner (
+          uses | project UserId, TokenId, PriorDevice=DeviceId, PriorTime=TimeGenerated
+        ) on UserId, TokenId
+      | where PriorTime < ReplayTime and PriorTime >= ReplayTime - 1h
+      | where PriorDevice != ReplayDevice
+      | summarize FirstPriorUse=min(PriorTime) by UserId, TokenId, ReplayDevice, ReplayTime
+    falsepositives: [Device re-enrollment or incorrect provider device attribution]

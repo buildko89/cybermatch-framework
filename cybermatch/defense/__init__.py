@@ -1,4 +1,7 @@
 """CyberMatch defense modules and adapters."""
+from .zerotrust_evaluator import ZeroTrustEvaluator
+from .secure_coding_evaluator import SecureCodingEvaluator
+from .genai_defense_evaluator import GenAIDefenseEvaluator
 from .proxy_gateway import LabProxyGateway
 from .proxy_adapter import (
     ProxyEnforcementAdapter,
@@ -22,6 +25,9 @@ from .deception_evaluator import (
 )
 
 __all__ = [
+    "GenAIDefenseEvaluator",
+    "SecureCodingEvaluator",
+    "ZeroTrustEvaluator",
     "LabProxyGateway",
     "ProxyEnforcementAdapter",
     "ExecutionGateError",

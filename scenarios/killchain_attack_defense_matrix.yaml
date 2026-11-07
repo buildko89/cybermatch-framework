@@ -1,0 +1,46 @@
+id: killchain_attack_defense_matrix
+version: '1.0'
+model: Lockheed Martin Cyber Kill Chain
+references:
+  - https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html
+  - https://attack.mitre.org/tactics/enterprise/
+scope: Illustrative defensive interruption matrix; ATT&CK tactics are approximate many-to-many mappings
+book_context: Requested white-hat introductory learning context; no quotation or claim of book-specific reproduction
+controls: [WAF, SAST, EDR, microsegmentation]
+phases:
+  - phase: reconnaissance
+    attack: Discover exposed endpoints
+    attack_tactics: [TA0043]
+    controls: {WAF: detect, SAST: none, EDR: none, microsegmentation: limit_exposure}
+  - phase: weaponization
+    attack: Prepare an exploit payload
+    attack_tactics: [TA0042]
+    controls: {WAF: none, SAST: reduce_exploitable_surface, EDR: none, microsegmentation: none}
+  - phase: delivery
+    attack: Submit malicious web requests
+    attack_tactics: [TA0001]
+    controls: {WAF: block_known_payloads, SAST: none, EDR: detect_payloads, microsegmentation: restrict_ingress}
+  - phase: exploitation
+    attack: Exploit injection or request forgery
+    attack_tactics: [TA0001, TA0002]
+    controls: {WAF: block_known_payloads, SAST: identify_code_flaws_before_release, EDR: detect_execution, microsegmentation: contain}
+  - phase: installation
+    attack: Establish persistence
+    attack_tactics: [TA0003]
+    controls: {WAF: none, SAST: none, EDR: prevent_persistence, microsegmentation: contain}
+  - phase: c2
+    attack: Establish command and control
+    attack_tactics: [TA0011]
+    controls: {WAF: limited_visibility, SAST: none, EDR: detect_beacons, microsegmentation: restrict_egress}
+  - phase: actions_on_objectives
+    attack: Access unauthorized records or exfiltrate data
+    attack_tactics: [TA0009, TA0010, TA0040]
+    controls: {WAF: limited_visibility, SAST: identify_missing_authorization, EDR: detect_exfiltration, microsegmentation: limit_data_access}
+remediation_phase_mapping:
+  sqli: [exploitation]
+  xss: [exploitation]
+  csrf: [exploitation]
+  ssrf: [exploitation]
+  idor_bola: [actions_on_objectives]
+  command_injection: [exploitation]
+evaluation: Findings identify potential interruption after remediation; matrix controls require independent deployment evidence

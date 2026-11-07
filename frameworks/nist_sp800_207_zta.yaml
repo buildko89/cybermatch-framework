@@ -1,0 +1,35 @@
+id: nist_sp800_207_zta
+version: '1.0'
+reference: https://nvlpubs.nist.gov/nistpubs/specialpublications/NIST.SP.800-207.pdf
+scope: Local architecture checklist derived from NIST SP 800-207 section 3
+architecture:
+  control_plane:
+    pdp:
+      policy_engine: Grant, deny, or revoke access based on policy and contextual evidence
+      policy_administrator: Establish or terminate communication paths and instruct PEP
+  data_plane:
+    pep: Gateway or proxy mediating subject-to-resource traffic
+  checks:
+    - {id: logical_separation, requirement: PDP decisions and PEP traffic enforcement are logically separate}
+    - {id: authenticated_control, requirement: Authenticate and protect PA-to-PEP control communication}
+    - {id: no_bypass, requirement: Resource traffic cannot bypass PEP}
+    - {id: revocation, requirement: PEP terminates existing sessions when PA revokes access}
+    - {id: fail_closed, requirement: Deny new access when a valid policy decision is unavailable}
+input_sources:
+  - id: cdm
+    check: Policy Engine consumes fresh device inventory and security posture
+  - id: compliance
+    check: Policy Engine evaluates applicable organizational and industry compliance evidence
+  - id: threat_intelligence
+    check: Policy Engine consumes vetted indicators with provenance and freshness
+  - id: activity_log
+    check: Network and system activity logs feed access decisions and audit trails
+  - id: pki
+    check: Validate certificate trust chains and revocation status
+  - id: data_policy
+    check: Apply resource sensitivity and enterprise access policy
+  - id: identity_management
+    check: Consume subject identity, attributes, privileges, and lifecycle status
+notes:
+  - Input sources are grouped locally into seven checks, not a normative NIST count.
+  - SIEM analytics can aggregate activity logs and provide risk signals to the Policy Engine.
