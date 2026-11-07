@@ -1,0 +1,65 @@
+id: genai_business_risk_profile
+version: '1.0'
+scope: Local heuristic input screening; not certification, legal advice or media authentication
+references:
+  owasp: https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf
+  eu_ai_act: https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai
+  transparency: https://digital-strategy.ec.europa.eu/en/policies/guidelines-ai-transparency-obligations
+  hiroshima: https://www.mofa.go.jp/files/100573473.pdf
+owasp_version: '2.0 (2025)'
+tag_policy: Finding tags retain requested legacy LLM06; canonical mappings below use v2.0 IDs
+scoring:
+  initial: 1.0
+  minimum: 0.0
+  penalties: {critical: 0.4, high: 0.25, medium: 0.1, low: 0.0}
+  aggregation: One finding per matched rule; repeated occurrences do not add penalties
+  block_severities: [critical, high]
+  low_policy: No score penalty specified; informational only
+categories:
+  prompt_injection_direct:
+    severity: high
+    finding_tag: 'LLM01: Prompt Injection'
+    owasp_v2_id: 'LLM01:2025'
+    controls: [instruction_data_separation, least_privilege, human_approval]
+  prompt_injection_indirect:
+    severity: high
+    finding_tag: 'LLM01: Prompt Injection'
+    owasp_v2_id: 'LLM01:2025'
+    controls: [untrusted_document_isolation, egress_restrictions, human_approval]
+  sensitive_data_leakage:
+    severity: high
+    finding_tag: 'LLM06: Sensitive Information Disclosure'
+    owasp_v2_id: 'LLM02:2025'
+    controls: [input_dlp, redaction, credential_revocation, access_log_review]
+  deepfake_bec_attempt:
+    severity: critical
+    finding_tag: 'N/A: BEC social engineering'
+    owasp_v2_id: null
+    controls: [known_number_callback, independent_account_verification, dual_payment_approval]
+  insecure_output_handling:
+    detection_status: Not evaluated by this input-only evaluator
+    owasp_v2_id: 'LLM05:2025'
+    controls: [output_validation, context_appropriate_encoding, sandbox_execution]
+governance:
+  eu_ai_act:
+    applicability: Assess jurisdiction, role and intended use before determining obligations
+    high_risk:
+      assessment: Classify intended use against Article 6 and Annexes I and III; GenAI is not automatically high-risk
+      criteria: [risk_management, data_governance, technical_documentation, logging, human_oversight, accuracy_robustness_cybersecurity]
+      evidence: [use_case_inventory, risk_register, oversight_owner, validation_records]
+    transparency:
+      basis: Article 50; assess applicable exceptions and provider/deployer responsibilities
+      criteria: [inform_people_of_ai_interaction, mark_synthetic_content, disclose_deepfakes]
+      evidence: [user_disclosures, content_labels, provenance_records]
+  hiroshima_ai_process:
+    nature: Voluntary international guidance for organizations developing advanced AI systems
+    criteria: [lifecycle_risk_assessment, vulnerability_reporting, incident_information_sharing, security_controls, content_provenance, privacy_protection]
+    evidence: [red_team_results, incident_response_plan, risk_mitigation_log]
+limitations:
+  - HTML comment openers such as <!-- are blocked as indirect injection candidates even in benign quotations
+  - My Number detection extracts 12-digit format candidates without check-digit validation
+  - Heuristics can miss paraphrases and encoded attacks and can flag benign quotations
+  - Numeric PII patterns are candidates; ownership and authenticity are not verified
+  - BEC detection identifies textual warning signs and cannot establish deepfake authenticity
+  - No findings does not prove safety or regulatory compliance
+  - Referenced books were not supplied; no passages or book-specific claims are reproduced
