@@ -1,0 +1,47 @@
+id: zerotrust_cisa_maturity
+version: '1.0'
+reference: https://www.cisa.gov/sites/default/files/2023-04/zero_trust_maturity_model_v2_508.pdf
+scope: CISA-inspired local checklist; not an official CISA scoring or certification method
+input: Five top-level mappings named identity, device, network, application, data
+scoring:
+  progression: All requirements of the current and previous stages must be true
+  missing_evidence: false
+  pillar_score: (level - 1) / 3
+  overall_score: Equal-weight mean of all five pillar scores
+  containment_factor: Equal-weight mean of pillar coefficients; simulation assumption only
+levels:
+  traditional: {value: 1, containment: 0.1}
+  initial: {value: 2, containment: 0.35}
+  advanced: {value: 3, containment: 0.70}
+  optimal: {value: 4, containment: 0.95}
+identity_normalization:
+  mfa_type: [none, sms, totp, push, fido2, passkey]
+  mfa_enabled: Any supported mfa_type other than none, or fido2_passkey true
+  fido2_passkey: mfa_type fido2/passkey, or explicit fido2_passkey true
+  sms_fallback_disabled: Derived from mfa_type != sms; any explicit flag is overridden
+pillars:
+  identity:
+    traditional: {requirements: [], description: Static identities and perimeter trust}
+    initial: {requirements: [mfa_enabled]}
+    advanced: {requirements: [fido2_passkey, conditional_access, sms_fallback_disabled]}
+    optimal: {requirements: [continuous_verification, just_in_time_access]}
+  device:
+    traditional: {requirements: [], description: Unmanaged or manually inventoried endpoints}
+    initial: {requirements: [mdm_managed]}
+    advanced: {requirements: [edr_enabled, device_compliance_required]}
+    optimal: {requirements: [continuous_monitoring, automated_remediation]}
+  network:
+    traditional: {requirements: [], description: Static perimeter network}
+    initial: {requirements: [segmentation]}
+    advanced: {requirements: [microsegmentation, encrypted_traffic]}
+    optimal: {requirements: [dynamic_policy, automated_response]}
+  application:
+    traditional: {requirements: [], description: Siloed application authorization}
+    initial: {requirements: [sso_enabled]}
+    advanced: {requirements: [least_privilege, workload_identity]}
+    optimal: {requirements: [continuous_authorization, automated_lifecycle]}
+  data:
+    traditional: {requirements: [], description: Static data permissions}
+    initial: {requirements: [inventory]}
+    advanced: {requirements: [classification, encryption_at_rest, dlp_enabled]}
+    optimal: {requirements: [dynamic_access, automated_classification]}
