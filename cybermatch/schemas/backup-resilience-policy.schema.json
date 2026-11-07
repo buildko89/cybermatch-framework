@@ -1,0 +1,151 @@
+{
+  "type": "object",
+  "properties": {
+    "policy_id": {
+      "type": "string"
+    },
+    "organization_type": {
+      "enum": [
+        "smb",
+        "enterprise",
+        "manufacturing_ot",
+        "municipality",
+        "financial"
+      ]
+    },
+    "rule_32110": {
+      "type": "object",
+      "properties": {
+        "total_copies": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "media_types": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offsite_copies": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "immutable_airgap_copies": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "verified_zero_error_restore": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "total_copies",
+        "media_types",
+        "offsite_copies",
+        "immutable_airgap_copies",
+        "verified_zero_error_restore"
+      ],
+      "additionalProperties": false
+    },
+    "protection_controls": {
+      "type": "object",
+      "properties": {
+        "ad_domain_isolated": {
+          "type": "boolean"
+        },
+        "worm_mode": {
+          "enum": [
+            "none",
+            "governance",
+            "compliance"
+          ]
+        },
+        "air_gap_type": {
+          "enum": [
+            "none",
+            "logical",
+            "physical_lto"
+          ]
+        },
+        "delete_requires_dual_auth": {
+          "type": "boolean"
+        },
+        "malware_scan_on_restore": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ad_domain_isolated",
+        "worm_mode",
+        "air_gap_type",
+        "delete_requires_dual_auth",
+        "malware_scan_on_restore"
+      ],
+      "additionalProperties": false
+    },
+    "protected_scopes": {
+      "type": "object",
+      "properties": {
+        "vm_and_db_consistent": {
+          "type": "boolean"
+        },
+        "audit_logs_and_iac_preserved": {
+          "type": "boolean"
+        },
+        "ot_system_image_preserved": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "vm_and_db_consistent",
+        "audit_logs_and_iac_preserved",
+        "ot_system_image_preserved"
+      ],
+      "additionalProperties": false
+    },
+    "targets": {
+      "type": "object",
+      "properties": {
+        "target_rpo_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "target_rto_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "target_rpo_hours",
+        "target_rto_hours"
+      ],
+      "additionalProperties": false
+    },
+    "operational": {
+      "type": "object",
+      "properties": {
+        "backup_frequency_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 24.0
+        },
+        "restore_throughput_tb_per_hour": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 5.0
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "policy_id",
+    "organization_type",
+    "rule_32110",
+    "protection_controls",
+    "protected_scopes",
+    "targets"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Deterministic backup recovery simulation policy; recommendations are thresholds, not schema minima."
+}

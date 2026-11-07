@@ -1,0 +1,60 @@
+{
+  "legacy_vulnerable_backup": {
+    "policy_id": "legacy_vulnerable_backup",
+    "organization_type": "smb",
+    "rule_32110": {
+      "total_copies": 2,
+      "media_types": 1,
+      "offsite_copies": 0,
+      "immutable_airgap_copies": 0,
+      "verified_zero_error_restore": false
+    },
+    "protection_controls": {
+      "ad_domain_isolated": false,
+      "worm_mode": "none",
+      "air_gap_type": "none",
+      "delete_requires_dual_auth": false,
+      "malware_scan_on_restore": false
+    },
+    "protected_scopes": {
+      "vm_and_db_consistent": false,
+      "audit_logs_and_iac_preserved": false,
+      "ot_system_image_preserved": false
+    },
+    "targets": {
+      "target_rpo_hours": 4.0,
+      "target_rto_hours": 8.0
+    }
+  },
+  "hardened_32110_resilient": {
+    "policy_id": "hardened_32110_resilient",
+    "organization_type": "smb",
+    "rule_32110": {
+      "total_copies": 3,
+      "media_types": 2,
+      "offsite_copies": 1,
+      "immutable_airgap_copies": 1,
+      "verified_zero_error_restore": true
+    },
+    "protection_controls": {
+      "ad_domain_isolated": true,
+      "worm_mode": "compliance",
+      "air_gap_type": "logical",
+      "delete_requires_dual_auth": true,
+      "malware_scan_on_restore": true
+    },
+    "protected_scopes": {
+      "vm_and_db_consistent": true,
+      "audit_logs_and_iac_preserved": true,
+      "ot_system_image_preserved": true
+    },
+    "targets": {
+      "target_rpo_hours": 4.0,
+      "target_rto_hours": 8.0
+    },
+    "operational": {
+      "backup_frequency_hours": 4.0,
+      "restore_throughput_tb_per_hour": 5.0
+    }
+  }
+}
