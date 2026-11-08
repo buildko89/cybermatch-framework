@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "topology_id": "aerospace_avionics",
+  "zones": [
+    {
+      "node_id": 0,
+      "name": "PIESD_Cabin_WiFi",
+      "trust_level": "untrusted",
+      "internet_access": true
+    },
+    {
+      "node_id": 1,
+      "name": "AISD_Info_Gateway",
+      "trust_level": "restricted",
+      "internet_access": false
+    },
+    {
+      "node_id": 2,
+      "name": "ACD_Flight_Control_ARINC664",
+      "trust_level": "critical",
+      "internet_access": false
+    },
+    {
+      "node_id": 3,
+      "name": "GNSS_Receiver",
+      "trust_level": "external",
+      "internet_access": false
+    },
+    {
+      "node_id": 4,
+      "name": "ADSB_1090MHz_In",
+      "trust_level": "external",
+      "internet_access": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "PIESD_Cabin_WiFi",
+      "target": "AISD_Info_Gateway",
+      "boundary": "cabin-to-gateway",
+      "bidirectional": false
+    },
+    {
+      "source": "ACD_Flight_Control_ARINC664",
+      "target": "AISD_Info_Gateway",
+      "boundary": "acd-to-aisd-diode",
+      "bidirectional": false
+    },
+    {
+      "source": "GNSS_Receiver",
+      "target": "ACD_Flight_Control_ARINC664",
+      "boundary": "gnss-to-acd",
+      "bidirectional": false
+    },
+    {
+      "source": "ADSB_1090MHz_In",
+      "target": "AISD_Info_Gateway",
+      "boundary": "adsb-to-aisd",
+      "bidirectional": false
+    }
+  ],
+  "controls": [
+    {
+      "control_id": "data_diode_acd_isolation",
+      "description": "Hardware/logical data diode permits only outbound ACD telemetry and blocks all reverse writes; ARINC 429/664 avionics isolation."
+    },
+    {
+      "control_id": "adsb_mlat_cross_validator",
+      "description": "Cross-validates plaintext unauthenticated ADS-B signals with MLAT and primary radar."
+    },
+    {
+      "control_id": "gnss_ins_coupling_gate",
+      "description": "Compares GNSS signals with inertial navigation to detect spoofing and enable INS fallback."
+    }
+  ]
+}

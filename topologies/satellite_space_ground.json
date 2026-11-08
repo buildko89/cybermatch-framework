@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "topology_id": "satellite_space_ground",
+  "zones": [
+    {
+      "node_id": 0,
+      "name": "Ground_MOC",
+      "trust_level": "restricted",
+      "internet_access": true
+    },
+    {
+      "node_id": 1,
+      "name": "Ground_SDR_Station",
+      "trust_level": "brokered",
+      "internet_access": false
+    },
+    {
+      "node_id": 2,
+      "name": "TTC_RF_Link",
+      "trust_level": "external",
+      "internet_access": false
+    },
+    {
+      "node_id": 3,
+      "name": "Satellite_cFS_Bus",
+      "trust_level": "critical",
+      "internet_access": false
+    },
+    {
+      "node_id": 4,
+      "name": "ADCS_Attitude_Control",
+      "trust_level": "critical",
+      "internet_access": false
+    },
+    {
+      "node_id": 5,
+      "name": "EPS_Power_Subsystem",
+      "trust_level": "critical",
+      "internet_access": false
+    },
+    {
+      "node_id": 6,
+      "name": "Mission_Payload",
+      "trust_level": "privileged",
+      "internet_access": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "Ground_MOC",
+      "target": "Ground_SDR_Station",
+      "boundary": "moc-to-sdr",
+      "bidirectional": false
+    },
+    {
+      "source": "Ground_SDR_Station",
+      "target": "TTC_RF_Link",
+      "boundary": "ground-to-rf",
+      "bidirectional": false
+    },
+    {
+      "source": "TTC_RF_Link",
+      "target": "Satellite_cFS_Bus",
+      "boundary": "rf-to-cfs",
+      "bidirectional": false
+    },
+    {
+      "source": "Satellite_cFS_Bus",
+      "target": "ADCS_Attitude_Control",
+      "boundary": "cfs-to-adcs",
+      "bidirectional": false
+    },
+    {
+      "source": "Satellite_cFS_Bus",
+      "target": "EPS_Power_Subsystem",
+      "boundary": "cfs-to-eps",
+      "bidirectional": false
+    },
+    {
+      "source": "Satellite_cFS_Bus",
+      "target": "Mission_Payload",
+      "boundary": "cfs-to-payload",
+      "bidirectional": false
+    }
+  ],
+  "controls": [
+    {
+      "control_id": "ccsds_sdls_crypto_gate",
+      "description": "Space data link encryption and authentication gate across ground, communication and space segments of a NASA NOS^3 digital twin."
+    },
+    {
+      "control_id": "physics_invariant_supervisor",
+      "description": "Monitors battery power, angular velocity and critical communications; rejects hazardous commands and forces Safe-Hold Mode."
+    }
+  ]
+}
