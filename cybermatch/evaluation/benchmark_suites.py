@@ -766,7 +766,10 @@ def run_phase84_topology_evaluation(
 ) -> List[Dict[str, object]]:
     from cybermatch.loaders.topology_loader import list_available_topologies, load_topology
 
-    topologies = [load_topology(str(path)) for path in list_available_topologies(topology_dir)]
+    topologies = [
+        t for path in list_available_topologies(topology_dir)
+        if (t := load_topology(str(path))).get("characteristics") is not None
+    ]
     phase63_rows = _phase82_load_phase63_rows(baseline_summary_path)
     rows = _phase84_build_rows(topologies, phase63_rows)
     analysis = _phase84_analysis(rows)

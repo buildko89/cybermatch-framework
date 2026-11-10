@@ -36,6 +36,8 @@ ALLOWED_TOPOLOGY_PRESETS = {
     "cloud_native",
     "ot_environment",
     "hospital_network",
+    "aerospace_avionics",
+    "satellite_space_ground",
 }
 
 ALLOWED_CHARACTERISTIC_LEVELS = {

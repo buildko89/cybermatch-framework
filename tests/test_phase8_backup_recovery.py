@@ -11,7 +11,7 @@ import pytest
 from cybermatch.defense.backup_recovery_simulator import simulate_ransomware_recovery as simulate
 
 ROOT = Path(__file__).resolve().parents[1]
-CATALOG = json.loads((ROOT / 'scenarios/catalog/ransomware_backup_destruction.json').read_text(encoding="utf-8"))
+CATALOG = json.loads((ROOT / 'configs/backup_resilience/ransomware_backup_destruction.json').read_text(encoding="utf-8"))
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@ from pathlib import Path
 from dataclasses import FrozenInstanceError
 
 import pytest
-import yaml
+yaml = pytest.importorskip("yaml")
 
 from cybermatch.defense import ZeroTrustEvaluator
 from cybermatch.defense.zerotrust_evaluator import CHECKLISTS, CONTAINMENT

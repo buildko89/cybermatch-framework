@@ -162,13 +162,14 @@ def test_load_scenario_catalog():
     scenarios = load_scenario_catalog()
     names = {scenario["metadata"]["name"] for scenario in scenarios}
 
-    assert len(list_available_scenarios()) == 5
+    assert len(list_available_scenarios()) == 6
     assert names == {
         "financial_enterprise",
         "hospital_enterprise",
         "cloud_native_startup",
         "ot_factory",
         "small_business",
+        "aerospace_satellite_cps",
     }
 
 
@@ -202,6 +203,7 @@ def test_phase82_scenario_catalog_evaluation_smoke(tmp_path, monkeypatch):
         "cloud_native_startup",
         "ot_factory",
         "small_business",
+        "aerospace_satellite_cps",
     }
     assert (tmp_path / "phase82" / "scenario_catalog_summary.csv").exists()
     assert (tmp_path / "phase82" / "scenario_catalog_summary.json").exists()

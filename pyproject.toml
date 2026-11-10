@@ -34,6 +34,7 @@ dev = [
   "build>=1.2,<2",
   "pip-tools>=7.4,<8",
   "pytest>=8,<9",
+  "pyyaml>=6.0,<7",
 ]
 all = [
   "scikit-learn>=1.4,<2",

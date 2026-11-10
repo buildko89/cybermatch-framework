@@ -48,6 +48,8 @@ def test_topology_list():
         "cloud_native",
         "ot_environment",
         "hospital_network",
+        "aerospace_avionics",
+        "satellite_space_ground",
     }
 
 

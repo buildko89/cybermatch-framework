@@ -145,6 +145,8 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-multipart==0.0.32
     # via streamlit
+pyyaml==6.0.3
+    # via cybermatch-framework (pyproject.toml)
 qdldl==0.1.9.post1
     # via cvxpy
 referencing==0.37.0

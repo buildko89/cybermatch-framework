@@ -39,15 +39,15 @@ def test_registry_schemas_are_valid_and_all_registered_assets_pass():
         "fuzz_campaign": 4,
         "product": 10,
         "recipe": 6,
-        "scenario": 21,
+        "scenario": 22,
         "skill_candidate_manifest": 2,
         "skills_evaluation_spec": 1,
         "scoped_response_action": 1,
         "scoped_response_receipt": 1,
         "telemetry_mapping": 4,
-        "topology": 7,
+        "topology": 9,
     }
-    assert summary.total == 76
+    assert summary.total == 79
 
 
 def test_schema_rejects_unknown_scenario_envelope_field():
@@ -74,4 +74,4 @@ def test_asset_validation_cli_reports_machine_readable_summary(capsys):
     assert validate_assets_main(["--root", str(REPOSITORY_ROOT)]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output["schema_version"] == "1.0"
-    assert output["total"] == 76
+    assert output["total"] == 79

@@ -54,6 +54,22 @@ def load_topology(path: str) -> Dict[str, Any]:
 
 
 def validate_topology(topology: Dict[str, Any]) -> None:
+    if "schema_version" in topology and "topology_id" in topology:
+        # Phase 9 CPS network topology (schema.json alternative branch)
+        if not isinstance(topology.get("topology_id"), str) or not topology["topology_id"]:
+            raise TopologyValidationError("Topology requires topology_id.")
+        zones = topology.get("zones")
+        if not isinstance(zones, list) or len(zones) == 0:
+            raise TopologyValidationError("Topology requires at least one zone.")
+        if not all(isinstance(z, dict) and "node_id" in z for z in zones):
+            raise TopologyValidationError("Each zone in topology must be a dict with node_id.")
+        controls = topology.get("controls")
+        if not isinstance(controls, list) or len(controls) == 0:
+            raise TopologyValidationError("Topology requires at least one control.")
+        if not all(isinstance(c, dict) and "control_id" in c for c in controls):
+            raise TopologyValidationError("Each control in topology must be a dict with control_id.")
+        return
+
     metadata = topology.get("metadata")
     if not isinstance(metadata, dict) or not metadata.get("name"):
         raise TopologyValidationError("Topology requires metadata.name.")

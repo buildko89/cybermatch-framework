@@ -4,7 +4,7 @@ from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 import pytest
-import yaml
+yaml = pytest.importorskip("yaml")
 
 from cybermatch.defense import SecureCodingEvaluator
 from cybermatch.defense.secure_coding_evaluator import PENALTIES, PHASES, RULES
